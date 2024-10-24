@@ -16,6 +16,76 @@ use Illuminate\Support\Facades\Auth;
 
 class ProfileController extends Controller
 {
+    public function edit(Request $request) {
+        $auth = Auth::guard('member')->user();
+
+        try {
+            $request->validate([
+                'profile_pic' => 'dimensions:ratio=1/1',
+            ], [
+                'profile_pic.dimensions' => 'Foto profil harus memiliki dimensi rasio 1:1 (persegi).',
+            ]);
+
+            $peserta = Member::find($auth->id_peserta);
+
+            $array = [
+                'nama_depan' => $request->nama_depan,
+                'nama_belakang' => $request->nama_belakang,
+                'nama' => $request->nama_depan . ' ' . $request->nama_belakang,
+                'email' => $request->email,
+                'no_hp' => $request->no_hp,
+            ];
+
+            if($request['password']){
+                $array['password'] = bcrypt($request['password']);
+            }
+
+            if ($request->hasFile('profile_pic')) {
+                $file = $request->file('profile_pic');
+                $directory = 'storage/foto_profile/' . $auth->id_peserta . '/';
+                $fileName = 'foto_profile/' . $auth->id_peserta . '/' . date('YmdHis') . rand(999999999, 9999999999) . '.' . $file->getClientOriginalExtension();
+                $file->move(public_path($directory), $fileName);
+                $array['profile_pic'] = $fileName;
+            }
+
+            $peserta->update($array);
+
+            return redirect()->back()->with('success', 'Success');
+        } catch (\Throwable $th) {
+            return back()->with('error', $th->getMessage());
+        }
+    }
+
+    public function card() {
+        return view('new.pages.profile.card');
+    }
+
+    public function member() {
+        $auth = Auth::guard('member')->user();
+
+        try {
+            $peserta = Member::find($auth->id_peserta);
+
+            $uniqueNumber = $this->generateUniqueNumber();
+
+            $peserta->update([
+                'member' => $uniqueNumber,
+            ]);
+
+            return redirect()->back()->with('success', 'Success');
+        } catch (\Throwable $th) {
+            return back()->with('error', $th->getMessage());
+        }
+    }
+
+    private function generateUniqueNumber() {
+        do {
+            $number = str_pad(rand(0, 999999999999), 12, '0', STR_PAD_LEFT);
+        } while (Member::where('member', $number)->exists());
+    
+        return $number;
+    }
+
     public function index()
     {
         $auth = Auth::guard('member')->user();
@@ -161,7 +231,7 @@ class ProfileController extends Controller
             $title = 'store_cart';
         }
 
-        return view('profil',[
+        return view('new.pages.profile.profile',[
             'auth' => $auth,
             'title' => $title,
             'wishlists' => $wishlists,

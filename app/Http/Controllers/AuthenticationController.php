@@ -6,12 +6,14 @@ use Carbon\Carbon;
 use App\Models\Member;
 use App\Models\Province;
 use App\Mail\UserVerified;
+use App\Models\LoginHistory;
 use App\Mail\EmailVerification;
 use Illuminate\Validation\Rule;
 use App\Mail\EmailResetPassword;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Session;
 
 class AuthenticationController extends Controller
 {
@@ -21,6 +23,25 @@ class AuthenticationController extends Controller
             $user = Auth::guard('member')->user();
 
             if ($user->email_verified_at !== null) {
+                $ipAddress = $this->request->ip();
+                $userAgent = $this->request->header('User-Agent');
+                $sessionId = session()->getId();
+
+                $existingHistory = LoginHistory::where('peserta_id', $user->id_peserta)
+                    ->where('ip_address', $ipAddress)
+                    ->where('user_agent', $userAgent)
+                    ->where('session_id', $sessionId)
+                    ->first();
+
+                if (!$existingHistory) {
+                    LoginHistory::create([
+                        'peserta_id' => $user->id_peserta,
+                        'ip_address' => $ipAddress,
+                        'user_agent' => $userAgent,
+                        'session_id' => $sessionId,
+                    ]);
+                }
+                
                 return redirect()->intended('/');
             }
 
@@ -46,6 +67,25 @@ class AuthenticationController extends Controller
             if ($user->email_verified_at !== null && $user->status_aktif == 1) {
 
                 $this->request->session()->regenerate();
+
+                $ipAddress = $this->request->ip();
+                $userAgent = $this->request->header('User-Agent');
+                $sessionId = session()->getId();
+
+                $existingHistory = LoginHistory::where('peserta_id', $user->id_peserta)
+                    ->where('ip_address', $ipAddress)
+                    ->where('user_agent', $userAgent)
+                    ->where('session_id', $sessionId)
+                    ->first();
+
+                if (!$existingHistory) {
+                    LoginHistory::create([
+                        'peserta_id' => $user->id_peserta,
+                        'ip_address' => $ipAddress,
+                        'user_agent' => $userAgent,
+                        'session_id' => $sessionId,
+                    ]);
+                }
 
                 return redirect()->intended('/');
             }
@@ -81,6 +121,23 @@ class AuthenticationController extends Controller
         $this->request->session()->regenerateToken();
 
         return redirect('/');
+    }
+
+    public function logoutFromDevice($sessionId)
+    {
+        $loginHistory = LoginHistory::where('session_id', $sessionId)->first();
+
+        if ($loginHistory) {
+            Session::getHandler()->destroy($sessionId);
+
+            $loginHistory->update([
+                'status' => 2,
+            ]);
+
+            return redirect()->back()->with('success', 'Anda telah berhasil keluar dari perangkat lain.');
+        }
+
+        return redirect()->back()->with('error', 'Sesi tidak ditemukan.');
     }
 
     public function registration()

@@ -71,4 +71,12 @@ class Member extends Authenticatable
     {
         return $this->hasMany(OrderDetail::class, 'id_peserta');
     }
+
+    public function alamats() {
+        return $this->hasMany(Alamat::class, 'peserta_id', 'id_peserta');
+    }
+
+    public function loginHistories() {
+        return $this->hasMany(LoginHistory::class, 'peserta_id', 'id_peserta');
+    }
 }
