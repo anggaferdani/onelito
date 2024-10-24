@@ -1,22 +1,25 @@
 <?php
 
-use App\Http\Controllers\Admin;
-use App\Http\Controllers\AuctionController;
-use App\Http\Controllers\AuthenticationController;
-use App\Http\Controllers\CartController;
-use App\Http\Controllers\ChampionFishController;
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\KoiStockController;
-use App\Http\Controllers\MemberController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\ServiceController;
-use App\Http\Controllers\StoreController;
-use App\Http\Controllers\WishlistController;
-use App\Mail\EmailVerification;
-use Illuminate\Routing\Route as RoutingRoute;
 use Illuminate\Support\Carbon;
+use App\Http\Controllers\Admin;
+use App\Mail\EmailVerification;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\StoreController;
+use App\Http\Controllers\AlamatController;
+use App\Http\Controllers\MemberController;
+use App\Http\Controllers\AuctionController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\KoiStockController;
+use App\Http\Controllers\WishlistController;
+use Illuminate\Routing\Route as RoutingRoute;
+use App\Http\Controllers\NotifikasiController;
+use App\Http\Controllers\PengaturanController;
+use App\Http\Controllers\ChampionFishController;
+use App\Http\Controllers\AuthenticationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -69,6 +72,7 @@ Route::post('/ls/reset', [AuthenticationController::class, 'emailChangePasswordP
 
 Route::get('/login', [AuthenticationController::class, 'loginPage'])->name('login');
 Route::get('/logout', [AuthenticationController::class, 'logout'])->name('logout');
+Route::get('/logout/device/{session_id}', [AuthenticationController::class, 'logoutFromDevice'])->name('logout.device');
 Route::get('/registrasi', [AuthenticationController::class, 'registration'])->name('registration');
 Route::get('/reqreset', [AuthenticationController::class, 'reqreset'])->name('reqreset');
 Route::post('/reqreset', [AuthenticationController::class, 'reqresetProsses'])->name('reqreset.prosses');
@@ -93,6 +97,20 @@ Route::get('/auction/{idIkan}/detail', [AuctionController::class, 'detail'])->na
 
 // MEMBER
 Route::group(['middleware' => 'auth:member'], function () {
+    Route::resource('alamat', AlamatController::class);
+    Route::put('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+
+    Route::get('/alamat/pilih-alamat/{alamatId}', [AlamatController::class, 'pilihAlamat'])->name('alamat.pilih-alamat');
+    Route::get('/alamat/alamat-utama/{alamatId}', [AlamatController::class, 'alamatUtama'])->name('alamat.alamat-utama');
+    
+    Route::get('/card', [ProfileController::class, 'card'])->name('profile.card');
+    Route::get('/member', [ProfileController::class, 'member'])->name('profile.member');
+
+    Route::get('/notifikasi', [NotifikasiController::class, 'notifikasi'])->name('profile.notifikasi');
+    Route::put('/notifikasi/update', [NotifikasiController::class, 'notifikasiUpdate'])->name('profile.notifikasi.update');
+
+    Route::get('/pengaturan', [PengaturanController::class, 'pengaturan'])->name('profile.pengaturan');
+
     Route::GET('/wishlistlog', [WishlistController::class, 'wishlistlog']);
     Route::POST('/change-password', [AuthenticationController::class, 'changePassword']);
     Route::POST('/update-profile', [ProfileController::class, 'updateProfile']);

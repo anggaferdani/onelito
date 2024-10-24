@@ -114,7 +114,7 @@
 </style>
 @php
     $auth = Auth::guard('member')->user();
-    $imgProfile = url('img/foto.png');
+    $imgProfile = url('img/default.png');
 
     if ($auth->profile_pic !== null) {
         $imgProfile = url('storage/'.$auth->profile_pic);
