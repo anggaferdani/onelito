@@ -127,41 +127,31 @@
             <div class="collapse flex-grow-0 navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a class="nav-link {{ $title === 'home' ? 'active text-danger' : '' }}"href="/">HOME</a>
+                        <a class="nav-link small {{ $title === 'home' ? 'active text-danger' : '' }}"href="/">HOME</a>
                     </li>
                     <li class="nav-item">
-                        <a
-                            class="nav-link {{ $title === 'auction' ? 'active text-danger' : '' }}"href="/auction">AUCTION</a>
+                        <a class="nav-link small {{ $title === 'auction' ? 'active text-danger' : '' }}"href="/auction">AUCTION</a>
                     </li>
                     <li class="nav-item">
-                        <a
-                            class="nav-link {{ $title === 'ONELITO STORE' ? 'active text-danger' : '' }}"href="/onelito_store">ONELITO
-                            STORE</a>
+                        <a class="nav-link small {{ $title === 'ONELITO STORE' ? 'active text-danger' : '' }}"href="/onelito_store">ONELITO STORE</a>
                     </li>
                     <li class="nav-item">
-                        <a
-                            class="nav-link {{ $title === 'koi_stok' ? 'active text-danger' : '' }}"href="/koi_stok">KOI
-                            STOCK</a>
+                        <a class="nav-link small {{ $title === 'koi_stok' ? 'active text-danger' : '' }}"href="/koi_stok">KOI STOCK</a>
                     </li>
                     <li class="nav-item">
-                        <a
-                            class="nav-link"href="/login">WISHLIST</a>
+                        <a class="nav-link small"href="/login">WISHLIST</a>
                     </li>
                     <li class="nav-item">
-                        <a
-                            class="nav-link"href="/login">WINNING AUCTION</a>
+                        <a class="nav-link small"href="/login">WINNING AUCTION</a>
                     </li>
                     <li class="nav-item">
-                        <a
-                            class="nav-link"href="/login">PAYMENT CART</a>
+                        <a class="nav-link small"href="/login">PAYMENT CART</a>
                     </li>
-                    {{--
                     <li class="nav-item">
-                        <a class="nav-link {{ $title === 'koi_stok' ? 'active text-danger' : '' }}"href="/koi_stok">KOI
-                            STOCK</a>
-                    </li> --}}
+                        <a class="nav-link small" href="{{ route('news') }}">NEWS</a>
+                    </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ $title === 'login' ? 'active text-danger' : '' }}"href="/login">LOGIN</a>
+                        <a class="nav-link small {{ $title === 'login' ? 'active text-danger' : '' }}"href="/login">LOGIN</a>
                     </li>
                 </ul>
             </div>
@@ -185,6 +175,7 @@
         <a class="nav-link"href="/login">WISHLIST</a>
         <a class="nav-link"href="/login">WINNING AUCTION</a>
         <a class="nav-link"href="/login">PAYMENT CART</a>
+        <a class="nav-link" href="{{ route('news') }}">NEWS</a>
         <a class="nav-link {{ $title === 'login' ? 'active text-danger' : '' }}"href="/login">LOGIN</a>
     </div>
 

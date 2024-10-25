@@ -5,8 +5,10 @@ use App\Http\Controllers\Admin;
 use App\Mail\EmailVerification;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\TagController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\NewsController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\AlamatController;
 use App\Http\Controllers\MemberController;
@@ -95,6 +97,9 @@ Route::get('/subdistricts', [ServiceController::class, 'subdistricts'])->name('h
 Route::get('/auction/{idIkan}', [AuctionController::class, 'bid'])->name('auction.bid');
 Route::get('/auction/{idIkan}/detail', [AuctionController::class, 'detail'])->name('auction.detail');
 
+Route::get('/news', [NewsController::class, 'news'])->name('news');
+Route::get('/news/{slug}', [NewsController::class, 'detail'])->name('news.detail');
+
 // MEMBER
 Route::group(['middleware' => 'auth:member'], function () {
     Route::resource('alamat', AlamatController::class);
@@ -176,6 +181,11 @@ Route::group(['prefix' => 'authentications'], function () {
 
 // ADMIN
 Route::group(['prefix' => 'admin', 'middleware' => 'auth:admin'], function () {
+    Route::name('admin.')->group(function() {
+        Route::resource('tag', TagController::class);
+        Route::resource('news', NewsController::class);
+    });
+
     Route::get('/dashboard', [Admin\DashboardController::class, 'index'])->name('admin.dashboard.index');
     Route::get('/charts/sum-product-sold', [Admin\DashboardController::class, 'productSoldChart']);
     Route::get('/charts/sum-nominal-product-sold', [Admin\DashboardController::class, 'productSoldNominalChart']);

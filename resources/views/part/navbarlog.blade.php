@@ -133,37 +133,35 @@
             <div class="collapse flex-grow-0 navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a class="nav-link {{ $title === 'home' ? 'active text-danger' : '' }}"href="/">HOME</a>
+                        <a class="nav-link small {{ $title === 'home' ? 'active text-danger' : '' }}"href="/">HOME</a>
                     </li>
                     <li class="nav-item">
-                        <a
-                            class="nav-link {{ $title === 'auction' ? 'active text-danger' : '' }}"href="/auction">AUCTION</a>
+                        <a class="nav-link small {{ $title === 'auction' ? 'active text-danger' : '' }}"href="/auction">AUCTION</a>
                     </li>
                     <li class="nav-item">
-                        <a
-                            class="nav-link {{ $title === 'ONELITO STORE' ? 'active text-danger' : '' }}"href="/onelito_store">ONELITO
-                            STORE</a>
+                        <a class="nav-link small {{ $title === 'ONELITO STORE' ? 'active text-danger' : '' }}"href="/onelito_store">ONELITO STORE</a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link {{ $title === 'KOI STOCK' ? 'active text-danger' : '' }}"href="/koi_stok">KOI
-                            STOCK</a>
+                        <a class="nav-link small {{ $title === 'KOI STOCK' ? 'active text-danger' : '' }}"href="/koi_stok">KOI STOCK</a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link {{ $title === 'wishlist' ? 'active text-danger' : '' }}"href="/wishlistlog">WISHLIST</a>
+                        <a class="nav-link small {{ $title === 'wishlist' ? 'active text-danger' : '' }}"href="/wishlistlog">WISHLIST</a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link {{ $title === 'cart' ? 'active text-danger' : '' }}"href="/profil?section=cart">WINNING AUCTION</a>
+                        <a class="nav-link small {{ $title === 'cart' ? 'active text-danger' : '' }}"href="/profil?section=cart">WINNING AUCTION</a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link {{ $title === 'store_cart' ? 'active text-danger' : '' }}"href="/profil?section=store-cart">PAYMENT CART</a>
+                        <a class="nav-link small {{ $title === 'store_cart' ? 'active text-danger' : '' }}"href="/profil?section=store-cart">PAYMENT CART</a>
                     </li>
-
                     <li class="nav-item">
-                        <a class="nav-link {{ $title === 'login' ? 'active text-danger' : '' }}"href="/profil">
+                        <a class="nav-link small" href="{{ route('news') }}">NEWS</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link small {{ $title === 'login' ? 'active text-danger' : '' }}"href="/profil">
                             <!-- <i class="fa-solid fa-circle-user" style="font-size: x-large"></i> -->
                             <img src="{{ $imgProfile }}" style="width:24px;height:24px;border-radius:50%;max-width:unset">
                         </a>
@@ -191,6 +189,7 @@
         <a class="nav-link {{ $title === 'wishlistlog' ? 'active text-danger' : '' }}"href="/wishlistlog">WISHLIST</a>
         <a class="nav-link {{ $title === 'cart' ? 'active text-danger' : '' }}"href="/shoppingcart">WINNING AUCTION</a>
         <a class="nav-link {{ $title === 'store_cart' ? 'active text-danger' : '' }}"href="/storecart">PAYMENT CART</a>
+        <a class="nav-link" href="{{ route('news') }}">NEWS</a>
 
 
         <div class="px-4" style="position: absolute;

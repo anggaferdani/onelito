@@ -94,6 +94,10 @@
       width: 100vw;
   }
 </style>
+@php
+  $title = null;
+  $auth = Auth::guard('member')->user();
+@endphp
 <div class="atas fix">
   <nav class="navbar navbar-expand-lg navbar-light bg-light">
       <div class="container">
@@ -107,31 +111,40 @@
           <div class="collapse flex-grow-0 navbar-collapse" id="navbarNav">
               <ul class="navbar-nav">
                   <li class="nav-item">
-                      <a class="nav-link" href="/">HOME</a>
+                      <a class="nav-link small" href="/">HOME</a>
                   </li>
                   <li class="nav-item">
-                      <a class="nav-link" href="/auction">AUCTION</a>
+                      <a class="nav-link small" href="/auction">AUCTION</a>
                   </li>
                   <li class="nav-item">
-                      <a class="nav-link" href="/onelito_store">ONELITO STORE</a>
+                      <a class="nav-link small" href="/onelito_store">ONELITO STORE</a>
                   </li>
                   <li class="nav-item">
-                      <a class="nav-link" href="/koi_stok">KOI STOCK</a>
+                      <a class="nav-link small" href="/koi_stok">KOI STOCK</a>
                   </li>
                   <li class="nav-item">
-                      <a class="nav-link" href="/wishlistlog">WISHLIST</a>
+                      <a class="nav-link small" href="/wishlistlog">WISHLIST</a>
                   </li>
                   <li class="nav-item">
-                      <a class="nav-link" href="/profil?section=cart">WINNING AUCTION</a>
+                      <a class="nav-link small" href="/profil?section=cart">WINNING AUCTION</a>
                   </li>
                   <li class="nav-item">
-                      <a class="nav-link" href="/profil?section=store-cart">PAYMENT CART</a>
+                      <a class="nav-link small" href="/profil?section=store-cart">PAYMENT CART</a>
                   </li>
                   <li class="nav-item">
-                      <a class="nav-link" href="/profil">
-                          <img src="{{ $auth->profile_pic ? asset('storage/' . $auth->profile_pic) : asset('/img/default.png') }}" style="width:24px;height:24px;border-radius:50%;max-width:unset">
-                      </a>
+                      <a class="nav-link small" href="{{ route('news') }}">NEWS</a>
                   </li>
+                  @if($auth)
+                  <li class="nav-item">
+                    <a class="nav-link small" href="/profil">
+                        <img src="{{ $auth->profile_pic ? asset('storage/' . $auth->profile_pic) : asset('/img/default.png') }}" style="width:24px;height:24px;border-radius:50%;max-width:unset">
+                    </a>
+                  </li>
+                  @else
+                  <li class="nav-item">
+                    <a class="nav-link small {{ $title === 'login' ? 'active text-danger' : '' }}"href="/login">LOGIN</a>
+                  </li>
+                  @endif
               </ul>
           </div>
       </div>
@@ -155,8 +168,10 @@
       <a class="nav-link" href="/wishlistlog">WISHLIST</a>
       <a class="nav-link" href="/shoppingcart">WINNING AUCTION</a>
       <a class="nav-link" href="/storecart">PAYMENT CART</a>
+      <a class="nav-link" href="{{ route('news') }}">NEWS</a>
 
 
+      @if($auth)
       <div class="px-4" style="position: absolute;
       padding-right: 1.5rem!important;
       padding-left: 1.5rem!important;
@@ -167,14 +182,18 @@
               <span style="margin-left: -2rem;">Log Out</span>
           </a>
       </div>
-
+      @else
+      <a class="nav-link {{ $title === 'login' ? 'active text-danger' : '' }}"href="/login">LOGIN</a>
+      @endif
   </div>
 
   <div id="main" class="d-flex" style="background: white">
       <button class="openbtn" onclick="openNav()">&#9776;</button>
       <h2 class="title my-0 mx-auto" style="text-transform: capitalize"></h2>
 
+      @if($auth)
       <a class="nav-link" href="/profil"><img src="{{ $auth->profile_pic ? asset('storage/' . $auth->profile_pic) : asset('/img/default.png') }}" style="width:24px;height:24px;border-radius:50%;max-width:unset"></a>
+      @endif
   </div>
 </div>
 <script>

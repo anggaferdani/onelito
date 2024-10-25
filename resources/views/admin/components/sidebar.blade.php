@@ -61,6 +61,13 @@
                 <a class="nav-link"
                     href="{{ url('admin/currencies') }}"><i class="fas fa-fish"></i> <span>Mata Uang</span></a>
             </li>
+            <li class="menu-header">News</li>
+            <li class="nav-item {{ Route::is('admin.tag.*') ? 'active' : '' }}">
+                <a class="nav-link" href="{{ route('admin.tag.index') }}"><i class="fas fa-tag"></i> <span>Tag</span></a>
+            </li>
+            <li class="nav-item {{ Route::is('admin.news.*') ? 'active' : '' }}">
+                <a class="nav-link" href="{{ route('admin.news.index') }}"><i class="fas fa-newspaper"></i> <span>News</span></a>
+            </li>
             <li class="menu-header">Lelang Bot</li>
             <li class="nav-item {{ $type_menu === 'bot-member' ? 'active' : '' }}">
                 <a class="nav-link"
