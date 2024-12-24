@@ -1,430 +1,203 @@
 @extends('layout.main')
-
 @section('container')
-<br><br><br><br>
-    <div class="container">
-        <br>
-        <a href="/onelito_store"><i class="fa-solid fa-arrow-left-long text-body"></i></a>
-        <br><br>
+@php
+    $imgUrl = 'img/bio_media.png';
 
-        <div class="container">
-            <style>
-                .swal2-cancel {
-                    margin-right: 10px;
-                }
-
-                .swal2-cancel {
-                    background-color: #dc3545;
-                }
-
-                .swal2-confirm {
-                    background-color: #198754;
-                }
-                /* On screens that are 992px or less, set the background color to blue */
-                @media screen and (min-width: 601px) {
-                    .nav-atas {
-                        display: none
-                    }
-                }
-
-                /* On screens that are 600px or less, set the background color to olive */
-                @media screen and (max-width: 600px) {
-                    .nav-samping {
-                        display: none;
-                    }
-                }
-            </style>
-            @php
-                $imgUrl = 'img/bio_media.png';
-
-                if ($product->photo !== null) {
-                    $imgUrl = 'storage/' . $product->photo->path_foto;
-                }
-            @endphp
-            <div class="nav-atas">
-
-                <div class=>
-                    <img src="{{ url($imgUrl) }}" alt="bio media" class="w-100">
-                </div>
-                <div class="row">
-                    <div class="col">
-                        <div class="row">
-                            <div class="col-10">
-                                <p>{{ "$product->merek_produk $product->nama_produk" }}</p>
-                            </div>
-                            <div class="col-2">
-                                <i class="far fa-heart m-3" style="font-size:large"></i>
-                            </div>
-                        </div>
-
-                        <h2>Rp. {{ $product->harga }}</h2>
-                        <hr>
-                        <p class="alert-link text-danger">Detail</p>
-                        <p>{!! $product->deskripsi !!}</p>
-                    </div>
-                    <div>
-                        <h5 class="card-title">Ordered quantity</h5>
-
-                        <div class="btn-group" role="group" aria-label="Basic mixed styles example">
-                            <button type="button" class="btn btn-light"><i class="fa-solid fa-minus"></i></button>
-                            <button type="button" class="btn btn-light">1</button>
-                            <button type="button" class="btn btn-light"><i class="fa-solid fa-plus"></i></button>
-                        </div>
-
-                        <div class="row">
-                            <div class="col">
-                                <h6 class="my-md-2 text-muted">Subtotal</h6>
-                            </div>
-                            <div class="col">
-                                <p>Rp 1.300.000</p>
-                            </div>
-                        </div>
-                        <div class="row gx-5 mt-3">
-                            <div class="col">
-                                <button type="button" class="btn btn-success w-100 justify-content-between text-success addcart"
-                                    style="background-color: white">Add Cart</button>
-                            </div>
-                            <div class="col">
-                                <button type="button" id="wishlist" class="btn btn-success w-100 justify-content-between text-success"
-                                    style="background-color: white">Wishlist</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="nav-samping">
-                <div class="row">
-                    <div class="col">
-                        <img src="{{ url($imgUrl) }}" alt="bio media" class="w-100">
-                    </div>
-                    <div class="col">
-                        <p style="font-size: 35px">{{ "$product->merek_produk $product->nama_produk" }}</p>
-                        <h2>Rp {{ number_format($product->harga, 0, '.', '.') }}</h2>
-                        <hr>
-                        <p class="alert-link text-danger">Detail</p>
-                        <p>{!! $product->deskripsi !!}</p>
-                    </div>
-                    <div class="col">
-                        <div class="card" style="width: 18rem;">
-                            <div class="card-body">
-                                <h5 class="card-title">Ordered quantity</h5>
-
-                                <div class="btn-group" role="group" aria-label="Basic mixed styles example">
-                                    <button type="button" id="subtract" class="btn btn-light"><i
-                                            class="fa-solid fa-minus"></i></button>
-                                    <button type="button" id="output" class="btn btn-light">1</button>
-                                    <button type="button" id="add" class="btn btn-light"><i
-                                            class="fa-solid fa-plus"></i></button>
-                                </div>
-
-                                <div class="row">
-                                    <div class="col">
-                                        <h6 class="my-md-2 text-muted">Subtotal</h6>
-                                    </div>
-                                    <div class="col">
-                                        <p id="total_price" class="total-price">Rp {{ number_format($product->harga, 0, '.', '.') }}</p>
-                                    </div>
-                                </div>
-                                @auth('member')
-
-                                <button type="button"
-                                onclick="orderNow()"
-                                class="btn btn-success w-100 justify-content-between mb-xl-2 d-none">Order
-                                    Now</button>
-                                @endauth
-
-                                @guest('member')
-                                <button type="button"
-                                    onclick="loginNow()"
-                                    class="btn btn-success w-100 justify-content-between mb-xl-2 d-none">Order
-                                    Now</button>
-                                @endguest
-                                <div class="row gx-5">
-                                    <div class="col">
-                                        <button type="button"
-                                            id="addcart"
-                                            class="btn btn-success w-100 justify-content-between text-success addcart"
-                                            style="background-color: white">Add Cart</button>
-                                    </div>
-                                    <div class="col">
-                                        <button type="button"
-                                            id="wishlist"
-                                            class="btn btn-success w-100 justify-content-between text-success"
-                                            style="background-color: white">Wishlist</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    if ($product->photo !== null) {
+        $imgUrl = 'storage/' . $product->photo->path_foto;
+    }
+@endphp
+<br><br><br>
+<div class="container py-3 py-md-5">
+    <div class="fw-bold mb-3"><a href="/onelito_store" class="text-dark text-decoration-none"><i class="fas fa-arrow-left fs-4"></i></a></div>
+    <div class="row g-2 g-md-3">
+        <div class="col-md-3">
+            <div class="mb-2"><img src="{{ url($imgUrl) }}" alt="" class="img-fluid"></div>
         </div>
-        <br><br>
+        <div class="col-md-6">
+          <div class="fs-5 fw-bold mb-2">{{ "$product->merek_produk $product->nama_produk" }}</div>
+          <div class="fs-5 fw-bold mb-2">Rp. {{ number_format($product->harga, 0, '.', '.') }}</div>
+          <div class="text-success fw-bold mb-2">Detail</div>
+          <div>{!! $product->deskripsi !!}</div>
+        </div>
+        <div class="col-md-3">
+          <div class="card">
+            <div class="card-body">
+              <div class="mb-2 fw-bold">Atur jumlah</div>
+              <div class="mb-2 small">Stok Total : <span class="text-success fw-bold">Sisa <span id="sisaStok">{{ $product->stock }}</span></span></div>
+              <div class="d-flex mb-2 border rounded">
+                <button id="hapusBarang" class="btn"><i class="fa-solid fa-minus text-muted"></i></button>
+                <input id="jumlahBarang" readonly type="text" class="form-control border-0 bg-transparent text-center" value="1">
+                <button id="tambahBarang" class="btn"><i class="fa-solid fa-plus text-muted"></i></button>
+              </div>
+              <div class="d-flex justify-content-between small mb-3">
+                <div class="text-muted">Subtotal</div>
+                <div class="fw-bold" id="hargaTotal">Rp. {{ number_format($product->harga, 0, '.', '.') }}</div>
+              </div>
+              <div class="mb-3">
+                <button id="keranjangButton" class="mb-2 btn btn-success w-100"><i class="fa-solid fa-plus"></i> Keranjang</button>
+                {{-- <button id="beliLangsungButton" class="btn btn-outline-success w-100">Beli Langsung</button> --}}
+              </div>
+              <div class="d-flex justify-content-between small">
+                <div style="cursor: pointer;"><a href="https://wa.me/0811972857" target="_blank" class="text-decoration-none text-dark"><i class="fa-regular fa-comment"></i> Chat</a></div>
+                <div style="cursor: pointer;" id="wishlist"><i class="{{ $isWishlisted ? 'fa-solid text-danger' : 'fa-regular' }} fa-heart"></i> Wishlist</div>
+                <div style="cursor: pointer;" id="shareProduk"><i class="fa-solid fa-share-nodes"></i> Share</div>
+              </div>
+            </div>
+          </div>
+        </div>
     </div>
+</div>
 @endsection
 @push('scripts')
-    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        let user = @json($auth);
+<script>
+  $.ajaxSetup({
+      headers: {
+          'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+      }
+  });
 
-        $.ajaxSetup({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            }
-        });
+  document.addEventListener('DOMContentLoaded', () => {
+    const jumlah = parseInt(jumlahBarang.value);
+    const stok = parseInt(document.getElementById('sisaStok').textContent);
 
-        function isMobile() {
-            const regex = /Mobi|Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
-            return regex.test(navigator.userAgent);
-        }
+    if (jumlah >= stok) {
+        tambahBarang.disabled = true;
+    }
 
-        let add = document.querySelector("#add");
-        let output = Number(document.querySelector("#output").innerText);
+    if (jumlah <= 1) {
+        hapusBarang.disabled = true;
+    }
+  });
 
-        let productId = Number('{{ $product->id_produk }}');
-        let originPrice = Number('{{ $product->harga }}');
+  const tambahBarang = document.getElementById('tambahBarang');
+  const hapusBarang = document.getElementById('hapusBarang');
+  const jumlahBarang = document.getElementById('jumlahBarang');
+  const hargaTotal = document.getElementById('hargaTotal');
+  const shareProduk = document.getElementById('shareProduk');
+  const wishlist = document.getElementById('wishlist');
+  const keranjangButton = document.getElementById('keranjangButton');
+  const beliLangsungButton = document.getElementById('beliLangsungButton');
 
-        // output * originPrice
-        let totalPrice = Number('{{ $product->harga }}');
+  const hargaSatuan = {{ $product->harga }};
+  const idProduk = {{ $product->id_produk }};
+  var isWishlisted = @json($isWishlisted) ? true : false;
 
-        const swalWithBootstrapButtons = Swal.mixin({
-            customClass: {
-                confirmButton: 'btn btn-success',
-                cancelButton: 'btn btn-danger'
-            },
-            buttonsStyling: false
-        })
+  function updateHargaTotal() {
+      const jumlah = parseInt(jumlahBarang.value);
+      const total = hargaSatuan * jumlah;
+      hargaTotal.textContent = `Rp. ${total.toLocaleString('id-ID')}`;
+  }
 
-        add.addEventListener("click", function() {
-            let output = document.querySelector("#output");
-            let result = Number(output.innerText) + 1;
-            var priceTotal = originPrice * result;
+  function checkStok() {
+    const stok = parseInt(document.getElementById('sisaStok').textContent);
+    if (stok <= 0) {
+        tambahBarang.disabled = true;
+        keranjangButton.disabled = true;
+        beliLangsungButton.disabled = true;
+    } else {
+        tambahBarang.disabled = false;
+        keranjangButton.disabled = false;
+        beliLangsungButton.disabled = false;
+    }
+  }
 
-            output.innerText = result;
-            document.querySelector("#total_price").innerText = "Rp "+thousandSeparator(priceTotal);
-        });
+  tambahBarang.addEventListener('click', () => {
+      let jumlah = parseInt(jumlahBarang.value);
+      const stok = parseInt(document.getElementById('sisaStok').textContent);
+      if (jumlah < stok) {
+          jumlah += 1;
+          jumlahBarang.value = jumlah;
+          updateHargaTotal();
+      }
+      
+      if (jumlah >= stok) {
+        tambahBarang.disabled = true;
+      }
 
-        let kurang = document.querySelector("#subtract");
+      if (jumlah > 1) {
+        hapusBarang.disabled = false;
+      }
+  });
 
-        kurang.addEventListener("click", function() {
-            let output = document.querySelector("#output");
-            let result = Number(output.innerText) - 1;
+  hapusBarang.addEventListener('click', () => {
+    let jumlah = parseInt(jumlahBarang.value);
+    const stok = parseInt(document.getElementById('sisaStok').textContent);
+    if (jumlah > 1) {
+        jumlah -= 1;
+        jumlahBarang.value = jumlah;
+        updateHargaTotal();
+    }
 
-            if (result < 1) {
-                result = 1
-            }
+    if (jumlah < stok) {
+        tambahBarang.disabled = false;
+    }
 
-            var priceTotal = originPrice * result;
-            output.innerText = result;
-            document.querySelector("#total_price").innerText = "Rp "+thousandSeparator(priceTotal);
+    if (jumlah <= 1) {
+        hapusBarang.disabled = true;
+    }
+  });
 
-        });
+  shareProduk.addEventListener('click', () => {
+      const currentUrl = window.location.href;
+      navigator.clipboard.writeText(currentUrl).then(() => {
+          alert('Link produk berhasil disalin');
+      }).catch(err => {
+          console.error('Gagal menyalin link: ', err);
+      });
+  });
 
-        $(document).on('click', '.addcart', function(e) {
-            var button = $(this);
-            $(this).attr('disabled', true)
-            var output = document.querySelector("#output");
+  wishlist.addEventListener('click', function() {
+      const method = isWishlisted ? 'DELETE' : 'POST';
+      const url = isWishlisted ? `/wishlists/${idProduk}` : '/wishlists';
 
-            if (user == null) {
-                swalWithBootstrapButtons.fire({
-                    title: 'Belum Login',
-                    text: `Harap login terlebih dulu untuk pemesanan`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Ke halaman login',
-                    cancelButtonText: 'Tidak',
-                    reverseButtons: true
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        window.location = '/login';
+      $.ajax({
+          type: method,
+          url: url,
+          data: {
+              id_produk: idProduk
+          },
+          dataType: 'json',
+          success: function(response) {
+              isWishlisted = !isWishlisted;
+              const message = isWishlisted ? 'Produk berhasil ditambahkan ke wishlist' : 'Produk berhasil dihapus dari wishlist';
+              alert(message);
+              const icon = $(wishlist).find('i');
+              if (isWishlisted) {
+                  icon.removeClass('fa-regular').addClass('fa-solid text-danger');
+              } else {
+                  icon.removeClass('fa-solid text-danger').addClass('fa-regular');
+              }
+          },
+          error: function(xhr, status, error) {
+              console.error('Error:', error);
+              alert('Terjadi kesalahan, silakan coba lagi.');
+          }
+      });
+  });
 
-                    } else if (
-                        /* Read more about handling dismissals below */
-                        result.dismiss === Swal.DismissReason.cancel
-                    ) {
-                        // swalWithBootstrapButtons.fire(
-                        //     'Batal',
-                        //     'Pesanan dibatalkan',
-                        //     'error'
-                        // )
-                    }
-                })
+  keranjangButton.addEventListener('click', function() {
+      const jumlah = parseInt(jumlahBarang.value);
+      $.ajax({
+          type: 'POST',
+          url: `/carts`,
+          data: {
+              jumlah: jumlah,
+              cartable_id: idProduk,
+              cartable_type: 'Product',
+          },
+          dataType: 'json',
+          success: function(response) {
+              alert('Produk berhasil ditambahkan ke keranjang');
+          },
+          error: function(xhr, status, error) {
+              console.error('Error:', error);
+              alert('Terjadi kesalahan saat menambahkan produk ke keranjang.');
+          }
+      });
+  });
 
-                return true;
-            }
-
-            $.ajax({
-                type: 'POST',
-                url: `/carts`,
-                data: {
-                    jumlah: Number(output.innerText),
-                    cartable_id: productId,
-                    cartable_type: 'Product',
-                },
-                dataType: "json",
-                complete: function(res) {
-                    swalWithBootstrapButtons.fire({
-                        title: 'Product berhasil ditambahkan',
-                        text: `Klik Ya, untuk lihat keranjang`,
-                        icon: 'success',
-                        showCancelButton: true,
-                        confirmButtonText: 'Ya',
-                        cancelButtonText: 'Tidak',
-                        reverseButtons: true
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            if (isMobile()) {
-                                document.location = '/storecart'
-                            } else {
-                                document.location = '/profil?section=store-cart'
-                            }
-
-                        } else if (
-                            /* Read more about handling dismissals below */
-                            result.dismiss === Swal.DismissReason.cancel
-                        ) {
-                            // swalWithBootstrapButtons.fire(
-                            //     'Batal',
-                            //     'Pesanan dibatalkan',
-                            //     'error'
-                            // )
-                        }
-                    })
-                },
-                error: function(error) {
-                    console.log(error)
-                    return false
-                }
-            })
-        });
-
-        $(document).on('click', '#wishlist', function(e) {
-            var button = $(this);
-            $.ajax({
-                    type: 'POST',
-                    url: `/wishlists`,
-                    data: {
-                        id_produk: productId
-                    },
-                    dataType: "json",
-                    success: function(res) {
-                        document.location = '/wishlistlog'
-
-                        return true;
-                    },
-                    error: function(error) {
-                        console.log(error)
-                        return false
-                    }
-            })
-        });
-
-        function thousandSeparator(x) {
-            var	reverse = x.toString().split('').reverse().join(''),
-            ribuan 	= reverse.match(/\d{1,3}/g);
-            ribuan	= ribuan.join('.').split('').reverse().join('');
-
-            return ribuan
-        }
-
-        function orderNow() {
-            var nominal = $('.total-price')[0].innerText
-
-            swalWithBootstrapButtons.fire({
-                title: 'apa anda yakin?',
-                text: `Total harga Rp. ${nominal}`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Ya',
-                cancelButtonText: 'Tidak',
-                reverseButtons: true
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    orderNowProcess();
-
-                } else if (
-                    /* Read more about handling dismissals below */
-                    result.dismiss === Swal.DismissReason.cancel
-                ) {
-                    // swalWithBootstrapButtons.fire(
-                    //     'Batal',
-                    //     'Pesanan dibatalkan',
-                    //     'error'
-                    // )
-                }
-            })
-        }
-
-        function loginNow() {
-
-            swalWithBootstrapButtons.fire({
-                title: 'Belum Login',
-                text: `Anda harus login terlebih dahulu untuk dapat melakukan order`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Ke halaman login',
-                cancelButtonText: 'Tidak',
-                reverseButtons: true
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location = '/login';
-
-                } else if (
-                    /* Read more about handling dismissals below */
-                    result.dismiss === Swal.DismissReason.cancel
-                ) {
-                    // swalWithBootstrapButtons.fire(
-                    //     'Batal',
-                    //     'Pesanan dibatalkan',
-                    //     'error'
-                    // )
-                }
-            })
-        }
-
-        function orderNowProcess(element) {
-            var nominal = $(element).attr('data-price');
-            const output = 1;
-            var totalPrice = 0;
-            var items = 0;
-            var transaction = $('.transaction')
-            var dataOrder = []
-
-            var orderItem = {}
-
-            var id = productId;
-
-
-            // orderItem.id = id;
-
-            location.href = `/order-now?item=${id}`;
-            // orderItem.price = nominal;
-
-            // items += Number(output)
-            // orderItem.price = nominal * Number(output)
-            // orderItem.type = 'Product';
-            // orderItem.total_produk = Number(output);
-
-            // dataOrder.push(orderItem);
-
-            // $.ajax({
-            //     type: 'GET',
-            //     url: `/order-now`,
-            //     data: {
-            //         // data_order: dataOrder,
-            //         // total: nominal * Number(output),
-            //         // item: items,
-            //         item: dataOrder
-            //     },
-            //     dataType: "json",
-            //     success: function(res) {
-            //         location.href = `/carts/${res.id}`;
-            //     },
-            //     error: function(error) {
-            //         // console.log(error)
-            //         return false
-            //     }
-            // })
-        }
-    </script>
+  checkStok();
+  updateHargaTotal();
+</script>
 @endpush

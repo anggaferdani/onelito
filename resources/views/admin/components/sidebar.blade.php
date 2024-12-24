@@ -12,6 +12,10 @@
                 <a class="nav-link"
                     href="{{ url('admin/dashboard') }}"><i class="fas fa-desktop"></i> <span>Dashboard</span></a>
             </li>
+            <li class="menu-header">New</li>
+            <li class="nav-item {{ Route::is('admin.pesanan.*') ? 'active' : '' }}">
+                <a class="nav-link" href="{{ route('admin.pesanan.index') }}"><i class="fas fa-box"></i> <span>Pesanan</span></a>
+            </li>
             <li class="menu-header">Management</li>
             <li class="nav-item {{ $type_menu === 'manage-admin' ? 'active' : '' }}">
                 <a class="nav-link"

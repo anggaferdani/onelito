@@ -138,18 +138,18 @@
                     <li class="nav-item">
                         <a class="nav-link small {{ $title === 'koi_stok' ? 'active text-danger' : '' }}"href="/koi_stok">KOI STOCK</a>
                     </li>
-                    <li class="nav-item">
+                    {{-- <li class="nav-item">
                         <a class="nav-link small"href="/login">WISHLIST</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link small"href="/login">WINNING AUCTION</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link small"href="/login">PAYMENT CART</a>
-                    </li>
-                    <li class="nav-item">
+                        <a class="nav-link small"href="/login">CART</a>
+                    </li> --}}
+                    {{-- <li class="nav-item">
                         <a class="nav-link small" href="{{ route('news') }}">NEWS</a>
-                    </li>
+                    </li> --}}
                     <li class="nav-item">
                         <a class="nav-link small {{ $title === 'login' ? 'active text-danger' : '' }}"href="/login">LOGIN</a>
                     </li>
@@ -172,10 +172,10 @@
         <a class="nav-link {{ $title === 'auction' ? 'active text-danger' : '' }}"href="/auction">AUCTION</a>
         <a class="nav-link {{ $title === 'onelito_store' ? 'active text-danger' : '' }}"href="/onelito_store">ONELITO STORE</a>
         <a class="nav-link {{ $title === 'KOI STOCK' ? 'active text-danger' : '' }}"href="/koi_stok">KOI STOCK</a>
-        <a class="nav-link"href="/login">WISHLIST</a>
+        {{-- <a class="nav-link"href="/login">WISHLIST</a>
         <a class="nav-link"href="/login">WINNING AUCTION</a>
-        <a class="nav-link"href="/login">PAYMENT CART</a>
-        <a class="nav-link" href="{{ route('news') }}">NEWS</a>
+        <a class="nav-link"href="/login">CART</a> --}}
+        {{-- <a class="nav-link" href="{{ route('news') }}">NEWS</a> --}}
         <a class="nav-link {{ $title === 'login' ? 'active text-danger' : '' }}"href="/login">LOGIN</a>
     </div>
 

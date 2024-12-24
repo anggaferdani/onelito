@@ -2,14 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\OrderRequest;
+use PDF;
+use Carbon\Carbon;
 use App\Models\Cart;
 use App\Models\Order;
+use App\Models\Product;
+use App\Models\KoiStock;
+use App\Mail\OrderRequest;
 use App\Models\OrderDetail;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
-use PDF;
 
 class CartController extends Controller
 {
@@ -19,6 +21,24 @@ class CartController extends Controller
 
         $dataCart = $this->request->only(['total_price', 'jumlah', 'cartable_id', 'cartable_type']);
 
+        if ($dataCart['cartable_type'] === 'Product') {
+            $item = Product::find($dataCart['cartable_id']);
+        } elseif ($dataCart['cartable_type'] === 'KoiStock') {
+            $item = KoiStock::find($dataCart['cartable_id']);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tipe item tidak valid.',
+            ], 400);
+        }
+
+        if (!$item || $item->stock <= 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Produk tidak tersedia atau stok habis.',
+            ], 400);
+        }
+
         $exists = Cart::where('id_peserta', $auth->id_peserta)
             ->where('cartable_id', $dataCart['cartable_id'])
             ->where('cartable_type', $dataCart['cartable_type'])
@@ -26,6 +46,13 @@ class CartController extends Controller
             ->first();
 
         if ($exists !== null) {
+            if (!$item || $item->stock <= 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Produk tidak tersedia atau stok habis.',
+                ], 400);
+            }
+
             $exists->jumlah = $exists->jumlah + $dataCart['jumlah'];
             $exists->save();
 
@@ -33,6 +60,13 @@ class CartController extends Controller
                 'success' => true,
                 'message' => 'Sukses Menambahkan Pemenang Lelang',
             ],200);
+        }
+
+        if (!$item || $item->stock <= 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Produk tidak tersedia atau stok habis.',
+            ], 400);
         }
 
         $dataCart['id_peserta'] = $auth->id_peserta;

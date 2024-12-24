@@ -1,5 +1,5 @@
 @extends('new.templates.profile')
-@section('title', 'Pengatuan')
+@section('title', 'Aktivitas Login')
 @section('content')
 @if(Session::get('success'))
   <div class="alert alert-important alert-success" role="alert">

@@ -18,9 +18,9 @@ class TagController extends Controller
             });
         }
 
-        $tags = $query->paginate(10);
+        $tags = $query->latest()->paginate(10);
 
-        return view('admin.pages.tag.index', compact(
+        return view('admin.pages.new.tag.index', compact(
             'tags',
         ))->with(['type_menu' => 'tag']);
     }

@@ -30,7 +30,7 @@
           <div class="row g-3 align-items-center">
             <div class="col-md-10">
               <div class="fw-bold small mb-1">{{ $alamat->label }} @if($auth->alamat_utama == $alamat->id) <span class="badge bg-secondary">Utama</span> @endif</div>
-              <div class="fw-bold mb-1">{{ $alamat->nama_penerima }}</div>
+              <div class="fw-bold mb-1">{{ $alamat->nama }}</div>
               <div class="mb-1">{{ $alamat->no_hp }}</div>
               <div class="mb-1">{{ $alamat->alamat_lengkap }}</div>
               <div class="d-md-flex align-items-center d-block gap-2">
@@ -78,8 +78,12 @@
             <input type="text" class="form-control" name="label" required>
           </div>
           <div class="mb-3">
-            <label class="form-label">Nama Penerima <span class="text-danger">*</span></label>
-            <input type="text" class="form-control" name="nama_penerima" required>
+            <label class="form-label">Nama <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" name="nama" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Email <span class="text-muted">(optional)</span></label>
+            <input type="email" class="form-control" name="email">
           </div>
           <div class="mb-3">
             <label class="form-label">No. HP <span class="text-danger">*</span></label>
@@ -88,6 +92,24 @@
           <div class="mb-3">
             <label class="form-label">Alamat Lengkap <span class="text-danger">*</span></label>
             <textarea class="form-control" rows="3" name="alamat_lengkap" required></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Catatan <span class="text-muted">(optional)</span></label>
+            <textarea class="form-control" rows="3" name="catatan"></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Kode Pos <span class="text-muted">(optional)</span></label>
+            <input type="number" class="form-control" name="kode_pos">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Pin Point Lokasi <span class="text-muted">(optional)</span></label>
+            <div id="map" style="height: 300px;"></div>
+            <div class="text-danger">Pastikan lokasi pin point sudah sesuai</div>
+            <input type="hidden" id="latitude" name="latitude">
+            <input type="hidden" id="longitude" name="longitude">
+          </div>
+          <div>
+            <button class="btn btn-primary getCurrentLocation"><i class="fa-solid fa-location-crosshairs"></i> Gunakan lokasi saat ini</button>
           </div>
         </div>
         <div class="modal-footer">
@@ -116,8 +138,12 @@
             <input type="text" class="form-control" name="label" required value="{{ $alamat->label }}">
           </div>
           <div class="mb-3">
-            <label class="form-label">Nama Penerima <span class="text-danger">*</span></label>
-            <input type="text" class="form-control" name="nama_penerima" required value="{{ $alamat->nama_penerima }}">
+            <label class="form-label">Nama <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" name="nama" required value="{{ $alamat->nama }}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Email <span class="text-muted">(optional)</span></label>
+            <input type="email" class="form-control" name="email" value="{{ $alamat->email }}">
           </div>
           <div class="mb-3">
             <label class="form-label">No. HP <span class="text-danger">*</span></label>
@@ -126,6 +152,24 @@
           <div class="mb-3">
             <label class="form-label">Alamat Lengkap <span class="text-danger">*</span></label>
             <textarea class="form-control" rows="3" name="alamat_lengkap" required>{{ $alamat->alamat_lengkap }}</textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Catatan <span class="text-muted">(optional)</span></label>
+            <textarea class="form-control" rows="3" name="catatan">{{ $alamat->catatan }}</textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Kode Pos <span class="text-muted">(optional)</span></label>
+            <input type="number" class="form-control" name="kode_pos" value="{{ $alamat->kode_pos }}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Pin Point Lokasi <span class="text-muted">(optional)</span></label>
+            <div id="map-edit{{ $alamat->id }}" style="height: 300px;"></div>
+            <div class="text-danger">Pastikan lokasi pin point sudah sesuai</div>
+            <input type="hidden" id="latitude-edit{{ $alamat->id }}" name="latitude" value="{{ $alamat->latitude }}">
+            <input type="hidden" id="longitude-edit{{ $alamat->id }}" name="longitude" value="{{ $alamat->longitude }}">
+          </div>
+          <div>
+            <button class="btn btn-primary getCurrentLocationEdit" data-id="{{ $alamat->id }}"><i class="fa-solid fa-location-crosshairs"></i> Gunakan lokasi saat ini</button>
           </div>
         </div>
         <div class="modal-footer">
@@ -139,12 +183,123 @@
 @endforeach
 @endsection
 @push('scripts')
-  <script>
-    document.getElementById('searchInput').addEventListener('keydown', function(event) {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            document.getElementById('searchForm').submit();
-        }
-    });
-  </script>
+<script>
+  document.getElementById('searchInput').addEventListener('keydown', function(event) {
+      if (event.key === 'Enter') {
+          event.preventDefault();
+          document.getElementById('searchForm').submit();
+      }
+  });
+</script>
+<script>
+  let map, marker;
+
+  function initMap() {
+      map = L.map('map').setView([-6.200000, 106.816666], 13);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+
+      map.on('click', function(e) {
+          const { lat, lng } = e.latlng;
+
+          document.getElementById('latitude').value = lat;
+          document.getElementById('longitude').value = lng;
+
+          if (marker) {
+              marker.setLatLng(e.latlng);
+          } else {
+              marker = L.marker(e.latlng).addTo(map);
+          }
+      });
+  }
+
+  function setCurrentLocation() {
+      if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+              function(position) {
+                  const { latitude, longitude } = position.coords;
+                  document.getElementById('latitude').value = latitude;
+                  document.getElementById('longitude').value = longitude;
+
+                  map.setView([latitude, longitude], 15);
+
+                  if (marker) {
+                      marker.setLatLng([latitude, longitude]);
+                  } else {
+                      marker = L.marker([latitude, longitude]).addTo(map);
+                  }
+              },
+              function(error) {
+                  alert('Error retrieving location. Please enable location access and try again.');
+              }
+          );
+      } else {
+          alert('Geolocation is not supported by this browser.');
+      }
+  }
+
+  document.querySelector('.getCurrentLocation').addEventListener('click', function(event) {
+      event.preventDefault();
+      setCurrentLocation();
+  });
+
+  $('#createModal').on('shown.bs.modal', function () {
+      setTimeout(() => {
+          initMap();
+      }, 200);
+  });
+
+  @foreach($alamats as $alamat)
+      $('#editModal{{ $alamat->id }}').on('shown.bs.modal', function () {
+          setTimeout(() => {
+              const mapEdit = L.map('map-edit{{ $alamat->id }}').setView([{{ $alamat->latitude ?? '-6.200000' }}, {{ $alamat->longitude ?? '106.816666' }}], 15);
+
+              L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                  maxZoom: 19,
+                  attribution: '&copy; OpenStreetMap contributors'
+              }).addTo(mapEdit);
+
+              let markerEdit = L.marker([{{ $alamat->latitude ?? '-6.200000' }}, {{ $alamat->longitude ?? '106.816666' }}]).addTo(mapEdit);
+
+              mapEdit.on('click', function(e) {
+                  const { lat, lng } = e.latlng;
+
+                  document.getElementById('latitude-edit{{ $alamat->id }}').value = lat;
+                  document.getElementById('longitude-edit{{ $alamat->id }}').value = lng;
+
+                  markerEdit.setLatLng(e.latlng);
+              });
+
+              document.querySelector('.getCurrentLocationEdit[data-id="{{ $alamat->id }}"]').addEventListener('click', function(event) {
+                  event.preventDefault();
+                  if (navigator.geolocation) {
+                      navigator.geolocation.getCurrentPosition(
+                          function(position) {
+                              const { latitude, longitude } = position.coords;
+                              document.getElementById('latitude-edit{{ $alamat->id }}').value = latitude;
+                              document.getElementById('longitude-edit{{ $alamat->id }}').value = longitude;
+
+                              mapEdit.setView([latitude, longitude], 15);
+
+                              if (markerEdit) {
+                                  markerEdit.setLatLng([latitude, longitude]);
+                              } else {
+                                  markerEdit = L.marker([latitude, longitude]).addTo(mapEdit);
+                              }
+                          },
+                          function(error) {
+                              alert('Error retrieving location. Please enable location access and try again.');
+                          }
+                      );
+                  } else {
+                      alert('Geolocation is not supported by this browser.');
+                  }
+              });
+          }, 200);
+      });
+  @endforeach
+</script>
 @endpush

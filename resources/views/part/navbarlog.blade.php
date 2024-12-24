@@ -133,35 +133,40 @@
             <div class="collapse flex-grow-0 navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a class="nav-link small {{ $title === 'home' ? 'active text-danger' : '' }}"href="/">HOME</a>
+                        <a style="font-size: 13px;" class="nav-link small {{ $title === 'home' ? 'active text-danger' : '' }}"href="/">HOME</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link small {{ $title === 'auction' ? 'active text-danger' : '' }}"href="/auction">AUCTION</a>
+                        <a style="font-size: 13px;" class="nav-link small {{ $title === 'auction' ? 'active text-danger' : '' }}"href="/auction">AUCTION</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link small {{ $title === 'ONELITO STORE' ? 'active text-danger' : '' }}"href="/onelito_store">ONELITO STORE</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link small {{ $title === 'KOI STOCK' ? 'active text-danger' : '' }}"href="/koi_stok">KOI STOCK</a>
+                        <a style="font-size: 13px;" class="nav-link small {{ $title === 'ONELITO STORE' ? 'active text-danger' : '' }}"href="/onelito_store">ONELITO STORE</a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link small {{ $title === 'wishlist' ? 'active text-danger' : '' }}"href="/wishlistlog">WISHLIST</a>
+                        <a style="font-size: 13px;" class="nav-link small {{ $title === 'KOI STOCK' ? 'active text-danger' : '' }}"href="/koi_stok">KOI STOCK</a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link small {{ $title === 'cart' ? 'active text-danger' : '' }}"href="/profil?section=cart">WINNING AUCTION</a>
+                        <a style="font-size: 13px;" class="nav-link small {{ $title === 'wishlist' ? 'active text-danger' : '' }}"href="/wishlistlog">WISHLIST</a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link small {{ $title === 'store_cart' ? 'active text-danger' : '' }}"href="/profil?section=store-cart">PAYMENT CART</a>
+                        <a style="font-size: 13px;" class="nav-link small {{ Route::is('winning-auction') ? 'text-danger' : 'text-dark' }}" href="{{ route('winning-auction') }}">WINNING AUCTION</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link small" href="{{ route('news') }}">NEWS</a>
+                        <a style="font-size: 13px;" class="nav-link small {{ Route::is('shopping-cart.*') ? 'text-danger' : 'text-dark' }}" href="{{ route('shopping-cart.semua') }}">STATUS ORDER</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link small {{ $title === 'login' ? 'active text-danger' : '' }}"href="/profil">
+                        <a style="font-size: 13px;" class="nav-link small {{ Route::is('cart') ? 'text-danger' : 'text-dark' }}" href="{{ route('cart') }}">CART</a>
+                    </li>
+                    @if($auth)
+                        @include('new.notification')
+                    @endif
+                    {{-- <li class="nav-item">
+                        <a style="font-size: 13px;" class="nav-link small {{ Route::is('news') ? 'text-danger' : 'text-dark' }}" href="{{ route('news') }}">NEWS</a>
+                    </li> --}}
+                    <li class="nav-item">
+                        <a style="font-size: 13px;" class="nav-link small {{ $title === 'login' ? 'active text-danger' : '' }}"href="/profil">
                             <!-- <i class="fa-solid fa-circle-user" style="font-size: x-large"></i> -->
                             <img src="{{ $imgProfile }}" style="width:24px;height:24px;border-radius:50%;max-width:unset">
                         </a>
@@ -188,8 +193,9 @@
 
         <a class="nav-link {{ $title === 'wishlistlog' ? 'active text-danger' : '' }}"href="/wishlistlog">WISHLIST</a>
         <a class="nav-link {{ $title === 'cart' ? 'active text-danger' : '' }}"href="/shoppingcart">WINNING AUCTION</a>
-        <a class="nav-link {{ $title === 'store_cart' ? 'active text-danger' : '' }}"href="/storecart">PAYMENT CART</a>
-        <a class="nav-link" href="{{ route('news') }}">NEWS</a>
+        <a class="nav-link {{ Route::is('shopping-cart.*') ? 'text-danger' : 'text-dark' }}" href="{{ route('shopping-cart.semua') }}">STATUS ORDER</a>
+        <a class="nav-link {{ Route::is('cart') ? 'text-danger' : 'text-dark' }}" href="{{ route('cart') }}">CART</a>
+        {{-- <a class="nav-link {{ Route::is('news') ? 'text-danger' : 'text-dark' }}" href="{{ route('news') }}">NEWS</a> --}}
 
 
         <div class="px-4" style="position: absolute;

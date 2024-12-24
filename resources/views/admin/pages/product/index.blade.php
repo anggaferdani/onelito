@@ -56,6 +56,8 @@
                                                 <th>Merek</th>
                                                 <th>Nama</th>
                                                 <th>Berat</th>
+                                                <th>Weight (gr)</th>
+                                                <th>Stock</th>
                                                 <th>Harga</th>
                                                 <th>Deskripsi</th>
                                                 <th>Foto</th>
@@ -146,6 +148,8 @@
                     { data : 'merek_produk'},
                     { data : 'nama_produk'},
                     { data : 'berat'},
+                    { data : 'weight'},
+                    { data : 'stock'},
                     { data : 'harga'},
                     { data : 'deskripsi'},
                     { data : 'photo', name: 'photo.path_foto', orderable : false,searchable :false},
@@ -167,6 +171,12 @@
                     $('#show_merek_produk').val(res.merek_produk)
                     $('#show_nama_produk').val(res.nama_produk)
                     $('#show_berat').val(res.berat)
+                    $('#show_weight').val(res.weight)
+                    $('#show_height').val(res.height)
+                    $('#show_length').val(res.length)
+                    $('#show_width').val(res.width)
+                    $('#show_point').val(res.point)
+                    $('#show_stock').val(res.stock)
                     $('#show_harga').val(res.harga)
                     $('#show_deskripsi').html(res.deskripsi)
                     $('#show_foto').attr('src', ``)
@@ -196,8 +206,19 @@
                     $('#edit_merek_produk').val(res.merek_produk)
                     $('#edit_nama_produk').val(res.nama_produk)
                     $('#edit_berat').val(res.berat)
+                    $('#edit_weight').val(res.weight)
+                    $('#edit_height').val(res.height)
+                    $('#edit_length').val(res.length)
+                    $('#edit_width').val(res.width)
+                    $('#edit_stock').val(res.stock)
                     $('#edit_harga').val(res.harga)
                     $('#edit_harga').priceFormat({
+                        prefix: '',
+                        centsLimit: 0,
+                        thousandsSeparator: '.'
+                    });
+                    $('#edit_point').val(res.point)
+                    $('#edit_point').priceFormat({
                         prefix: '',
                         centsLimit: 0,
                         thousandsSeparator: '.'
@@ -227,7 +248,13 @@
             formData.append('merek_produk', formData.get('edit_merek_produk'));
             formData.append('nama_produk', formData.get('edit_nama_produk'));
             formData.append('berat', formData.get('edit_berat'));
+            formData.append('weight', formData.get('edit_weight'));
+            formData.append('height', formData.get('edit_height'));
+            formData.append('length', formData.get('edit_length'));
+            formData.append('width', formData.get('edit_width'));
+            formData.append('stock', formData.get('edit_stock'));
             formData.append('harga', formData.get('edit_harga'));
+            formData.append('point', formData.get('edit_point'));
             formData.append('deskripsi', formData.get('edit_deskripsi'));
             formData.append('path_foto', formData.get('edit_foto'));
             formData.append('_method', 'PATCH');
@@ -236,7 +263,13 @@
             formData.delete('edit_merek_produk');
             formData.delete('edit_nama_produk');
             formData.delete('edit_berat');
+            formData.delete('edit_weight');
+            formData.delete('edit_height');
+            formData.delete('edit_length');
+            formData.delete('edit_width');
+            formData.delete('edit_stock');
             formData.delete('edit_harga');
+            formData.delete('edit_point');
             formData.delete('edit_deskripsi');
             formData.delete('edit_foto');
 

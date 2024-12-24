@@ -47,7 +47,7 @@ class AuctionController extends Controller
         $currentProducts = $currentAuctions
             ->pluck('auctionProducts')
             ->flatten(1)
-            ->sortBy('no_ikan');
+            ->sortBy('no_ikan', SORT_NATURAL);
 
         $currentAuction = null;
         $currentTotalBid = 0;

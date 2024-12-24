@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Event;
-use App\Models\EventFish;
-use App\Models\KoiStock;
-use App\Models\LogBid;
 use Carbon\Carbon;
+use App\Models\Event;
+use App\Models\LogBid;
+use App\Models\KoiStock;
+use App\Models\Wishlist;
+use App\Models\EventFish;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -43,9 +44,12 @@ class KoiStockController extends Controller
             where('status_aktif', 1)
             ->findOrFail($id);
 
+        $isWishlisted = Wishlist::where('id_peserta', $auth->id_peserta)->where('wishlistable_id', $id)->where('status_aktif', 1)->exists();
+
         return view('detail_koistok',[
             'auth' => $auth,
             'fish' => $fish,
+            'isWishlisted' => $isWishlisted,
             'title' => 'KOI STOCK'
         ]);
     }

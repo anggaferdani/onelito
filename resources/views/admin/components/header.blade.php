@@ -23,7 +23,7 @@
                     <i class="far fa-user"></i> Profile
                 </a>
                 <div class="dropdown-divider"></div>
-                <a href="#"
+                <a href="{{ route('logout') }}"
                     class="dropdown-item has-icon text-danger">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </a>

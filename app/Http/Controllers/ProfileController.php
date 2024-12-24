@@ -4,15 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Models\Cart;
 use App\Models\Event;
-use App\Models\EventFish;
-use App\Models\Member;
 use App\Models\Order;
+use App\Models\Alamat;
+use App\Models\Member;
 use App\Models\Product;
 use App\Models\Wishlist;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
+use App\Models\EventFish;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class ProfileController extends Controller
 {
@@ -54,6 +56,123 @@ class ProfileController extends Controller
         } catch (\Throwable $th) {
             return back()->with('error', $th->getMessage());
         }
+    }
+
+    public function tulisCatatan(Request $request, $id_keranjang) {
+        $cart = Cart::findOrFail($id_keranjang);
+        $cart->update([
+            'catatan' => $request->catatan,
+        ]);
+        
+        return redirect()->back()->with('success', 'Success');
+    }
+
+    public function tambahBarang($id_keranjang) {
+        $cart = Cart::findOrFail($id_keranjang);
+        $cart->update([
+            'jumlah' => $cart->jumlah + 1
+        ]);
+    
+        return response()->json([
+            'success' => true,
+            'jumlah' => $cart->jumlah
+        ]);
+    }
+    
+    public function hapusBarang($id_keranjang) {
+        $cart = Cart::findOrFail($id_keranjang);
+    
+        if ($cart->jumlah > 1) {
+            $cart->update([
+                'jumlah' => $cart->jumlah - 1
+            ]);
+        } else {
+            $cart->update([
+                'status_aktif' => 0,
+                'jumlah' => $cart->jumlah - 1
+            ]);
+        }
+    
+        return response()->json([
+            'success' => true,
+            'jumlah' => $cart->jumlah,
+            'status_aktif' => $cart->status_aktif
+        ]);
+    }
+
+    public function cart() {
+        $auth = Auth::guard('member')->user();
+        $carts = Cart::where('id_peserta', $auth->id_peserta)->whereNot('cartable_type', 'EventFish')->where('status_aktif', 1)->where('jumlah', '>', 0)->latest()->get();
+        return view('new.pages.profile.cart', compact(
+            'auth',
+            'carts',
+        ));
+    }
+
+    public function winningAuction() {
+        $auth = Auth::guard('member')->user();
+        $carts = Cart::where('id_peserta', $auth->id_peserta)->where('cartable_type', 'EventFish')->where('status_aktif', 1)->latest()->get();
+        return view('new.pages.profile.winning-auction', compact(
+            'auth',
+            'carts',
+        ));
+    }
+
+    // public function getCouriers()
+    // {
+    //     $response = Http::withToken(env('BITESHIP_API_KEY'))
+    //         ->get('https://api.biteship.com/v1/maps/areas?countries=ID&input=Bogor');
+
+    //     if ($response->successful()) {
+    //         return $response->json([]);
+    //     }
+
+    //     return [];
+    // }
+
+    public function getCouriers()
+    {
+        $response = Http::withToken(env('BITESHIP_API_KEY'))
+            ->get('https://api.biteship.com/v1/couriers');
+
+        // if ($response->successful()) {
+        //     return $response->json('couriers');
+        // }
+
+        if ($response->successful()) {
+            return collect($response->json('couriers'))->filter(function ($courier) {
+                return in_array($courier['courier_code'], ['jne', 'jnt', 'sicepat', 'gojek', 'grab', 'anteraja']);
+            })->values()->all();
+        }
+
+        return [];
+    }
+
+    public function shipment(Request $request) {
+        $auth = Auth::guard('member')->user();
+        $cartIds = explode(',', $request->query('ids', ''));
+        $carts = Cart::where('id_peserta', $auth->id_peserta)
+                ->where('status_aktif', 1)
+                ->where('jumlah', '>', 0)
+                ->whereIn('id_keranjang', $cartIds)
+                ->get();
+        $totalJumlahBarang = $carts->sum('jumlah');
+        $alamats = Alamat::where('peserta_id', $auth->id_peserta)->where('status', 1)->get();
+        $couriers = $this->getCouriers();
+        // dd($couriers);
+        
+        $shipper = Alamat::where('id', 1)->first();
+        $destination = Alamat::where('id', $auth->pilih_alamat)->where('peserta_id', $auth->id_peserta)->where('status', 1)->first();
+
+        return view('new.pages.profile.shipment', compact(
+            'auth',
+            'carts',
+            'alamats',
+            'totalJumlahBarang',
+            'couriers',
+            'shipper',
+            'destination',
+        ));
     }
 
     public function card() {

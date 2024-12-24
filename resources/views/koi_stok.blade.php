@@ -92,9 +92,11 @@
 
                                         </div>
                                         <div class="col-5 px-1 text-end">
-                                            <button class="rounded addcart" data-id="{{ $fish->id_koi_stock }}"
-                                                style="background-color: red;border-color:red; outline: none; border: none;"><i
-                                                    class="fa-solid fa-cart-shopping" style="color: white"></i></button>
+                                            @if($fish->stock == 0)
+                                                <button class="rounded text-white" style="font-size: 12px; background-color: red;border-color:red; outline: none; border: none;">stock habis</button>
+                                            @else
+                                                <button class="rounded addcart" data-id="{{ $fish->id_koi_stock }}" style="background-color: red;border-color:red; outline: none; border: none;"><i class="fa-solid fa-cart-shopping" style="color: white"></i></button>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>
@@ -399,9 +401,9 @@
                     }).then((result) => {
                         if (result.isConfirmed) {
                             if (isMobile()) {
-                                document.location = '/storecart'
+                                document.location = '/cart'
                             } else {
-                                document.location = '/profil?section=store-cart'
+                                document.location = '/cart'
                             }
                         } else if (
                             /* Read more about handling dismissals below */

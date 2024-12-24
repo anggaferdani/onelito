@@ -37,11 +37,35 @@
             </div>
             <div class="form-group">
                 <label for="edit_dob">DOB</label>
-                <input  type="edit_text" id="edit_dob" class="form-control" name="edit_dob" placeholder="">
+                <input  type="text" id="edit_dob" class="form-control" name="edit_dob" placeholder="">
             </div>
             <div class="form-group">
                 <label for="edit_size">Size</label>
-                <input  type="edit_text" id="edit_size" class="form-control" name="edit_size" placeholder="">
+                <input  type="text" id="edit_size" class="form-control" name="edit_size" placeholder="">
+            </div>
+            <div class="form-group">
+                <label for="edit_weight">Weight (gr)</label>
+                <input  type="number" id="edit_weight" class="form-control" name="edit_weight" placeholder="">
+            </div>
+            <div class="form-group">
+                <label for="edit_height">Height (cm)</label>
+                <input  type="number" id="edit_height" class="form-control" name="edit_height" placeholder="">
+            </div>
+            <div class="form-group">
+                <label for="edit_length">Length (cm)</label>
+                <input  type="number" id="edit_length" class="form-control" name="edit_length" placeholder="">
+            </div>
+            <div class="form-group">
+                <label for="edit_width">Width (cm)</label>
+                <input  type="number" id="edit_width" class="form-control" name="edit_width" placeholder="">
+            </div>
+            <div class="form-group">
+                <label for="edit_point">Point (Cashback)</label>
+                <input  type="text" id="edit_point" class="form-control" name="edit_point" placeholder="">
+            </div>
+            <div class="form-group">
+                <label for="edit_stock">Stock</label>
+                <input  type="number" id="edit_stock" class="form-control" name="edit_stock" placeholder="">
             </div>
             <div class="form-group">
                 <label for="edit_harga_ikan">Harga</label>

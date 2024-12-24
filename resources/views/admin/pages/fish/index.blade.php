@@ -60,6 +60,8 @@
                                                 <th>Jenis Kelamin</th>
                                                 <th>DOB</th>
                                                 <th>Size</th>
+                                                <th>Weight (gr)</th>
+                                                <th>Stock</th>
                                                 <th>Harga</th>
                                                 <th>Foto</th>
                                                 <th>Action</th>
@@ -166,6 +168,8 @@
                     { data : 'sex'},
                     { data : 'dob'},
                     { data : 'size'},
+                    { data : 'weight'},
+                    { data : 'stock'},
                     { data : 'harga_ikan'},
                     { data : 'foto_ikan', orderable : false,searchable :false},
                     { data : 'action' , orderable : false,searchable :false},
@@ -189,6 +193,12 @@
                     $('#show_sex').val(res.sex)
                     $('#show_dob').val(res.dob)
                     $('#show_size').val(res.size)
+                    $('#show_weight').val(res.weight)
+                    $('#show_height').val(res.height)
+                    $('#show_length').val(res.length)
+                    $('#show_width').val(res.width)
+                    $('#show_point').val(res.point)
+                    $('#show_stock').val(res.stock)
                     $('#show_harga_ikan').val(res.harga_ikan)
                     $('#show_note').html(res.note)
                     $('#show_link_video').val(res.link_video)
@@ -227,6 +237,17 @@
                     `)
                     $('#edit_dob').val(res.dob)
                     $('#edit_size').val(res.size)
+                    $('#edit_weight').val(res.weight)
+                    $('#edit_height').val(res.height)
+                    $('#edit_length').val(res.length)
+                    $('#edit_width').val(res.width)
+                    $('#edit_stock').val(res.stock)
+                    $('#edit_point').val(res.point)
+                    $('#edit_point').priceFormat({
+                        prefix: '',
+                        centsLimit: 0,
+                        thousandsSeparator: '.'
+                    });
                     $('#edit_harga_ikan').val(res.harga_ikan)
                     $('#edit_note').summernote('code', res.note)
                     $('#edit_link_video').val(res.link_video)
@@ -261,6 +282,12 @@
             formData.append('sex', formData.get('edit_sex'));
             formData.append('dob', formData.get('edit_dob'));
             formData.append('size', formData.get('edit_size'));
+            formData.append('weight', formData.get('edit_weight'));
+            formData.append('height', formData.get('edit_height'));
+            formData.append('length', formData.get('edit_length'));
+            formData.append('width', formData.get('edit_width'));
+            formData.append('point', formData.get('edit_point'));
+            formData.append('stock', formData.get('edit_stock'));
             formData.append('harga_ikan', formData.get('edit_harga_ikan'));
             formData.append('note', formData.get('edit_note'));
             formData.append('link_video', formData.get('edit_link_video'));
@@ -274,6 +301,12 @@
             formData.delete('edit_sex');
             formData.delete('edit_dob');
             formData.delete('edit_size');
+            formData.delete('edit_weight');
+            formData.delete('edit_height');
+            formData.delete('edit_length');
+            formData.delete('edit_width');
+            formData.delete('edit_stock');
+            formData.delete('edit_point');
             formData.delete('edit_harga_ikan');
             formData.delete('edit_note');
             formData.delete('edit_link_video');

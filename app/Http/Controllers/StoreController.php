@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\Wishlist;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 
@@ -106,9 +107,12 @@ class StoreController extends Controller
             with(['category', 'photo'])
             ->findOrFail($id);
 
+        $isWishlisted = Wishlist::where('id_peserta', $auth->id_peserta)->where('wishlistable_id', $id)->where('status_aktif', 1)->exists();
+
         return view('detail_onelito_store',[
             'auth' => $auth,
             'product' => $product,
+            'isWishlisted' => $isWishlisted,
             'title' => 'ONELITO STORE'
         ]);
     }

@@ -1,182 +1,209 @@
 @extends('layout.main')
-
 @section('container')
-    <br><br><br><br>
-    <br>
-
-    @php
-    @endphp
-
-    <div class="container">
-        <a href="/koi_stok"><i class="fa-solid fa-arrow-left-long text-body" style="font-size: x-large"></i></a>
-
-        <style>
-            /* On screens that are 992px or less, set the background color to blue */
-            @media screen and (min-width: 601px) {
-                .res {
-                    display: none
-                }
-            }
-
-            /* On screens that are 600px or less, set the background color to olive */
-            @media screen and (max-width: 600px) {
-                .web {
-                    display: none;
-                }
-            }
-        </style>
-
-    @php
-        $photo = url('/img/koi12.jpg');
-        if ($fish->foto_ikan !== null) {
-                $photo = url('storage') . '/' . $fish->foto_ikan;
-        }
-    @endphp
-
-        <div class="res">
-            <div class="row">
-                <div class="col-6">
-                    <div class="">
-
-                        <img src="{{ $photo }}" class="card-img-top" alt="...">
-                        <br>
-                    </div>
-                    <div>
-                        <a class="btn btn-danger mb-3 d-block d-flex justify-content-between mt-2"
-                            target="_blank" href="{{ $fish->link_video }}"
-                            style="font-size: 12px" role="button">VIDEO
-                            <span><i class="fa-solid fa-circle-chevron-right"></i></span></a>
-                    </div>
-                </div>
-                <div class="col-6 ps-0">
-                    <p class="m-0" style="font-size: 11px">Detail Koi</p>
-                    <hr class="m-0">
-                    <h3 style="font-size: 12px">
-                        <table>
-                            <tr>
-                                <td>Variety</td>
-                                <td>: {{ $fish->variety }}</td>
-                            </tr>
-                            <tr>
-                                <td>Breeder</td>
-                                <td>: {{ $fish->breeder }}</td>
-                            </tr>
-                            <tr>
-                                <td>Bloodline</td>
-                                <td>: {{ $fish->bloodline }}</td>
-                            </tr>
-                            <tr>
-                                <td>Sex</td>
-                                <td>: {{ $fish->sex }}</td>
-                            </tr>
-                            <tr>
-                                <td>DOB</td>
-                                <td>: {{ $fish->dob }}</td>
-                            </tr>
-                            <tr>
-                                <td>Size</td>
-                                <td>: {{ $fish->size }}</td>
-                            </tr>
-                        </table>
-                    </h3>
-
-                    <hr class="m-0">
-
-                    <p class="m-0" style="font-size: larger">Note :</p>
-                    <p style="font-size: larger">
-                        {!! $fish->note !!}
-                    </p>
-
-                    <hr class="m-0">
-
-                    <p class="" style="font-size:11px">Harga : <span class="alert-link text-danger"
-                            style="font-size:12px">Rp. {{ number_format($fish->harga_ikan, 0, '.', '.') }}</span></p>
-
-
-                    <hr class="m-0">
-                    <a class="btn btn-danger float-end mb-3 mt-3" target="_blank" href="https://wa.me/0811972857" role="button">Question <span><i
-                                class="fa-brands fa-whatsapp"></i></a>
-                </div>
-            </div>
+@php
+  $photo = url('/img/koi12.jpg');
+  if ($fish->foto_ikan !== null) {
+    $photo = url('storage') . '/' . $fish->foto_ikan;
+  }
+@endphp
+<br><br><br>
+<div class="container py-3 py-md-5">
+    <div class="fw-bold mb-3"><a href="/koi_stok" class="text-dark text-decoration-none"><i class="fas fa-arrow-left fs-4"></i></a></div>
+    <div class="row g-2 g-md-3">
+        <div class="col-md-3">
+            <div class="mb-2"><img src="{{ $photo }}" alt="" class="img-fluid"></div>
+            <div><a href="{{ $fish->link_video }}" target="_blank" class="btn btn-danger w-100">Video</a></div>
         </div>
-
-        <div class="web">
-            <div class="row gx-5">
-                <div class="col-3">
-                    <div class="m-lg-auto">
-                        <img src="{{ $photo }}" class="card-img-top" alt="...">
-                        <br><br>
-                        <div class="card-body p-0">
-                            <a target="_blank" href="{{ $fish->link_video }}" class="btn btn-danger w-100 d-flex justify-content-between"
-                                style="font-size:larger">VIDEO <span><i
-                                        class="fa-solid fa-circle-chevron-right"></i></span></a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-9">
-                    <p style="font-size: larger">Detail Koi</p>
-                    <hr>
-
-                    <div class="row">
-                        <div class="col">
-                            <h3>
-                                <table>
-                                    <tr>
-                                        <td>Variety</td>
-                                        <td>: {{ $fish->variety }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Breeder</td>
-                                        <td>: {{ $fish->breeder }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Bloodline</td>
-                                        <td>: {{ $fish->bloodline }}</td>
-                                    </tr>
-                                </table>
-                            </h3>
-                        </div>
-                        <div class="col">
-                            <h3>
-                                <table>
-                                    <tr>
-                                        <td>Sex</td>
-                                        <td>: {{ $fish->sex }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>DOB</td>
-                                        <td>: {{ $fish->dob }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Size</td>
-                                        <td>: {{ $fish->size }}</td>
-                                    </tr>
-                                </table>
-                            </h3>
-                        </div>
-                    </div>
-
-                    <hr class="m-0">
-
-                    <p class="m-0" style="font-size: larger">Note :</p>
-                    <p style="font-size: larger">
-                        {!! $fish->note !!}
-                    </p>
-
-                    <hr class="m-0">
-
-                    <p style="font-size:30px">Harga : <span class="alert-link text-danger">Rp. {{ number_format($fish->harga_ikan, 0, '.', '.') }}</span></p>
-                    <hr>
-
-                    <br><br>
-                    <div class="float-end">
-                        <a class="btn btn-danger mb-3" target="_blank" href="https://wa.me/0811972857" role="button">Question <span><i
-                                    class="fa-brands fa-whatsapp"></i></a>
-                    </div>
-                </div>
-            </div>
+        <div class="col-md-6">
+          <div class="fs-5 fw-bold mb-2">{{ $fish->variety }} | {{ $fish->breeder }} | {{ $fish->size }} | {{ $fish->sex }}</div>
+          <div class="fs-5 fw-bold mb-2">Rp. {{ number_format($fish->harga_ikan, 0, '.', '.') }}</div>
+          <div class="text-success fw-bold mb-2">Detail</div>
+          <div class="">Breeder : {{ $fish->breeder }}</div>
+          <div class="">Bloodline : {{ $fish->bloodline }}</div>
+          <div class="">Sex : {{ $fish->sex }}</div>
+          <div class="">DOB : {{ $fish->dob }}</div>
+          <div class="mb-3">Size : {{ $fish->size }}</div>
+          <div class="fw-bold">Note :</div>
+          <div>{!! $fish->note !!}</div>
         </div>
-
-        <br><br><br><br><br><br>
+        <div class="col-md-3">
+          <div class="card">
+            <div class="card-body">
+              <div class="mb-2 fw-bold">Atur jumlah</div>
+              <div class="mb-2 small">Stok Total : <span class="text-success fw-bold">Sisa <span id="sisaStok">{{ $fish->stock }}</span></span></div>
+              <div class="d-flex mb-2 border rounded">
+                <button id="hapusBarang" class="btn"><i class="fa-solid fa-minus text-muted"></i></button>
+                <input id="jumlahBarang" readonly type="text" class="form-control border-0 bg-transparent text-center" value="1">
+                <button id="tambahBarang" class="btn"><i class="fa-solid fa-plus text-muted"></i></button>
+              </div>
+              <div class="d-flex justify-content-between small mb-3">
+                <div class="text-muted">Subtotal</div>
+                <div class="fw-bold" id="hargaTotal">Rp. {{ number_format($fish->harga_ikan, 0, '.', '.') }}</div>
+              </div>
+              <div class="mb-3">
+                <button id="keranjangButton" class="mb-2 btn btn-success w-100"><i class="fa-solid fa-plus"></i> Keranjang</button>
+                {{-- <button id="beliLangsungButton" class="btn btn-outline-success w-100">Beli Langsung</button> --}}
+              </div>
+              <div class="d-flex justify-content-between small">
+                <div style="cursor: pointer;"><a href="https://wa.me/0811972857" target="_blank" class="text-decoration-none text-dark"><i class="fa-regular fa-comment"></i> Chat</a></div>
+                <div style="cursor: pointer;" id="wishlist"><i class="{{ $isWishlisted ? 'fa-solid text-danger' : 'fa-regular' }} fa-heart"></i> Wishlist</div>
+                <div style="cursor: pointer;" id="shareProduk"><i class="fa-solid fa-share-nodes"></i> Share</div>
+              </div>
+            </div>
+          </div>
+        </div>
     </div>
+</div>
 @endsection
+@push('scripts')
+<script>
+  $.ajaxSetup({
+      headers: {
+          'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+      }
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const jumlah = parseInt(jumlahBarang.value);
+    const stok = parseInt(document.getElementById('sisaStok').textContent);
+
+    if (jumlah >= stok) {
+        tambahBarang.disabled = true;
+    }
+
+    if (jumlah <= 1) {
+        hapusBarang.disabled = true;
+    }
+  });
+
+  const tambahBarang = document.getElementById('tambahBarang');
+  const hapusBarang = document.getElementById('hapusBarang');
+  const jumlahBarang = document.getElementById('jumlahBarang');
+  const hargaTotal = document.getElementById('hargaTotal');
+  const shareProduk = document.getElementById('shareProduk');
+  const wishlist = document.getElementById('wishlist');
+  const keranjangButton = document.getElementById('keranjangButton');
+  const beliLangsungButton = document.getElementById('beliLangsungButton');
+
+  const hargaSatuan = {{ $fish->harga_ikan }};
+  const idProduk = {{ $fish->id_koi_stock }};
+  var isWishlisted = @json($isWishlisted) ? true : false;
+
+  function updateHargaTotal() {
+      const jumlah = parseInt(jumlahBarang.value);
+      const total = hargaSatuan * jumlah;
+      hargaTotal.textContent = `Rp. ${total.toLocaleString('id-ID')}`;
+  }
+
+  function checkStok() {
+    const stok = parseInt(document.getElementById('sisaStok').textContent);
+    if (stok <= 0) {
+        tambahBarang.disabled = true;
+        keranjangButton.disabled = true;
+        beliLangsungButton.disabled = true;
+    } else {
+        tambahBarang.disabled = false;
+        keranjangButton.disabled = false;
+        beliLangsungButton.disabled = false;
+    }
+  }
+
+  tambahBarang.addEventListener('click', () => {
+      let jumlah = parseInt(jumlahBarang.value);
+      const stok = parseInt(document.getElementById('sisaStok').textContent);
+      if (jumlah < stok) {
+          jumlah += 1;
+          jumlahBarang.value = jumlah;
+          updateHargaTotal();
+      }
+      
+      if (jumlah >= stok) {
+        tambahBarang.disabled = true;
+      }
+
+      if (jumlah > 1) {
+        hapusBarang.disabled = false;
+      }
+  });
+
+  hapusBarang.addEventListener('click', () => {
+    let jumlah = parseInt(jumlahBarang.value);
+    const stok = parseInt(document.getElementById('sisaStok').textContent);
+    if (jumlah > 1) {
+        jumlah -= 1;
+        jumlahBarang.value = jumlah;
+        updateHargaTotal();
+    }
+
+    if (jumlah < stok) {
+        tambahBarang.disabled = false;
+    }
+
+    if (jumlah <= 1) {
+        hapusBarang.disabled = true;
+    }
+  });
+
+  shareProduk.addEventListener('click', () => {
+      const currentUrl = window.location.href;
+      navigator.clipboard.writeText(currentUrl).then(() => {
+          alert('Link produk berhasil disalin');
+      }).catch(err => {
+          console.error('Gagal menyalin link: ', err);
+      });
+  });
+
+  wishlist.addEventListener('click', function() {
+      const method = isWishlisted ? 'DELETE' : 'POST';
+      const url = isWishlisted ? `/wishlists/${idProduk}` : '/wishlists';
+
+      $.ajax({
+          type: method,
+          url: url,
+          data: {
+              id_produk: idProduk
+          },
+          dataType: 'json',
+          success: function(response) {
+              isWishlisted = !isWishlisted;
+              const message = isWishlisted ? 'Produk berhasil ditambahkan ke wishlist' : 'Produk berhasil dihapus dari wishlist';
+              alert(message);
+              const icon = $(wishlist).find('i');
+              if (isWishlisted) {
+                  icon.removeClass('fa-regular').addClass('fa-solid text-danger');
+              } else {
+                  icon.removeClass('fa-solid text-danger').addClass('fa-regular');
+              }
+          },
+          error: function(xhr, status, error) {
+              console.error('Error:', error);
+              alert('Terjadi kesalahan, silakan coba lagi.');
+          }
+      });
+  });
+
+  keranjangButton.addEventListener('click', function() {
+      const jumlah = parseInt(jumlahBarang.value);
+      $.ajax({
+          type: 'POST',
+          url: `/carts`,
+          data: {
+              jumlah: jumlah,
+              cartable_id: idProduk,
+              cartable_type: 'KoiStock',
+          },
+          dataType: 'json',
+          success: function(response) {
+              alert('Produk berhasil ditambahkan ke keranjang');
+          },
+          error: function(xhr, status, error) {
+              console.error('Error:', error);
+              alert('Terjadi kesalahan saat menambahkan produk ke keranjang.');
+          }
+      });
+  });
+
+  checkStok();
+  updateHargaTotal();
+</script>
+@endpush

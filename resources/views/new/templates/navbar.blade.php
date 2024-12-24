@@ -111,38 +111,42 @@
           <div class="collapse flex-grow-0 navbar-collapse" id="navbarNav">
               <ul class="navbar-nav">
                   <li class="nav-item">
-                      <a class="nav-link small" href="/">HOME</a>
+                      <a style="font-size: 13px;" class="nav-link small" href="/">HOME</a>
                   </li>
                   <li class="nav-item">
-                      <a class="nav-link small" href="/auction">AUCTION</a>
+                      <a style="font-size: 13px;" class="nav-link small" href="/auction">AUCTION</a>
                   </li>
                   <li class="nav-item">
-                      <a class="nav-link small" href="/onelito_store">ONELITO STORE</a>
+                      <a style="font-size: 13px;" class="nav-link small" href="/onelito_store">ONELITO STORE</a>
                   </li>
                   <li class="nav-item">
-                      <a class="nav-link small" href="/koi_stok">KOI STOCK</a>
+                      <a style="font-size: 13px;" class="nav-link small" href="/koi_stok">KOI STOCK</a>
                   </li>
                   <li class="nav-item">
-                      <a class="nav-link small" href="/wishlistlog">WISHLIST</a>
+                      <a style="font-size: 13px;" class="nav-link small" href="/wishlistlog">WISHLIST</a>
                   </li>
                   <li class="nav-item">
-                      <a class="nav-link small" href="/profil?section=cart">WINNING AUCTION</a>
+                      <a style="font-size: 13px;" class="nav-link small {{ Route::is('winning-auction') ? 'text-danger' : 'text-dark' }}" href="{{ route('winning-auction') }}">WINNING AUCTION</a>
                   </li>
                   <li class="nav-item">
-                      <a class="nav-link small" href="/profil?section=store-cart">PAYMENT CART</a>
-                  </li>
+                    <a style="font-size: 13px;" class="nav-link small {{ Route::is('cart') ? 'text-danger' : 'text-dark' }}" href="{{ route('cart') }}">CART</a>
+                </li>
                   <li class="nav-item">
-                      <a class="nav-link small" href="{{ route('news') }}">NEWS</a>
+                      <a style="font-size: 13px;" class="nav-link small {{ Route::is('shopping-cart.*') ? 'text-danger' : 'text-dark' }}" href="{{ route('shopping-cart.semua') }}">STATUS ORDER</a>
                   </li>
+                  {{-- <li class="nav-item">
+                      <a style="font-size: 13px;" class="nav-link small {{ Route::is('news') ? 'text-danger' : 'text-dark' }}" href="{{ route('news') }}">NEWS</a>
+                  </li> --}}
                   @if($auth)
+                  @include('new.notification')
                   <li class="nav-item">
-                    <a class="nav-link small" href="/profil">
+                    <a style="font-size: 13px;" class="nav-link small" href="/profil">
                         <img src="{{ $auth->profile_pic ? asset('storage/' . $auth->profile_pic) : asset('/img/default.png') }}" style="width:24px;height:24px;border-radius:50%;max-width:unset">
                     </a>
                   </li>
                   @else
                   <li class="nav-item">
-                    <a class="nav-link small {{ $title === 'login' ? 'active text-danger' : '' }}"href="/login">LOGIN</a>
+                    <a style="font-size: 13px;" class="nav-link small {{ $title === 'login' ? 'active text-danger' : '' }}"href="/login">LOGIN</a>
                   </li>
                   @endif
               </ul>
@@ -167,8 +171,9 @@
 
       <a class="nav-link" href="/wishlistlog">WISHLIST</a>
       <a class="nav-link" href="/shoppingcart">WINNING AUCTION</a>
-      <a class="nav-link" href="/storecart">PAYMENT CART</a>
-      <a class="nav-link" href="{{ route('news') }}">NEWS</a>
+      <a class="nav-link {{ Route::is('shopping-cart.*') ? 'text-danger' : 'text-dark' }}" href="{{ route('shopping-cart.semua') }}">STATUS ORDER</a>
+      <a class="nav-link {{ Route::is('cart') ? 'text-danger' : 'text-dark' }}" href="{{ route('cart') }}">CART</a>
+      {{-- <a class="nav-link {{ Route::is('news') ? 'text-danger' : 'text-dark' }}" href="{{ route('news') }}">NEWS</a> --}}
 
 
       @if($auth)
@@ -187,7 +192,7 @@
       @endif
   </div>
 
-  <div id="main" class="d-flex" style="background: white">
+  <div id="main" class="d-flex border-bottom" style="background: white">
       <button class="openbtn" onclick="openNav()">&#9776;</button>
       <h2 class="title my-0 mx-auto" style="text-transform: capitalize"></h2>
 

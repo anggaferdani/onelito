@@ -43,6 +43,30 @@
                 <input  type="text" id="size" class="form-control" name="size" placeholder="">
             </div>
             <div class="form-group">
+                <label for="weight">Weight (gr)</label>
+                <input  type="number" id="weight" class="form-control" name="weight" placeholder="">
+            </div>
+            <div class="form-group">
+                <label for="height">Height (cm)</label>
+                <input  type="number" id="height" class="form-control" name="height" placeholder="">
+            </div>
+            <div class="form-group">
+                <label for="length">Length (cm)</label>
+                <input  type="number" id="length" class="form-control" name="length" placeholder="">
+            </div>
+            <div class="form-group">
+                <label for="width">Width (cm)</label>
+                <input  type="number" id="width" class="form-control" name="width" placeholder="">
+            </div>
+            <div class="form-group">
+                <label for="point">Point (Cashback)</label>
+                <input  type="text" id="point" class="form-control" name="point" placeholder="">
+            </div>
+            <div class="form-group">
+                <label for="stock">Stock</label>
+                <input  type="number" id="stock" class="form-control" name="stock" placeholder="">
+            </div>
+            <div class="form-group">
                 <label for="harga_ikan">Harga</label>
                 <input  type="text" id="harga_ikan" class="form-control" name="harga_ikan" placeholder="" required>
             </div>

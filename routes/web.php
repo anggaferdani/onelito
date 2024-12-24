@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Carbon;
 use App\Http\Controllers\Admin;
+use App\Http\Controllers\AktivitasLoginController;
 use App\Mail\EmailVerification;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
@@ -9,18 +10,20 @@ use App\Http\Controllers\TagController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\NewsController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\AlamatController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\AuctionController;
+use App\Http\Controllers\PesananController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\KoiStockController;
 use App\Http\Controllers\WishlistController;
 use Illuminate\Routing\Route as RoutingRoute;
 use App\Http\Controllers\NotifikasiController;
-use App\Http\Controllers\PengaturanController;
 use App\Http\Controllers\ChampionFishController;
+use App\Http\Controllers\ShoppingCartController;
 use App\Http\Controllers\AuthenticationController;
 
 /*
@@ -67,6 +70,7 @@ Route::get('/now', function () {
     ->toDateTimeString();
 });
 
+
 Route::get('/', [HomeController::class, 'index'])->name('home.index');
 Route::get('/ls/click', [AuthenticationController::class, 'emailVerification'])->name('email.verification');
 Route::get('/ls/reset', [AuthenticationController::class, 'emailChangePassword'])->name('email.change_password');
@@ -104,6 +108,24 @@ Route::get('/news/{slug}', [NewsController::class, 'detail'])->name('news.detail
 Route::group(['middleware' => 'auth:member'], function () {
     Route::resource('alamat', AlamatController::class);
     Route::put('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::get('/tambah-barang/{id_keranjang}', [ProfileController::class, 'tambahBarang'])->name('tambah-barang');
+    Route::get('/hapus-barang/{id_keranjang}', [ProfileController::class, 'hapusBarang'])->name('hapus-barang');
+    Route::post('/tulis-catatan/{id_keranjang}', [ProfileController::class, 'tulisCatatan'])->name('tulis-catatan');
+    Route::get('/cart', [ProfileController::class, 'cart'])->name('cart');
+    Route::get('/winning-auction', [ProfileController::class, 'winningAuction'])->name('winning-auction');
+    Route::get('/shipment', [ProfileController::class, 'shipment'])->name('shipment');
+    Route::post('/order', [OrderController::class, 'order'])->name('order');
+    Route::get('/order/invoice/{no_order}', [OrderController::class, 'orderInvoice'])->name('order.invoice');
+    Route::get('/order/success', [OrderController::class, 'orderSuccess'])->name('order.success');
+    Route::post('order/cancel/{no_order}', [OrderController::class, 'cancel'])->name('order.cancel');
+
+    Route::get('/shopping-cart/semua', [ShoppingCartController::class, 'semua'])->name('shopping-cart.semua');
+    Route::get('/shopping-cart/belum-dibayar', [ShoppingCartController::class, 'belumDibayar'])->name('shopping-cart.belum-dibayar');
+    Route::get('/shopping-cart/menunggu-konfirmasi', [ShoppingCartController::class, 'menungguKonfirmasi'])->name('shopping-cart.menunggu-konfirmasi');
+    Route::get('/shopping-cart/sedang-diproses', [ShoppingCartController::class, 'sedangDiproses'])->name('shopping-cart.sedang-diproses');
+    Route::get('/shopping-cart/dikirim', [ShoppingCartController::class, 'dikirim'])->name('shopping-cart.dikirim');
+    Route::get('/shopping-cart/selesai', [ShoppingCartController::class, 'selesai'])->name('shopping-cart.selesai');
+    Route::get('/shopping-cart/dibatalkan', [ShoppingCartController::class, 'dibatalkan'])->name('shopping-cart.dibatalkan');
 
     Route::get('/alamat/pilih-alamat/{alamatId}', [AlamatController::class, 'pilihAlamat'])->name('alamat.pilih-alamat');
     Route::get('/alamat/alamat-utama/{alamatId}', [AlamatController::class, 'alamatUtama'])->name('alamat.alamat-utama');
@@ -114,7 +136,7 @@ Route::group(['middleware' => 'auth:member'], function () {
     Route::get('/notifikasi', [NotifikasiController::class, 'notifikasi'])->name('profile.notifikasi');
     Route::put('/notifikasi/update', [NotifikasiController::class, 'notifikasiUpdate'])->name('profile.notifikasi.update');
 
-    Route::get('/pengaturan', [PengaturanController::class, 'pengaturan'])->name('profile.pengaturan');
+    Route::get('/aktivitas-login', [AktivitasLoginController::class, 'aktivitasLogin'])->name('profile.aktivitas-login');
 
     Route::GET('/wishlistlog', [WishlistController::class, 'wishlistlog']);
     Route::POST('/change-password', [AuthenticationController::class, 'changePassword']);
@@ -184,6 +206,11 @@ Route::group(['prefix' => 'admin', 'middleware' => 'auth:admin'], function () {
     Route::name('admin.')->group(function() {
         Route::resource('tag', TagController::class);
         Route::resource('news', NewsController::class);
+        Route::resource('pesanan', PesananController::class);
+        Route::get('pesanan/detail/{no_order}', [PesananController::class, 'detail'])->name('pesanan.detail');
+        Route::get('pesanan/kirim/{no_order}', [OrderController::class, 'kirim'])->name('pesanan.kirim');
+        Route::get('pesanan/process/{no_order}', [OrderController::class, 'process'])->name('pesanan.process');
+        Route::get('/order/invoice/{no_order}', [OrderController::class, 'orderInvoice'])->name('order.invoice');
     });
 
     Route::get('/dashboard', [Admin\DashboardController::class, 'index'])->name('admin.dashboard.index');

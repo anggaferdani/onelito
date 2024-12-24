@@ -66,6 +66,7 @@ class ProductController extends Controller
 
         $data['create_by'] = Auth::guard('admin')->id();
         $data['update_by'] = Auth::guard('admin')->id();
+        $data['point'] = str_replace('.', '', $data['point']);
         $data['harga'] = str_replace('.', '', $data['harga']);
         $data['status_aktif'] = 1;
 
@@ -109,6 +110,7 @@ class ProductController extends Controller
     {
         $product = Product::with(['photo', 'category'])->findOrFail($id);
         $product->harga = number_format( $product->harga , 0 , '.' , '.' );
+        $product->point = number_format( $product->point , 0 , '.' , '.' );
 
         if($product){
             return response()->json($product);
@@ -125,6 +127,7 @@ class ProductController extends Controller
         $product = Product::With('photo')->findOrFail($id);
         $data = $this->request->all();
         $data['harga'] = str_replace('.', '', $data['harga']);
+        $data['point'] = str_replace('.', '', $data['point']);
 
         $validator = Validator::make($this->request->all(), [
         ]);

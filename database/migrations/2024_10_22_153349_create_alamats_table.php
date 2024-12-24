@@ -15,11 +15,18 @@ return new class extends Migration
     {
         Schema::create('alamats', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('peserta_id');
+            $table->unsignedBigInteger('peserta_id')->nullable();
             $table->string('label');
-            $table->string('nama_penerima');
+            $table->string('nama');
             $table->string('no_hp');
+            $table->string('email')->nullable();
+            $table->string('organisasi')->nullable();
             $table->text('alamat_lengkap');
+            $table->text('catatan')->nullable();
+            $table->string('kode_pos')->nullable();
+            $table->string('latitude')->nullable();
+            $table->string('longitude')->nullable();
+            $table->string('id_lokasi')->nullable();
             $table->integer('status')->default(1);
             $table->timestamps();
         });

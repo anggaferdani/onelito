@@ -6,6 +6,7 @@ use App\Models\Alamat;
 use App\Models\Member;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 
 class AlamatController extends Controller
 {
@@ -19,7 +20,7 @@ class AlamatController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('label', 'like', '%' . $search . '%')
                   ->orWhere('alamat_lengkap', 'like', '%' . $search . '%')
-                  ->orWhere('nama_penerima', 'like', '%' . $search . '%')
+                  ->orWhere('nama', 'like', '%' . $search . '%')
                   ->orWhere('no_hp', 'like', '%' . $search . '%');
             });
         }
@@ -36,20 +37,44 @@ class AlamatController extends Controller
     public function store(Request $request) {
         $request->validate([
             'label' => 'required',
-            'nama_penerima' => 'required',
+            'nama' => 'required',
             'no_hp' => 'required',
             'alamat_lengkap' => 'required',
         ]);
 
         $auth = Auth::guard('member')->user();
 
+        $search = $request->filled('kode_pos') ? $request['kode_pos'] : $request['alamat_lengkap'];
+        $response = Http::withToken(env('BITESHIP_API_KEY'))
+            ->get('https://api.biteship.com/v1/maps/areas?countries=ID&input=' . $search . '&type=single');
+        
+        if ($response->successful()) {
+            $lokasi = $response->json();
+
+            dd($lokasi);
+
+            if (isset($lokasi['areas'][0])) {
+                $idLokasi = $lokasi['areas'][0]['id'];
+            } else {
+                return back()->with('error', 'Provinsi Kota atau Kecamatan tidak ditemukan. Lengkapi alamat dengan Provinsi Kota dan Kecamatan');
+            }
+        } else {
+            return back()->with('error', 'Provinsi Kota atau Kecamatan tidak ditemukan. Lengkapi alamat dengan Provinsi Kota dan Kecamatan');
+        }
+
         try {
             $array = [
                 'peserta_id' => $auth->id_peserta,
                 'label' => $request['label'],
-                'nama_penerima' => $request['nama_penerima'],
+                'nama' => $request['nama'],
+                'email' => $request['email'],
                 'no_hp' => $request['no_hp'],
                 'alamat_lengkap' => $request['alamat_lengkap'],
+                'catatan' => $request['catatan'],
+                'kode_pos' => $request['kode_pos'],
+                'latitude' => $request['latitude'],
+                'longitude' => $request['longitude'],
+                'id_lokasi' => $idLokasi,
             ];
 
             Alamat::create($array);
@@ -69,17 +94,41 @@ class AlamatController extends Controller
 
         $request->validate([
             'label' => 'required',
-            'nama_penerima' => 'required',
+            'nama' => 'required',
             'no_hp' => 'required',
             'alamat_lengkap' => 'required',
         ]);
 
+        $search = $request->filled('kode_pos') ? $request['kode_pos'] : $request['alamat_lengkap'];
+        $response = Http::withToken(env('BITESHIP_API_KEY'))
+            ->get('https://api.biteship.com/v1/maps/areas?countries=ID&input=' . $search . '&type=single');
+        
+        if ($response->successful()) {
+            $lokasi = $response->json();
+
+            dd($lokasi);
+
+            if (isset($lokasi['areas'][0])) {
+                $idLokasi = $lokasi['areas'][0]['id'];
+            } else {
+                return back()->with('error', 'Provinsi Kota atau Kecamatan tidak ditemukan. Lengkapi alamat dengan Provinsi Kota dan Kecamatan');
+            }
+        } else {
+            return back()->with('error', 'Provinsi Kota atau Kecamatan tidak ditemukan. Lengkapi alamat dengan Provinsi Kota dan Kecamatan');
+        }
+
         try {
             $array = [
                 'label' => $request['label'],
-                'nama_penerima' => $request['nama_penerima'],
+                'nama' => $request['nama'],
+                'email' => $request['email'],
                 'no_hp' => $request['no_hp'],
                 'alamat_lengkap' => $request['alamat_lengkap'],
+                'catatan' => $request['catatan'],
+                'kode_pos' => $request['kode_pos'],
+                'latitude' => $request['latitude'],
+                'longitude' => $request['longitude'],
+                'id_lokasi' => $idLokasi,
             ];
 
             $alamat->update($array);

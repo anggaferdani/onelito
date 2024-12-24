@@ -3,35 +3,33 @@
 namespace App\Http\Controllers;
 
 use App\Models\Member;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class NotifikasiController extends Controller
 {
     public function notifikasiUpdate(Request $request) {
-        $auth = Auth::guard('member')->user();
+        $notification = Notification::find($request->notification_id);
 
-        try {
-            $peserta = Member::find($auth->id_peserta);
-
-            $array = [
-                'menunggu_pembayaran' => $request->has('menunggu_pembayaran') ? 1 : 2,
-                'menunggu_konfirmasi' => $request->has('menunggu_konfirmasi') ? 1 : 2,
-                'pesanan_diproses' => $request->has('pesanan_diproses') ? 1 : 2,
-                'pesanan_dikirim' => $request->has('pesanan_dikirim') ? 1 : 2,
-                'pesanan_selesai' => $request->has('pesanan_selesai') ? 1 : 2,
-                'pengingat' => $request->has('pengingat') ? 1 : 2,
-            ];
-
-            $peserta->update($array);
-
-            return redirect()->back()->with('success', 'Success');
-        } catch (\Throwable $th) {
-            return back()->with('error', $th->getMessage());
+        if ($notification) {
+            $notification->update([
+                'status' => 0,
+            ]);
         }
+
+        return response()->json(['success' => true]);
     }
 
     public function notifikasi() {
-        return view('new.pages.profile.notifikasi');
+        $notifications = Notification::where(function($query) {
+            $query->whereNull('peserta_id')
+                  ->orWhere('peserta_id', auth()->user()->id_peserta);
+        })
+        ->orderBy('created_at', 'desc')
+        ->paginate(10);
+        return view('new.pages.profile.notifikasi', compact(
+            'notifications',
+        ));
     }
 }

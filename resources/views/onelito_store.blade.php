@@ -281,19 +281,23 @@
                                             </div>
                                             <div class="col-12">
                                                 <div class="row px-1">
-                                                    <div class="col-8">
+                                                    <div class="col-6">
                                                         <button class="border rounded-1 text-black-50 button-wishlist"
                                                             data-id="{{ $product->id_produk }}"
-                                                            style="background-color: transparent;font-size:x-small"><i
+                                                            style="background-color: transparent;font-size:9px"><i
                                                                 class="{{ $wishlistClass }} wishlist produk-{{ $product->id_produk }}"></i>
                                                             <span>Wishlist</span></button>
                                                     </div>
-                                                    <div class="col-4 mb-1 text-end">
+                                                    <div class="col-6 mb-1 text-end">
+                                                        @if($product->stock == 0)
+                                                        <button class="rounded text-white" style="font-size: 9px; background-color: red;border-color:red; outline: none; border: none;">stock habis</button>
+                                                        @else
                                                         <button class="rounded addcart"
                                                             data-id="{{ $product->id_produk }}"
                                                             style="background-color: red;border-color:red; outline: none; border: none; font-size:x-small"><i
                                                                 class="fa-solid fa-cart-shopping"
                                                                 style="color: white"></i></button>
+                                                        @endif
                                                     </div>
                                                 </div>
                                             </div>
@@ -525,9 +529,9 @@
                     }).then((result) => {
                         if (result.isConfirmed) {
                             if (isMobile()) {
-                                document.location = '/storecart'
+                                document.location = '/cart'
                             } else {
-                                document.location = '/profil?section=store-cart'
+                                document.location = '/cart'
                             }
                         } else if (
                             /* Read more about handling dismissals below */

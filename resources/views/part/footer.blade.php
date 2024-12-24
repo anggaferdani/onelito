@@ -30,7 +30,8 @@
  height = 31hv">
     <div class="row">
         <div class="col-3 col-lg-3 py-4 text-center">
-            <img src="{{ url('img/logo-bawah.png') }}" alt="ONELITO" class="p-lg-5 py-5 w-75">
+            <img src="{{ url('img/logo-bawah.png') }}" alt="ONELITO" class="pb-1 pb-lg-1 p-lg-5 py-5 w-75">
+            <div class="text-white lh-1 mb-5" style="font-size: 10px;">PT ONELITO KOI AQUATIC</div>
         </div>
         <div class="col-4 col-lg-5">
             <nav class="justify-content-center navbar navbar-dark navbar-expand-lg py-5">

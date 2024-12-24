@@ -2,30 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\News;
-use App\Models\Tag;
+use App\Models\Order;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
-class NewsController extends Controller
+class PesananController extends Controller
 {
-    public function news() {
-        $news = News::where('status', 1)->latest()->paginate(9);
-        return view('new.pages.news.news', compact(
-            'news',
-        ));
-    }
-
-    public function detail($lug) {
-        $new = News::where('slug', $lug)->first();
-
-        return view('new.pages.news.detail', compact(
-            'new',
-        ));
-    }
-
     public function index(Request $request) {
-        $query = News::where('status', 1);
+        $query = Order::where('status_aktif', 1);
 
         if ($request->has('search')) {
             $search = $request->input('search');
@@ -34,13 +17,11 @@ class NewsController extends Controller
             });
         }
 
-        $news = $query->latest()->paginate(10);
-        $tags = Tag::where('status', 1)->get();
+        $orders = $query->latest()->paginate(10);
 
-        return view('admin.pages.new.news.index', compact(
-            'news',
-            'tags',
-        ))->with(['type_menu' => 'news']);
+        return view('admin.pages.new.pesanan.index', compact(
+            'orders',
+        ))->with(['type_menu' => 'order']);
     }
 
     public function create() {}
@@ -122,24 +103,17 @@ class NewsController extends Controller
         }
     }
 
-    private function handleFileUpload($file, $path)
-    {
-        if ($file) {
-            $fileName = date('YmdHis') . rand(999999999, 9999999999) . $file->getClientOriginalExtension();
-            $file->move(public_path($path), $fileName);
-            return $fileName;
-        }
-        return null;
-    }
+    public function detail($no_order) {
+        try {
+            $order = Order::where('no_order', $no_order)->where('status_aktif', 1)->first();
 
-    private function generateSlug($title) {
-        $slug = Str::slug($title);
-        $count = News::where('slug', 'like', "$slug%")->count();
-    
-        if ($count > 0) {
-            $slug = $slug . '-' . ($count + 1);
+            if ($order) {
+                return view('admin.pages.new.pesanan.detail', compact(
+                    'order',
+                ))->with(['type_menu' => 'order']);
+            }
+        } catch (\Throwable $th) {
+            return back()->with('error', $th->getMessage());
         }
-    
-        return $slug;
     }
 }

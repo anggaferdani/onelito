@@ -3,13 +3,14 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="biteship-api-key" content="{{ env('BITESHIP_API_KEY') }}">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css" integrity="sha512-1sCRPdkRXhBV2PBLUdRb4tMg1w2YPf37qatUFeS7zlBy7jJI8Lf4VHwWfZZfpXtYSLy85pkm9GaYVYMfw5BC1A==" crossorigin="anonymous" referrerpolicy="no-referrer">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
     <title>@yield('title')</title>
     <style>
       ::-webkit-resizer{
@@ -24,51 +25,40 @@
     @include('new.templates.navbar')
     <br><br><br><br>
     <div class="container">
-        <div class="row g-3 py-5">
-            <div class="col-md-4">
-                <div class="card mb-3">
-                    <div class="card-header bg-white p-3">
-                        <div class="row g-3 align-items-center">
-                          <div class="col-2">
-                            <img src="{{ $auth->profile_pic ? asset('storage/' . $auth->profile_pic) : asset('/img/default.png') }}" alt="" class="img-fluid rounded-circle">
-                          </div>
-                          <div class="col-10">
-                            <div class="fw-bold fs-5">{{ $auth->nama }}</div>
-                            <div>{{ $auth->email }}</div>
-                          </div>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                      <div class="row g-3 align-items-center">
-                        <div class="col-2">
-                          <div class="text-center"><i class="fa-solid fa-coins fs-3 text-warning"></i></div>
-                        </div>
-                        <div class="col-10">
-                          <div class="fw-bold">{{ $auth->coin }} Point</div>
-                        </div>
-                      </div>
-                    </div>
-                </div>
-                <a href="{{ route('logout') }}" class="btn btn-danger w-100 confirmation">Log Out</a>
-            </div>
-            <div class="col-md-8">
+        <div class="row py-5">
+            <div class="col-md-12">
               <div class="card">
                 <div class="card-header bg-white">
                   <ul class="nav">
+                    @php
+                      use App\Models\Order;
+                      $auth = Auth::guard('member')->user();
+
+                      $belumDibayar = Order::where('id_peserta', $auth->id_peserta)->where('status_order', 'pending')->where('status_aktif', 1)->count();
+                      $menungguKonfirmasi = Order::where('id_peserta', $auth->id_peserta)->where('status_order', 'paid')->where('status_aktif', 1)->count();
+                      $sedangDiproses = Order::where('id_peserta', $auth->id_peserta)->where('status_order', 'process')->where('status_aktif', 1)->count();
+                      $dikirim = Order::where('id_peserta', $auth->id_peserta)->where('status_order', 'delivered')->where('status_aktif', 1)->count();
+                    @endphp
                     <li class="nav-item">
-                      <a class="nav-link {{ Route::is('profile.index') ? 'text-danger' : 'text-dark' }}" href="{{ route('profile.index') }}">Data Diri</a>
+                      <a class="nav-link {{ Route::is('shopping-cart.semua') ? 'text-danger' : 'text-dark' }}" href="{{ route('shopping-cart.semua') }}">Semua</a>
                     </li>
                     <li class="nav-item">
-                      <a class="nav-link {{ Route::is('alamat.*') ? 'text-danger' : 'text-dark' }}" href="{{ route('alamat.index') }}">Daftar Alamat</a>
+                      <a class="nav-link {{ Route::is('shopping-cart.belum-dibayar') ? 'text-danger' : 'text-dark' }}" href="{{ route('shopping-cart.belum-dibayar') }}">Belum Dibayar <span class="text-danger">({{ $belumDibayar }})</span></a>
                     </li>
                     <li class="nav-item">
-                      <a class="nav-link {{ Route::is('profile.card') ? 'text-danger' : 'text-dark' }}" href="{{ route('profile.card') }}">Member Card</a>
+                      <a class="nav-link {{ Route::is('shopping-cart.menunggu-konfirmasi') ? 'text-danger' : 'text-dark' }}" href="{{ route('shopping-cart.menunggu-konfirmasi') }}">Menunggu Konfirmasi <span class="text-danger">({{ $menungguKonfirmasi }})</span></a>
                     </li>
                     <li class="nav-item">
-                      <a class="nav-link {{ Route::is('profile.notifikasi') ? 'text-danger' : 'text-dark' }}" href="{{ route('profile.notifikasi') }}">Notifikasi</a>
+                      <a class="nav-link {{ Route::is('shopping-cart.sedang-diproses') ? 'text-danger' : 'text-dark' }}" href="{{ route('shopping-cart.sedang-diproses') }}">Sedang Diproses <span class="text-danger">({{ $sedangDiproses }})</span></a>
                     </li>
                     <li class="nav-item">
-                      <a class="nav-link {{ Route::is('profile.aktivitas-login') ? 'text-danger' : 'text-dark' }}" href="{{ route('profile.aktivitas-login') }}">Aktivitas Login</a>
+                      <a class="nav-link {{ Route::is('shopping-cart.dikirim') ? 'text-danger' : 'text-dark' }}" href="{{ route('shopping-cart.dikirim') }}">Dikirim <span class="text-danger">({{ $dikirim }})</span></a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link {{ Route::is('shopping-cart.selesai') ? 'text-danger' : 'text-dark' }}" href="{{ route('shopping-cart.selesai') }}">Selesai</a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link {{ Route::is('shopping-cart.dibatalkan') ? 'text-danger' : 'text-dark' }}" href="{{ route('shopping-cart.dibatalkan') }}">Dibatalkan</a>
                     </li>
                   </ul>
                 </div>

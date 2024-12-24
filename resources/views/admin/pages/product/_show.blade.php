@@ -25,6 +25,30 @@
                 <input readonly type="text" id="show_berat" class="form-control" name="show_berat" placeholder="">
             </div>
             <div class="form-group">
+                <label for="show_weight">Weight (gr)</label>
+                <input  type="number" id="show_weight" class="form-control" name="show_weight" placeholder="">
+            </div>
+            <div class="form-group">
+                <label for="show_height">Height (cm)</label>
+                <input  type="number" id="show_height" class="form-control" name="show_height" placeholder="">
+            </div>
+            <div class="form-group">
+                <label for="show_length">Length (cm)</label>
+                <input  type="number" id="show_length" class="form-control" name="show_length" placeholder="">
+            </div>
+            <div class="form-group">
+                <label for="show_width">Width (cm)</label>
+                <input  type="number" id="show_width" class="form-control" name="show_width" placeholder="">
+            </div>
+            <div class="form-group">
+                <label for="show_point">Point (Cashback)</label>
+                <input readonly type="text" id="show_point" class="form-control" name="show_point" placeholder="">
+            </div>
+            <div class="form-group">
+                <label for="show_stock">Stock</label>
+                <input readonly type="number" id="show_stock" class="form-control" name="show_stock" placeholder="">
+            </div>
+            <div class="form-group">
                 <label for="show_harga">Harga</label>
                 <input readonly type="text" id="show_harga" class="form-control" name="show_harga" placeholder="">
             </div>
