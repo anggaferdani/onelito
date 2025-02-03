@@ -28,7 +28,7 @@
         </li>
         <hr class="m-0">
         @foreach($notifications->take(10) as $notification)
-          <li class="p-3 notification" @if($notification->status == 1) style="background: RGBA(170, 217, 187, 0.2);" @endif data-id="{{ $notification->id }}">
+          <li class="p-3 notification" @if($notification->status == 1 || $notification->peserta_id == null) style="background: RGBA(170, 217, 187, 0.2);" @endif data-id="{{ $notification->id }}">
             <div class="card bg-transparent p-0 border-0">
               <div class="fw-bold mb-1">{{ $notification->label }}</div>
               <div class="small text-muted">{{ $notification->description }}</div>

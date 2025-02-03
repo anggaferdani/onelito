@@ -15,6 +15,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use App\Models\AuctionWinner;
 
 class ProfileController extends Controller
 {
@@ -111,11 +112,77 @@ class ProfileController extends Controller
 
     public function winningAuction() {
         $auth = Auth::guard('member')->user();
-        $carts = Cart::where('id_peserta', $auth->id_peserta)->where('cartable_type', 'EventFish')->where('status_aktif', 1)->latest()->get();
+    
+        $winners = AuctionWinner::query()
+            ->join('t_log_bidding', 't_pemenang_lelang.id_bidding', '=', 't_log_bidding.id_bidding')
+            ->join('m_ikan_lelang', 't_log_bidding.id_ikan_lelang', '=', 'm_ikan_lelang.id_ikan')
+            ->join('m_event', 'm_ikan_lelang.id_event', '=', 'm_event.id_event')
+            ->leftJoin('m_foto_ikan', 'm_ikan_lelang.id_ikan', '=', 'm_foto_ikan.id_ikan')
+            ->select(
+                't_pemenang_lelang.id_pemenang_lelang',
+                't_pemenang_lelang.status_pembayaran',
+                'm_ikan_lelang.no_ikan',
+                'm_ikan_lelang.dob',
+                'm_ikan_lelang.note',
+                'm_ikan_lelang.variety',
+                'm_ikan_lelang.breeder',
+                'm_ikan_lelang.bloodline',
+                'm_ikan_lelang.size',
+                'm_foto_ikan.path_foto as photo_path',
+                't_log_bidding.nominal_bid as price',
+                'm_event.kategori_event as kategori_event',
+                'm_event.tgl_mulai as tgl_mulai',
+                'm_event.tgl_akhir as tgl_akhir'
+            )
+            ->where('t_log_bidding.id_peserta', $auth->id_peserta)
+            ->where('t_pemenang_lelang.status_aktif', 1)
+            ->orderBy('t_pemenang_lelang.id_pemenang_lelang', 'desc')
+            ->paginate(10);
+    
         return view('new.pages.profile.winning-auction', compact(
             'auth',
-            'carts',
+            'winners'
         ));
+    }
+
+    public function whatsapp() {
+        $url = 'https://service-chat.qontak.com/api/open/v1/broadcasts/whatsapp/direct';
+        $token = 'BMdThzuEsE5XX-KBFsUwuXnuQvZMRJmSJWWUpqDoWwk';
+
+        $data = [
+            "to_name" => "Angga",
+            "to_number" => "6281290573256",
+            "message_template_id" => "5255dc53-a7b1-4a36-81ef-220d6cca808e",
+            "channel_integration_id" => "21c91c8d-169a-4a7f-9383-84fa268fd7e7",
+            "language" => [
+                "code" => "id",
+            ],
+            "parameters" => [
+                "header" => [
+                    "format" => "DOCUMENT",
+                    "params" => [],
+                ],
+                "body" => [],
+                "buttons" => []
+            ]
+        ];
+
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $token,
+            'Content-Type' => 'application/json',
+        ])->post($url, $data);
+
+        if ($response->successful()) {
+            return response()->json([
+                'message' => 'Broadcast berhasil dikirim',
+                'data' => $response->json(),
+            ]);
+        } else {
+            return response()->json([
+                'message' => 'Broadcast gagal dikirim',
+                'error' => $response->body(),
+            ], $response->status());
+        }
     }
 
     // public function getCouriers()
@@ -156,6 +223,7 @@ class ProfileController extends Controller
                 ->where('jumlah', '>', 0)
                 ->whereIn('id_keranjang', $cartIds)
                 ->get();
+
         $totalJumlahBarang = $carts->sum('jumlah');
         $alamats = Alamat::where('peserta_id', $auth->id_peserta)->where('status', 1)->get();
         $couriers = $this->getCouriers();
@@ -188,7 +256,7 @@ class ProfileController extends Controller
             $uniqueNumber = $this->generateUniqueNumber();
 
             $peserta->update([
-                'member' => $uniqueNumber,
+                'kode_member' => $uniqueNumber,
             ]);
 
             return redirect()->back()->with('success', 'Success');
@@ -200,7 +268,7 @@ class ProfileController extends Controller
     private function generateUniqueNumber() {
         do {
             $number = str_pad(rand(0, 999999999999), 12, '0', STR_PAD_LEFT);
-        } while (Member::where('member', $number)->exists());
+        } while (Member::where('kode_member', $number)->exists());
     
         return $number;
     }

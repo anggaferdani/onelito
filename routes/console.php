@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 
@@ -17,3 +18,9 @@ use Illuminate\Support\Facades\Artisan;
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
+
+Artisan::command('event:send-reminder', function (Schedule $schedule) {
+    $schedule->command('event:send-reminder')
+        ->everyMinute() // Menjalankan setiap menit
+        ->onOneServer(); // Pastikan hanya berjalan di satu server jika menggunakan beberapa server
+})->purpose('Menjalankan task scheduler untuk mengirim reminder event.');

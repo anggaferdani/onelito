@@ -44,7 +44,12 @@ class KoiStockController extends Controller
             where('status_aktif', 1)
             ->findOrFail($id);
 
-        $isWishlisted = Wishlist::where('id_peserta', $auth->id_peserta)->where('wishlistable_id', $id)->where('status_aktif', 1)->exists();
+        $isWishlisted = false;
+
+        if ($auth) {
+            $isWishlisted = Wishlist::where('id_peserta', $auth->id_peserta)->where('wishlistable_id', $id)->where('status_aktif', 1)->exists();
+        }
+
 
         return view('detail_koistok',[
             'auth' => $auth,

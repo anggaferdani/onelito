@@ -2,16 +2,25 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
+use Carbon\Carbon;
 use App\Models\Event;
 use App\Models\EventFish;
-use Illuminate\Support\Facades\Auth;
+use App\Models\Notification;
+use App\Models\AuctionWinner;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Http\Request;
 
 class EventController extends Controller
 {
+    public function __construct(Request $request){
+        $this->request = $request;
+    }
+    
     public function index()
     {
         if ($this->request->ajax()) {
@@ -128,14 +137,138 @@ class EventController extends Controller
             $auction->status_tutup = 1;
             $auction->save();
 
+            $now = Carbon::now();
+
+            $auctionProducts = EventFish::doesntHave('winners')
+                ->whereHas('event', function ($q) use ($now) {
+                    $q->where('tgl_akhir', '<', $now);
+                })
+                ->with(['bids.member', 'maxBid', 'event'])
+                ->where('status_aktif', 1)
+                ->get()
+                ->mapWithKeys(fn($a) => [$a->id_ikan => $a]);
+
+            $fishInWinner = AuctionWinner::whereIn('id_bidding', $auctionProducts->pluck('maxBid.id_bidding'))
+                ->get()
+                ->mapWithKeys(fn($q) => [$q->id_bidding => $q]);
+
+            // Array untuk menampung response dari notifikasi
+            $notificationResponses = [];
+
+            foreach ($auctionProducts as $cProduct) {
+                if ($cProduct->maxBid === null) {
+                    continue;
+                }
+
+                $dateDiff = Carbon::parse($now, 'id')->diffInMinutes($cProduct->maxBid->updated_at);
+                $dateEventEnd = Carbon::parse($cProduct->event->tgl_akhir)->addMinutes($cProduct->extra_time);
+
+                if ($now < $dateEventEnd) {
+                    continue;
+                }
+
+                if ($dateDiff < $cProduct->extra_time || array_key_exists($cProduct->maxBid->id_bidding, $fishInWinner->toArray())) {
+                    continue;
+                }
+
+                $data = [
+                    'id_bidding' => $cProduct->maxBid->id_bidding,
+                    'create_by' => Auth::guard('admin')->id(),
+                    'update_by' => Auth::guard('admin')->id(),
+                    'status_aktif' => 1,
+                ];
+
+                AuctionWinner::create($data);
+
+                $winner = $cProduct->maxBid->member;
+                $fishVariety = "{$cProduct->no_ikan} | {$cProduct->variety} | {$cProduct->breeder} | {$cProduct->bloodline} | {$cProduct->sex}";
+                $finalBidPrice = $cProduct->maxBid->nominal_bid;
+
+                $notification = Notification::create([
+                    'peserta_id' => $winner->id_peserta,
+                    'label' => 'Auction Winner',
+                    'description' => "Selamat kepada Mr. / Ms. {$winner->nama} telah memenangkan Lelang Koi {$fishVariety} dengan nilai final bid Rp " . number_format($finalBidPrice, 0, ',', '.'),
+                    'link' => route('winning-auction'),
+                ]);
+
+                if($notification) {
+                    $url = 'https://service-chat.qontak.com/api/open/v1/broadcasts/whatsapp/direct';
+                    $token = env('QONTAK_API_KEY');
+
+                    $phoneNumber = $winner->no_hp;
+                    $phoneNumber = preg_replace('/\D/', '', $phoneNumber);
+                    if (strpos($phoneNumber, '0') === 0) {
+                        $phoneNumber = '62' . substr($phoneNumber, 1);
+                    } else if (strpos($phoneNumber, '62') !== 0){
+                        $phoneNumber = '62' . $phoneNumber;
+                    }
+
+                    $data = [
+                        "to_name" => $winner->nama,
+                        "to_number" => $phoneNumber,
+                        "message_template_id" => "2c9c5f12-4578-4d36-9df9-b9296e9e9af2",
+                        "channel_integration_id" => env('QONTAK_CHANNEL_INTEGRATION_ID'),
+                        "language" => [
+                            "code" => "id",
+                        ],
+                        "parameters" => [
+                            "header" => [
+                                "format" => "DOCUMENT",
+                                "params" => [],
+                            ],
+                            "body" => [
+                                [
+                                    "key" => "0",
+                                    "value_text" => $winner->nama,
+                                    "value" => "customer_name",
+                                ],
+                                [
+                                    "key" => "1",
+                                    "value_text" => $fishVariety,
+                                    "value" => "fish_variety",
+                                ],
+                                [
+                                    "key" => "2",
+                                    "value_text" => $finalBidPrice,
+                                    "value" => "final_bid_price",
+                                ],
+                            ],
+                            "buttons" => []
+                        ]
+                    ];
+
+                    $response = Http::withHeaders([
+                        'Authorization' => 'Bearer ' . $token,
+                        'Content-Type' => 'application/json',
+                    ])->post($url, $data);
+
+
+                    if ($response->successful()) {
+                    $notificationResponses[] = [
+                        'success' => true,
+                        'message' => 'Broadcast berhasil dikirim ke: ' . $winner->nama,
+                        'data' => $response->json(),
+                        ];
+                    } else {
+                        $notificationResponses[] = [
+                            'success' => false,
+                            'message' => 'Broadcast gagal dikirim ke: ' . $winner->nama,
+                            'error' => $response->body(),
+                            'status' => $response->status(),
+                        ];
+                    }
+                }
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => [
                     'title' => 'Berhasil',
-                    'content' => 'Mengubah data auction',
-                    'type' => 'success'
+                    'content' => 'Mengubah data auction dan menentukan pemenang lelang',
+                    'type' => 'success',
                 ],
-            ],200);
+                'notification_responses' => $notificationResponses,
+            ], 200);
         }
 
         $data = $this->request->all();

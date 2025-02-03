@@ -44,7 +44,7 @@
                           <div class="text-center"><i class="fa-solid fa-coins fs-3 text-warning"></i></div>
                         </div>
                         <div class="col-10">
-                          <div class="fw-bold">{{ $auth->coin }} Point</div>
+                          <div class="fw-bold">{{ 'Rp. ' . number_format($auth->coin, 0, '.', '.') }} Point</div>
                         </div>
                       </div>
                     </div>

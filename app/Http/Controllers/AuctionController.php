@@ -2,15 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Event;
-use App\Models\EventFish;
-use App\Models\LogBid;
-use App\Models\LogBidDetail;
 use Carbon\Carbon;
+use App\Models\Event;
+use App\Models\LogBid;
+use App\Models\EventFish;
+use App\Models\LogBidDetail;
+use App\Models\Notification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 
 class AuctionController extends Controller
 {
@@ -168,17 +170,15 @@ class AuctionController extends Controller
 
     public function bidProcess($idIkan)
     {
+        // ... (Kode inisialisasi dan validasi bid)
 
+        $auth = Auth::guard('member')->user();
+        $auctionProduct = EventFish::with(['photo', 'event'])->findOrFail($idIkan);
         $nominalBid = $this->request->input('nominal_bid', null);
         $nominalBidDetail = $this->request->input('nominal_bid_detail', null);
         $autoBid = $this->request->input('auto_bid', null);
 
-        $auth = Auth::guard('member')->user();
-
-        $auctionProduct = EventFish::with(['photo', 'event'])->findOrFail($idIkan);
-
         $modKb = ($nominalBidDetail - $auctionProduct->ob) % $auctionProduct->kb === 0;
-
         if ($autoBid !== null) {
             $modAutoKb = $autoBid % $auctionProduct->kb === 0;
             if (!$modAutoKb) {
@@ -190,72 +190,160 @@ class AuctionController extends Controller
             return response()->json(['message' => 'Nominal bid harus sesuai dengan kelipatan bid'], 400);
         }
 
+
         $bids = LogBid::where('id_ikan_lelang', $idIkan)->orderBy('nominal_bid', 'desc')->first();
 
+        // Proses Bid (logic yang anda punya sebelum if pengecekan waktu)
         $logBid = LogBid::where('id_peserta', $auth->id_peserta)->where('id_ikan_lelang', $idIkan)->first();
+        $message = null;
 
         if ($logBid !== null) {
             $nominalBidDetail = (int) $nominalBid - (int) $logBid->nominal_bid;
 
             if ($autoBid <= $logBid->nominal_bid && $autoBid !== null) {
-                return response()->json(['message' => 'success updated']);
+                $message = 'success updated';
+                
+            }else{
+
+                $logBid->nominal_bid = $nominalBid;
+
+                if ($autoBid !== null) {
+                    $logBid->auto_bid = $autoBid;
+                }
+
+                $maxBid = $bids->nominal_bid ?? $auctionProduct->ob;
+                if ((int) $nominalBid === (int) $maxBid) {
+                    return response()->json(['message' => 'Nominal bid tidak sesuai'], 400);
+                }
+
+                if ((int)$nominalBid <= (int)$maxBid) {
+                    return response()->json(['message' => 'Nominal tidak boleh dibawah harga saat ini'], 400);
+                }
+
+                $logBid->save();
+
+                LogBidDetail::create([
+                    'id_bidding' => $logBid->id_bidding,
+                    'nominal_bid' => $logBid->nominal_bid,
+                    'status_aktif' => 1,
+                ]);
+
+                $message = 'success updated';
             }
-
-            $logBid->nominal_bid = $nominalBid;
-
-            if ($autoBid !== null) {
-                $logBid->auto_bid = $autoBid;
-            }
-
+        } else {
             $maxBid = $bids->nominal_bid ?? $auctionProduct->ob;
-            if ((int) $nominalBid === (int) $maxBid) {
+            if ((int)$nominalBid === (int)$maxBid && $bids !== null) {
                 return response()->json(['message' => 'Nominal bid tidak sesuai'], 400);
             }
 
-            if ((int)$nominalBid <= (int)$maxBid) {
+            if ((int)$nominalBid <= (int) $maxBid && (int)$nominalBid !== (int)$auctionProduct->ob) {
                 return response()->json(['message' => 'Nominal tidak boleh dibawah harga saat ini'], 400);
             }
 
-            $logBid->save();
-
-            LogBidDetail::create([
-                'id_bidding' => $logBid->id_bidding,
-                'nominal_bid' => $logBid->nominal_bid,
+            $createBid = LogBid::create([
+                'id_ikan_lelang' => $idIkan,
+                'id_peserta' => $auth->id_peserta,
+                'nominal_bid' => $nominalBid,
+                'auto_bid' => $autoBid,
+                'waktu_bid' => Carbon::now(),
                 'status_aktif' => 1,
             ]);
 
-            return response()->json(['message' => 'success updated']);
+            LogBidDetail::create([
+                'id_bidding' => $createBid->id_bidding,
+                'nominal_bid' => $createBid->nominal_bid,
+                'status_aktif' => 1,
+            ]);
+
+            if ($createBid) {
+            $message = 'success created';
+            } else {
+            return response()->json(['message' => 'error', 500]);
+            }
+
         }
 
-        $maxBid = $bids->nominal_bid ?? $auctionProduct->ob;
-        if ((int)$nominalBid === (int)$maxBid && $bids !== null) {
-            return response()->json(['message' => 'Nominal bid tidak sesuai'], 400);
+        $notifData = null;
+        // Cek waktu akhir event
+            $auctionEndTime = $auctionProduct->event->tgl_akhir; // Waktu akhir lelang
+            $timeRemaining = Carbon::parse($auctionEndTime)->diffInMinutes(Carbon::now());
+        // Kirim notifikasi jika diperlukan
+        if ($timeRemaining <= 15 && $timeRemaining > 0) {
+            if ($bids && $bids->id_peserta !== $auth->id_peserta) {
+                // Ambil top bidder sebelumnya
+                $previousTopBidder = $bids->member; // Relasi ke peserta
+
+                $notification = Notification::create([
+                    'peserta_id' => $previousTopBidder->id_peserta,
+                    'label' => 'Koi Auction Alert',
+                    'description' => "Hi Mr / Ms. {$previousTopBidder->nama},\n
+                    Koi auction yang kamu bid saat ini sudah terlampaui oleh peserta lain. Yuk segera cek dan bid kembali sebelum waktu lelang berakhir!",
+                    'link' => route('auction.bid', ['idIkan' => $idIkan]),
+                ]);
+
+                if($notification) {
+                    $url = 'https://service-chat.qontak.com/api/open/v1/broadcasts/whatsapp/direct';
+                    $token = env('QONTAK_API_KEY');
+
+                    $phoneNumber = $previousTopBidder->no_hp;
+                    $phoneNumber = preg_replace('/\D/', '', $phoneNumber);
+                    if (strpos($phoneNumber, '0') === 0) {
+                        $phoneNumber = '62' . substr($phoneNumber, 1);
+                    } else if(strpos($phoneNumber, '62') !== 0){
+                            $phoneNumber = '62' . $phoneNumber;
+                    }
+
+                    $data = [
+                        "to_name" => $previousTopBidder->nama,
+                        "to_number" => $phoneNumber,
+                        "message_template_id" => "421b85ad-6620-42b8-aafa-77cb8b50d654",
+                        "channel_integration_id" => env('QONTAK_CHANNEL_INTEGRATION_ID'),
+                        "language" => [
+                            "code" => "id",
+                        ],
+                        "parameters" => [
+                            "header" => [
+                                "format" => "DOCUMENT",
+                                "params" => [],
+                            ],
+                            "body" => [
+                                [
+                                    "key" => "0",
+                                    "value_text" => $previousTopBidder->nama,
+                                    "value" => "customer_name",
+                                ]
+                            ],
+                            "buttons" => []
+                        ]
+                    ];
+
+                    $response = Http::withHeaders([
+                        'Authorization' => 'Bearer ' . $token,
+                        'Content-Type' => 'application/json',
+                    ])->post($url, $data);
+                    
+                    if ($response->successful()) {
+                        
+                        $notifData = [
+                                'message' => 'Broadcast berhasil dikirim',
+                                'data' => $response->json(),
+                            ];
+                            
+                        } else {
+                            $notifData = [
+                                'message' => 'Broadcast gagal dikirim',
+                                'error' => $response->body(),
+                                'status' => $response->status(),
+                            ];
+                        }
+                }
+            }
         }
-
-        if ((int)$nominalBid <= (int) $maxBid && (int)$nominalBid !== (int)$auctionProduct->ob) {
-            return response()->json(['message' => 'Nominal tidak boleh dibawah harga saat ini'], 400);
+        $returnData = ['message' => $message];
+        if($notifData !== null) {
+            $returnData['notif'] = $notifData;
         }
-
-        $createBid = LogBid::create([
-            'id_ikan_lelang' => $idIkan,
-            'id_peserta' => $auth->id_peserta,
-            'nominal_bid' => $nominalBid,
-            'auto_bid' => $autoBid,
-            'waktu_bid' => Carbon::now(),
-            'status_aktif' => 1,
-        ]);
-
-        LogBidDetail::create([
-            'id_bidding' => $createBid->id_bidding,
-            'nominal_bid' => $createBid->nominal_bid,
-            'status_aktif' => 1,
-        ]);
-
-        if ($createBid) {
-            return response()->json(['message' => 'success created']);
-        }
-
-        return response()->json(['message' => 'error', 500]);
+        return response()->json($returnData);
     }
 
     public function detail($idIkan)

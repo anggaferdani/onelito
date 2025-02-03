@@ -11,6 +11,8 @@ use App\Models\Wishlist;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Routing\UrlGenerator;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Console\Scheduling\Schedule;
+use App\Console\Commands\SendEventReminder;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -31,11 +33,17 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(UrlGenerator $url)
     {
-        if (env('APP_ENV', 'production') !== 'local') {
+        if (config('env') !== 'local') {
             $url->forceScheme('https');
         }
 
         $this->bootMorph();
+
+        $this->app->booted(function () {
+            $schedule = $this->app->make(Schedule::class);
+              $schedule->command(SendEventReminder::class)
+                  ->everyMinute();
+        });
 
     }
 

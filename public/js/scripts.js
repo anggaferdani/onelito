@@ -593,6 +593,10 @@ $(function() {
         singleDatePicker: true,
         timePicker: true,
         timePicker24Hour: true,
+        parentEl: '.modal',
+      });
+      $('.modal').on('shown.bs.modal', function () {
+        $(this).find('.modal-body').css('overflow-y', 'auto');
       });
     }
     if($(".daterange").length) {

@@ -154,10 +154,10 @@
                         <a style="font-size: 13px;" class="nav-link small {{ Route::is('winning-auction') ? 'text-danger' : 'text-dark' }}" href="{{ route('winning-auction') }}">WINNING AUCTION</a>
                     </li>
                     <li class="nav-item">
-                        <a style="font-size: 13px;" class="nav-link small {{ Route::is('shopping-cart.*') ? 'text-danger' : 'text-dark' }}" href="{{ route('shopping-cart.semua') }}">STATUS ORDER</a>
+                        <a style="font-size: 13px;" class="nav-link small {{ Route::is('cart') ? 'text-danger' : 'text-dark' }}" href="{{ route('cart') }}">CART</a>
                     </li>
                     <li class="nav-item">
-                        <a style="font-size: 13px;" class="nav-link small {{ Route::is('cart') ? 'text-danger' : 'text-dark' }}" href="{{ route('cart') }}">CART</a>
+                        <a style="font-size: 13px;" class="nav-link small {{ Route::is('shopping-cart.*') ? 'text-danger' : 'text-dark' }}" href="{{ route('shopping-cart.semua') }}">STATUS ORDER</a>
                     </li>
                     @if($auth)
                         @include('new.notification')
@@ -193,8 +193,8 @@
 
         <a class="nav-link {{ $title === 'wishlistlog' ? 'active text-danger' : '' }}"href="/wishlistlog">WISHLIST</a>
         <a class="nav-link {{ $title === 'cart' ? 'active text-danger' : '' }}"href="/shoppingcart">WINNING AUCTION</a>
-        <a class="nav-link {{ Route::is('shopping-cart.*') ? 'text-danger' : 'text-dark' }}" href="{{ route('shopping-cart.semua') }}">STATUS ORDER</a>
         <a class="nav-link {{ Route::is('cart') ? 'text-danger' : 'text-dark' }}" href="{{ route('cart') }}">CART</a>
+        <a class="nav-link {{ Route::is('shopping-cart.*') ? 'text-danger' : 'text-dark' }}" href="{{ route('shopping-cart.semua') }}">STATUS ORDER</a>
         {{-- <a class="nav-link {{ Route::is('news') ? 'text-danger' : 'text-dark' }}" href="{{ route('news') }}">NEWS</a> --}}
 
 

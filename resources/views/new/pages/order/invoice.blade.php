@@ -28,17 +28,9 @@
         <div class="col-md-12">
           <div class="fw-bold small">STATUS :
             @if($order->status_order == 'pending')
-              <div class="text-danger">Menunggu Pembayaran</div>
-            @elseif($order->status_order == 'paid')
-              <div class="text-danger">Menunggu Konfirmasi</div>
-            @elseif($order->status_order == 'process')
-              <div class="text-danger">Sedang Diproses</div>
-            @elseif($order->status_order == 'delivered')
-              <div class="text-danger">Sedang Dalam Pengiriman</div>
-            @elseif($order->status_order == 'done')
-              <div><span class="text-success">Pesanan telah sampai ditujuan</span> | <span class="text-danger">Selesai</span></div>
-            @elseif($order->status_order == 'cancel')
-              <div class="text-danger">Dibatalkan System</div>
+              <div class="text-success">MENUNGGU PEMBAYARAN</div>
+            @else
+              <div class="text-success">LUNAS</div>
             @endif
           </div>
         </div>
@@ -118,8 +110,15 @@
               <td class="small text-end">{{ 'Rp. ' . number_format($order->courier_price, 0, '.', '.') }}</td>
             </tr>
             <tr>
-              <td class="small text-end fw-bold">Total Belanja</td>
-              <td class="small text-end fw-bold">{{ 'Rp. ' . number_format($order->total_tagihan, 0, '.', '.') }}</td>
+              <td class="small text-end">Total Belanja</td>
+              <td class="small text-end">{{ 'Rp. ' . number_format($order->jumlah_total, 0, '.', '.') }}</td>
+            </tr>
+            <tr>
+              <td class="small text-end fw-bold">Total Tagihan</td>
+              <td class="small text-end fw-bold">
+                <div class="fw-bold">{{ 'Rp. ' . number_format($order->total_tagihan, 0, '.', '.') }}</div>
+                @if($order->coin_yang_digunakan > 0) <div class="text-success small">(Potongan Onelito Coins {{ 'Rp. ' . number_format($order->coin_yang_digunakan, 0, '.', '.') }})</div> @endif
+              </td>
             </tr>
           </tbody>
         </table>

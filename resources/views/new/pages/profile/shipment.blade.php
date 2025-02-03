@@ -8,6 +8,16 @@
   @csrf
   <div class="py-2 py-md-5">
     <div class="fw-bold mb-2"><a href="{{ url()->previous() }}" class="text-dark text-decoration-none"><i class="fas fa-arrow-left fs-4"></i></a></div>
+    @if(Session::get('success'))
+      <div class="alert alert-important alert-success mb-2" role="alert">
+        {{ Session::get('success') }}
+      </div>
+    @endif
+    @if(Session::get('error'))
+      <div class="alert alert-important alert-danger mb-2" role="alert">
+        {{ Session::get('error') }}
+      </div>
+    @endif
     <div class="row g-3">
       <div class="col-md-8">
         <div class="fw-bold fs-5 mb-2">Checkout</div>
@@ -103,10 +113,26 @@
         </div>
       </div>
       <div class="col-md-4">
+        <div class="card mb-2">
+          <div class="card-body">
+            <div class="fw-bold mb-2"><i class="fa-solid fa-coins"></i> Coins</div>
+            <div class="d-flex justify-content-between text-muted">
+              <div class="">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="" id="coin" disabled>
+                  <label class="form-check-label">
+                    Gunakan Coin
+                  </label>
+                </div>
+              </div>
+              <div>Rp. <span>{{ number_format($auth->coin, 0, '.', '.') }}</span></div>
+            </div>
+            <div class="text-muted small">*Untuk menggunakan coin pilih pengiriman dan kurir terlebih dahulu</div>
+          </div>
+        </div>
         <div class="card">
           <div class="card-body">
-            <div class="fw-bold fs-5 mb-2">Ringkasan Belanja</div>
-            <div class="fw-bold mb-2">Total Belanja</div>
+            <div class="fw-bold mb-2">Ringkasan Belanja</div>
             <div class="d-flex justify-content-between text-muted">
               <div class="">Total Harga (<span id="totalJumlahBarang">{{ $totalJumlahBarang }}</span> Barang)</div>
               <div id="totalHarga">Rp. {{ number_format($totalPrice, 0, '.', '.') }}</div>
@@ -119,15 +145,29 @@
           <hr class="m-0">
           <div class="card-body">
             <div class="d-flex justify-content-between text-muted">
+              <div class="">Coin Yang Digunakan</div>
+              <div>Rp. <span id="coinYangDigunakan">0</span></div>
+            </div>
+            <div class="d-flex justify-content-between text-muted">
+              <div class="">Sisa Coin</div>
+              <div>Rp. <span id="sisaCoin">0</span></div>
+            </div>
+            <div class="d-flex justify-content-between fw-bold">
+              <div class="">Jumlah Total</div>
+              <div>Rp. <span id="jumlahTotal">{{ number_format($totalPrice, 0, '.', '.') }}</span></div>
+            </div>
+            <div class="d-flex justify-content-between fw-bold">
               <div class="">Total Tagihan</div>
               <div>Rp. <span id="totalTagihan">{{ number_format($totalPrice, 0, '.', '.') }}</span></div>
             </div>
           </div>
           <hr class="m-0">
           <div class="card-body">
+              <input type="text" class="form-control" name="coin_yang_digunakan" value="0">
               <input type="text" class="form-control" name="total_harga_barang" value="{{ $totalPrice }}">
               <input type="text" class="form-control" name="peserta_id" value="{{ $auth->id_peserta }}">
               <input type="text" class="form-control" name="ids" value="{{ request('ids') }}">
+              <input type="text" class="form-control" name="jumlah_total" value="">
               <input type="text" class="form-control" name="total_tagihan" value="">
               <input type="text" class="form-control" name="courier_name" value="">
               <input type="text" class="form-control" name="courier_code" value="">
@@ -192,7 +232,66 @@
 @push('scripts')
 <script>
   $(document).ready(function() {
+    const userCoin = parseInt('{{ $auth->coin }}', 10);
+    const coinCheckbox = $('#coin');
+    const kurirSelect = $('#kurir');
+    const totalTagihanElement = $('#totalTagihan');
+    const jumlahTotalElement = $('#jumlahTotal');
+    const totalHargaElement = $('#totalHarga');
+    const coinYangDigunakanElement = $('#coinYangDigunakan');
+    const sisaCoinElement = $('#sisaCoin');
+    let totalHarga = parseInt(totalHargaElement.text().replace(/[^\d]/g, ''), 10);
+
+    kurirSelect.on('change', function() {
+        if (kurirSelect.val() !== null && kurirSelect.val() !== '') {
+            coinCheckbox.prop('disabled', false);
+        } else {
+            coinCheckbox.prop('disabled', true);
+        }
+    });
+
+    if (kurirSelect.val() === null || kurirSelect.val() === '') {
+        coinCheckbox.prop('disabled', true);
+    }
+
+    if (userCoin === 0) {
+        coinCheckbox.prop('disabled', true);
+    }
+    
+    coinCheckbox.on('change', function () {
+        const ongkosKirim = parseInt($('input[name="ongkos_kirim"]').val() || 0, 10);
+        let currentTotal = totalHarga + ongkosKirim;
+        let coinYangDigunakan = 0;
+        let sisaCoin = userCoin;
+
+        if ($(this).is(':checked') && userCoin > 0) {
+            // Determine coin usage based on current total
+            coinYangDigunakan = Math.min(userCoin, currentTotal);
+            currentTotal -= coinYangDigunakan;
+            sisaCoin -= coinYangDigunakan;
+        }
+
+        // Ensure currentTotal is not negative
+        currentTotal = Math.max(0, currentTotal);
+
+        // Update the elements on the page
+        totalTagihanElement.text(new Intl.NumberFormat('id-ID').format(currentTotal));
+        coinYangDigunakanElement.text(new Intl.NumberFormat('id-ID').format(coinYangDigunakan));
+        sisaCoinElement.text(new Intl.NumberFormat('id-ID').format(sisaCoin));
+
+        // Update hidden form values
+        $('input[name="total_tagihan"]').val(currentTotal);
+        $('input[name="coin_yang_digunakan"]').val(coinYangDigunakan);
+    });
+
+    // Initial Values for Form and Display
+    $('input[name="total_tagihan"]').val(totalHarga);
+    $('input[name="jumlah_total"]').val(totalHarga);
+    coinYangDigunakanElement.text('0');
+    sisaCoinElement.text(new Intl.NumberFormat('id-ID').format(userCoin));
+
     $('input[name="total_tagihan"]').val('');
+    $('input[name="jumlah_total"]').val('');
     $('input[name="courier_type"]').val('');
     $('input[name="courier_name"]').val('');
     $('input[name="courier_code"]').val('');
@@ -252,6 +351,7 @@
 
       $('#pengiriman').change(function() {
           $('input[name="total_tagihan"]').val('');
+          $('input[name="jumlah_total"]').val('');
           $('input[name="courier_name"]').val('');
           $('input[name="courier_code"]').val('');
           $('input[name="courier_type"]').val('');
@@ -264,6 +364,7 @@
           $('#totalOngkosKirim').text('0');
           var currentTotalPrice = parseInt($('#totalHarga').text().replace(/[^\d]/g, ''));
           $('#totalTagihan').text(new Intl.NumberFormat('id-ID').format(currentTotalPrice));
+          $('#jumlahTotal').text(new Intl.NumberFormat('id-ID').format(currentTotalPrice));
 
           var pengiriman = $(this).val();
 
@@ -278,30 +379,31 @@
           var carts = @json($carts);
           
           var items = [];
+
           carts.forEach(function(cart) {
-              if (cart.cartable_type  === 'Product') {
+              if (cart.cartable_type === 'Product') {
                   items.push({
-                      'name': '{{ $cart->cartable->merek_produk }}' + ', ' + '{{ $cart->cartable->nama_produk }}',
+                      'name': cart.cartable.merek_produk + ', ' + cart.cartable.nama_produk,
                       'description': '',
                       'category': '',
-                      'value': '{{ $cart->cartable->harga }}',
-                      'quantity': '{{ $cart->jumlah }}',
-                      'height' : 1,
-                      'length': '',
-                      'weight': '',
-                      'width': '',
+                      'value': cart.cartable.harga,
+                      'quantity': cart.jumlah,
+                      'height': cart.cartable.height,
+                      'length': cart.cartable.length,
+                      'weight': cart.cartable.weight,
+                      'width': cart.cartable.width,
                   });
-              } else if (cart.cartable_type  === 'KoiStock') {
+              } else if (cart.cartable_type === 'KoiStock') {
                   items.push({
-                      'name': '{{ $cart->cartable->variety }}' + ', ' + '{{ $cart->cartable->breeder }}' + ', ' + '{{ $cart->cartable->bloodline }}' + ', ' + '{{ $cart->cartable->size }}',
+                      'name': cart.cartable.variety + ', ' + cart.cartable.breeder + ', ' + cart.cartable.bloodline + ', ' + cart.cartable.size,
                       'description': '',
                       'category': '',
-                      'value': '{{ $cart->cartable->harga_ikan }}',
-                      'quantity': '{{ $cart->jumlah }}',
-                      'height' : 1,
-                      'length': '',
-                      'weight': '',
-                      'width': '',
+                      'value': cart.cartable.harga,
+                      'quantity': 1,
+                      'height': 3,
+                      'length': 10,
+                      'weight': 10,
+                      'width': 10,
                   });
               }
           });
@@ -318,6 +420,8 @@
               items: items
           };
 
+          console.log(requestData);
+
           $.ajax({
               url: 'https://api.biteship.com/v1/rates/couriers',
               type: 'POST',
@@ -332,6 +436,7 @@
                 $('#kurir').prop('disabled', true);
               },
               success: function(response) {
+                  console.log(response);
                   $('#kurir').prop('disabled', false);
                   var filteredPricing = response.pricing.filter(function(price) {
                       switch (pengiriman) {
@@ -434,8 +539,10 @@
 
             var formattedTotalPrice = new Intl.NumberFormat('id-ID').format(updatedTotalPrice);
             $('#totalTagihan').text(formattedTotalPrice);
+            $('#jumlahTotal').text(formattedTotalPrice);
 
             $('input[name="total_tagihan"]').val(updatedTotalPrice);
+            $('input[name="jumlah_total"]').val(updatedTotalPrice);
             $('input[name="courier_type"]').val(selectedCourierType);
             $('input[name="courier_name"]').val(selectedCourierName);
             $('input[name="courier_code"]').val(selectedCourierCode);
@@ -444,7 +551,9 @@
             $('#totalOngkosKirim').text('0');
             var currentTotalPrice = parseInt($('#totalHarga').text().replace(/[^\d]/g, ''));
             $('#totalTagihan').text(new Intl.NumberFormat('id-ID').format(currentTotalPrice));
+            $('#jumlahTotal').text(new Intl.NumberFormat('id-ID').format(currentTotalPrice));
             $('input[name="total_tagihan"]').val(currentTotalPrice);
+            $('input[name="jumlah_total"]').val(currentTotalPrice);
         }
     });
   });

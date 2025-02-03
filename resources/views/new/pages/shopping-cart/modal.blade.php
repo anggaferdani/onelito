@@ -14,12 +14,12 @@
           <div class="col-md-8 text-md-end">
             <div class="">
               <a href="{{ route('order.invoice', $order->no_order) }}" class="fw-bold text-success" target="_blank">{{ $order->no_order }} (Lihat)</a>
-            </div>  
+            </div>
           </div>
         </div>
         <div class="row">
           <div class="col-md-4">
-            <div class="text-muted">Tanggal Pembelian</div>
+            <div class="text-muted">Tanggal Order</div>
           </div>
           <div class="col-md-8 text-md-end">
             <div class="">{{ \Carbon\Carbon::parse($order->created_at)->format('d F Y, H:i') }}</div>  
@@ -30,6 +30,7 @@
         <div class="row align-items-center g-2">
           @php
             $totalPrice = 0;
+            $totalCoins = 0;
             $detailCount = $order->details->count();
           @endphp
           @foreach($order->details as $detailOrder)
@@ -47,6 +48,7 @@
                 }
                 
                 $totalPrice += $detailOrderPrice * $detailOrder->jumlah_produk;
+                $totalCoins += $productable->point * $detailOrder->quantity;
             @endphp
             <div class="col-md-12">
               <div class="row g-2">
@@ -59,7 +61,12 @@
                       {{ $productable->merek_produk }} {{ $productable->nama_produk }}
                     @endif
                   </div>
-                  <div class="mb-2">{{ 'Rp. ' . number_format($detailOrderPrice, 0, '.', '.') }} x {{ $detailOrder->jumlah_produk }}</div>
+                  <div class="">{{ 'Rp. ' . number_format($detailOrderPrice, 0, '.', '.') }} x {{ $detailOrder->jumlah_produk }}</div>
+                  <div>
+                    @if($productable->point > 0)
+                    <span class="text-success small">+ Total {{ 'Rp. ' . number_format($totalCoins, 0, '.', '.') }} Onelito Coins</span>
+                    @endif
+                  </div>
                 </div>
               </div>
             </div>
@@ -69,12 +76,12 @@
         <div class="mb-3 fw-bold">Info Pengiriman</div>
         <table style="width: 100%;">
           <tr>
-            <td class="align-top" style="width: 20%;">Kurir</td>
-            <td class="align-top">{{ $order->courier_name }}</td>
+            <td class="align-top" style="width: 20%;">No Resi</td>
+            <td class="align-top">{{ $order->waybill_id }}</td>
           </tr>
           <tr>
-            <td class="align-top" style="width: 20%;">No Resi</td>
-            <td class="align-top"></td>
+            <td class="align-top" style="width: 20%;">Kurir</td>
+            <td class="align-top">{{ $order->courier_name }}</td>
           </tr>
           <tr>
             <td class="align-top" style="width: 20%;">Alamat</td>
@@ -91,7 +98,7 @@
         <table style="width: 100%;">
           <tr>
             <td class="align-top" style="width: 40%;">Metode Pembayaran</td>
-            <td class="align-top"></td>
+            <td class="align-top">{{ $order->payment_channel }}</td>
           </tr>
           <tr>
             <td class="align-top" style="width: 40%;">Total Harga Barang</td>
@@ -102,8 +109,15 @@
             <td class="align-top">{{ 'Rp. ' . number_format($order->courier_price, 0, '.', '.') }}</td>
           </tr>
           <tr>
-            <td class="align-top fw-bold" style="width: 40%;">Total Belanja</td>
-            <td class="align-top">{{ 'Rp. ' . number_format($order->total_tagihan, 0, '.', '.') }}</td>
+            <td class="align-top" style="width: 40%;">Total Belanja</td>
+            <td class="align-top">{{ 'Rp. ' . number_format($order->jumlah_total, 0, '.', '.') }}</td>
+          </tr>
+          <tr>
+            <td class="align-top fw-bold" style="width: 40%;">Total Tagihan</td>
+            <td class="align-top">
+              <div class="fw-bold">{{ 'Rp. ' . number_format($order->total_tagihan, 0, '.', '.') }}</div>
+              @if($order->coin_yang_digunakan > 0) <div class="text-success small">(Potongan Onelito Coins {{ 'Rp. ' . number_format($order->coin_yang_digunakan, 0, '.', '.') }})</div> @endif
+            </td>
           </tr>
         </table>
       </div>

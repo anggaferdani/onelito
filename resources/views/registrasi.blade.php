@@ -59,7 +59,7 @@
         </div>
         <center><img src="img/oneli.svg" alt="ONELITO" class="my-5 pt-10"></center>
 
-        <form method="POST" id="registration" action="/register">
+        <form method="POST" id="registration" action="{{ route('register') }}">
             @csrf
             <div class="row">
                 <div class="col-md-6">

@@ -25,6 +25,7 @@ use App\Http\Controllers\NotifikasiController;
 use App\Http\Controllers\ChampionFishController;
 use App\Http\Controllers\ShoppingCartController;
 use App\Http\Controllers\AuthenticationController;
+use App\Http\Controllers\SendEventController;
 
 /*
 |--------------------------------------------------------------------------
@@ -42,6 +43,12 @@ use App\Http\Controllers\AuthenticationController;
 //         "title" => "home"
 //     ]);
 // });
+
+Route::get('send-event-reminder', [SendEventController::class, 'sendEventReminder'])->name('send-event-reminder');
+Route::get('example', [SendEventController::class, 'example'])->name('example');
+
+Route::post('/webhook/order/status', [OrderController::class, 'webhookOrderStatus'])->name('webhook.order.status');
+Route::post('/webhook/order/success', [OrderController::class, 'webhookOrderSuccess'])->name('webhook.order.success');
 
 Route::get('/', function () {
     return view('homelog',[
@@ -106,6 +113,8 @@ Route::get('/news/{slug}', [NewsController::class, 'detail'])->name('news.detail
 
 // MEMBER
 Route::group(['middleware' => 'auth:member'], function () {
+    Route::get('/whatsapp', [ProfileController::class, 'whatsapp'])->name('whatsapp');
+    
     Route::resource('alamat', AlamatController::class);
     Route::put('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::get('/tambah-barang/{id_keranjang}', [ProfileController::class, 'tambahBarang'])->name('tambah-barang');
@@ -116,8 +125,9 @@ Route::group(['middleware' => 'auth:member'], function () {
     Route::get('/shipment', [ProfileController::class, 'shipment'])->name('shipment');
     Route::post('/order', [OrderController::class, 'order'])->name('order');
     Route::get('/order/invoice/{no_order}', [OrderController::class, 'orderInvoice'])->name('order.invoice');
-    Route::get('/order/success', [OrderController::class, 'orderSuccess'])->name('order.success');
     Route::post('order/cancel/{no_order}', [OrderController::class, 'cancel'])->name('order.cancel');
+    Route::post('order/selesai/{no_order}', [OrderController::class, 'selesai'])->name('order.selesai');
+    Route::get('/order/success', [OrderController::class, 'orderSuccess'])->name('order.success');
 
     Route::get('/shopping-cart/semua', [ShoppingCartController::class, 'semua'])->name('shopping-cart.semua');
     Route::get('/shopping-cart/belum-dibayar', [ShoppingCartController::class, 'belumDibayar'])->name('shopping-cart.belum-dibayar');
@@ -211,6 +221,7 @@ Route::group(['prefix' => 'admin', 'middleware' => 'auth:admin'], function () {
         Route::get('pesanan/kirim/{no_order}', [OrderController::class, 'kirim'])->name('pesanan.kirim');
         Route::get('pesanan/process/{no_order}', [OrderController::class, 'process'])->name('pesanan.process');
         Route::get('/order/invoice/{no_order}', [OrderController::class, 'orderInvoice'])->name('order.invoice');
+        Route::post('order/cancel/{no_order}', [OrderController::class, 'cancelByAdmin'])->name('order.cancel');
     });
 
     Route::get('/dashboard', [Admin\DashboardController::class, 'index'])->name('admin.dashboard.index');

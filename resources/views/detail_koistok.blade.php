@@ -5,6 +5,8 @@
   if ($fish->foto_ikan !== null) {
     $photo = url('storage') . '/' . $fish->foto_ikan;
   }
+
+  $auth = Auth::guard('member')->user();
 @endphp
 <br><br><br>
 <div class="container py-3 py-md-5">
@@ -17,6 +19,9 @@
         <div class="col-md-6">
           <div class="fs-5 fw-bold mb-2">{{ $fish->variety }} | {{ $fish->breeder }} | {{ $fish->size }} | {{ $fish->sex }}</div>
           <div class="fs-5 fw-bold mb-2">Rp. {{ number_format($fish->harga_ikan, 0, '.', '.') }}</div>
+          @if($fish->point > 0)
+            <div class="text-success small mb-2">Dapatkan Cashback Rp. {{ number_format($fish->point, 0, '.', '.') }} Onelito Coins per Produk</div>
+          @endif
           <div class="text-success fw-bold mb-2">Detail</div>
           <div class="">Breeder : {{ $fish->breeder }}</div>
           <div class="">Bloodline : {{ $fish->bloodline }}</div>
@@ -46,7 +51,11 @@
               </div>
               <div class="d-flex justify-content-between small">
                 <div style="cursor: pointer;"><a href="https://wa.me/0811972857" target="_blank" class="text-decoration-none text-dark"><i class="fa-regular fa-comment"></i> Chat</a></div>
+                @if($auth)
                 <div style="cursor: pointer;" id="wishlist"><i class="{{ $isWishlisted ? 'fa-solid text-danger' : 'fa-regular' }} fa-heart"></i> Wishlist</div>
+                @else
+                <a href="{{ route('login') }}" style="cursor: pointer;" class="text-dark text-decoration-none"><i class="fa-regular fa-heart"></i> Wishlist</a>
+                @endif
                 <div style="cursor: pointer;" id="shareProduk"><i class="fa-solid fa-share-nodes"></i> Share</div>
               </div>
             </div>

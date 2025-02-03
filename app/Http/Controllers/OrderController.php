@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use Carbon\Carbon;
 use App\Models\Cart;
+use App\Models\Tracking;
 use App\Models\Order;
+use App\Models\Member;
 use App\Models\Alamat;
 use Xendit\Configuration;
 use App\Mail\OrderRequest;
@@ -24,21 +26,111 @@ class OrderController extends Controller
    {
        Configuration::setXenditKey(env('XENDIT_SECRET_KEY'));
    }
+   
+    public function webhookOrderStatus(Request $request) {
+        try {
+            if ($request->isJson() && $request->getContent() === '') {
+                return response()->json(['status' => 'ok'], 200);
+            }
+
+            $data = $request->all();
+
+            Tracking::create([
+                'order_id' => $data['order_id'],
+                'order_price' => $data['order_price'],
+                'courier_tracking_id' => $data['courier_tracking_id'],
+                'courier_waybill_id' => $data['courier_waybill_id'],
+                'courier_company' => $data['courier_company'],
+                'courier_type' => $data['courier_type'],
+                'courier_driver_name' => $data['courier_driver_name'],
+                'courier_driver_phone' => $data['courier_driver_phone'],
+                'courier_driver_plate_number' => $data['courier_driver_plate_number'],
+                'courier_driver_photo_url' => $data['courier_driver_photo_url'],
+                'courier_link' => $data['courier_link'],
+                'tanggal' => now(),
+                'status' => $data['status'],
+            ]);
+
+            return response()->json($data, 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function orderSuccess(Request $request) {
+        $order = Order::where('no_order', $request['external_id'])->where('status_aktif', 1)->first();
+
+        return view('new.pages.order.success', compact(
+            'order',
+        ));
+    }
+
+    public function webhookOrderSuccess(Request $request) {
+        try {
+            $data = $request->all();
+
+            $order = Order::where('no_order', $data['external_id'])->where('status_aktif', 1)->first();
+
+            if ($order) {
+                $order->update([
+                    'status_order' => 'paid',
+                    'paid_at' => now(),
+                    'payment_method' => $data['payment_method'],
+                    'payment_channel' => $data['payment_channel'],
+                ]);
+
+                $member = Member::where('id_peserta', $order->id_peserta)->first();
+
+                if ($member && $order->coin_yang_digunakan > 0) {
+                    $member->update([
+                        'coin' => $member->coin - $order->coin_yang_digunakan,
+                    ]);
+                }
+
+                Notification::create([
+                    'peserta_id' => $order->id_peserta,
+                    'label' => 'Pembayaran Berhasil',
+                    'description' => "Pembayaran untuk pesanan dengan Nomor Order $order->no_order telah berhasil. Tim kami akan segera memproses pesanan Anda.",
+                    'link' => route('shopping-cart.menunggu-konfirmasi'),
+                ]);
+            }
+
+            return response()->json($data, 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
 
     public function order(Request $request) {
-        $request->validate([
-        ]);
-
-        $auth = Auth::guard('member')->user();
-        $now = Carbon::now();
-
-        $shipper = Alamat::where('id', 1)->first();
-        $destination = Alamat::where('id', $auth->pilih_alamat)->where('peserta_id', $auth->id_peserta)->first();
-
-        $ids = explode(',', $request['ids']);
-        $carts = Cart::where('id_peserta', $auth->id_peserta)->where('status_aktif', 1)->where('jumlah', '>', 0)->whereIn('id_keranjang', $ids)->get();
-
         try {
+            $request->validate([
+            ]);
+    
+            $auth = Auth::guard('member')->user();
+            $now = Carbon::now();
+    
+            $shipper = Alamat::where('id', 1)->first();
+            $destination = Alamat::where('id', $auth->pilih_alamat)->where('peserta_id', $auth->id_peserta)->first();
+    
+            $ids = explode(',', $request['ids']);
+            $carts = Cart::where('id_peserta', $auth->id_peserta)
+                        ->where('status_aktif', 1)
+                        ->where('jumlah', '>', 0)
+                        ->whereIn('id_keranjang', $ids)
+                        ->get();
+    
+            foreach ($carts as $cart) {
+                $cartable = $cart->cartable;
+    
+                if ($cartable->stock < $cart->jumlah) {
+                    $errorMessage = $cartable->stock == 0
+                        ? 'Stok untuk produk ' . $cartable->name . ' tidak mencukupi. Produk sudah habis.'
+                        : 'Stok untuk produk ' . $cartable->name . ' tidak mencukupi. Stok tersisa hanya ' . $cartable->stock . '.';
+    
+                    return redirect()->route('cart')->withErrors(['error' => $errorMessage]);
+                }
+            }
+    
             $array = [
                 'no_order' => $now->format('Ymd'),
                 'tanggal' => $now,
@@ -46,6 +138,7 @@ class OrderController extends Controller
                 'id_peserta' => $auth->id_peserta,
                 'total_harga_barang' => $request['total_harga_barang'],
                 'total_tagihan' => $request['total_tagihan'],
+                'jumlah_total' => $request['jumlah_total'],
                 'shipper_contact_name' => $shipper->nama,
                 'shipper_contact_phone' => $shipper->no_hp,
                 'shipper_contact_email' => $shipper->email,
@@ -73,14 +166,15 @@ class OrderController extends Controller
                 'delivery_type' => 'now',
                 'order_note' => null,
                 'status_order' => 'pending',
+                'coin_yang_digunakan' => $request['coin_yang_digunakan'],
             ];
-
+    
             $order = Order::create($array);
-
+    
             $order->update([
                 'no_order' => $order->no_order.$order->id_order,
             ]);
-
+    
             foreach ($carts as $cart) {
                 if ($cart->cartable_type === 'Product') {
                     $detailOrder = [
@@ -89,16 +183,16 @@ class OrderController extends Controller
                         'productable_id' => $cart->cartable_id,
                         'productable_type' => $cart->cartable_type,
                         'jumlah_produk' => $cart->jumlah,
-                        'total' => $cart->cartable_type === 'KoiStock' ? $cart->cartable->harga_ikan : $cart->cartable->harga,
+                        'total' => $cart->cartable->harga,
                         'name' => $cart->cartable->merek_produk . ', ' . $cart->cartable->nama_produk,
                         'description' => '',
                         'category' => '',
                         'value' => $cart->cartable->harga,
                         'quantity' => $cart->jumlah,
                         'weight' => $cart->cartable->weight * $cart->jumlah,
-                        'height' => '',
-                        'length' => '',
-                        'width' => '',
+                        'height' => $cart->cartable->height,
+                        'length' => $cart->cartable->length,
+                        'width' => $cart->cartable->width,
                     ];
                 } elseif ($cart->cartable_type === 'KoiStock') {
                     $detailOrder = [
@@ -107,91 +201,98 @@ class OrderController extends Controller
                         'productable_id' => $cart->cartable_id,
                         'productable_type' => $cart->cartable_type,
                         'jumlah_produk' => $cart->jumlah,
-                        'total' => $cart->cartable_type === 'KoiStock' ? $cart->cartable->harga_ikan : $cart->cartable->harga,
+                        'total' => $cart->cartable->harga_ikan,
                         'name' => $cart->cartable->variety . ', ' . $cart->cartable->breeder . ', ' . $cart->cartable->bloodline . ', ' . $cart->cartable->size,
                         'description' => '',
                         'category' => '',
                         'value' => $cart->cartable->harga_ikan,
-                        'quantity' => $cart->jumlah,
-                        'height' => 10,
-                        'weight' => 1000,
+                        'quantity' => 1,
+                        'height' => 3,
+                        'weight' => 10,
                         'length' => 10,
                         'width' => 10,
                     ];
                 }
-
+    
                 OrderDetail::create($detailOrder);
-
-                $items[] = new InvoiceItem([
-                    'name' => $cart->cartable_type === 'KoiStock' ? $cart->cartable->variety . ', ' . $cart->cartable->breeder . ', ' . $cart->cartable->bloodline . ', ' . $cart->cartable->size : $cart->cartable->merek_produk . ', ' . $cart->cartable->nama_produk,
-                    'price' => $cart->cartable_type === 'KoiStock' ? $cart->cartable->harga_ikan : $cart->cartable->harga,
-                    'quantity' => $cart->jumlah,
+            }
+    
+            $items = [];
+            if ($request['total_tagihan'] > 0) {
+                foreach ($carts as $cart) {
+                    $items[] = new InvoiceItem([
+                        'name' => $cart->cartable_type === 'KoiStock' ? $cart->cartable->variety . ', ' . $cart->cartable->breeder . ', ' . $cart->cartable->bloodline . ', ' . $cart->cartable->size : $cart->cartable->merek_produk . ', ' . $cart->cartable->nama_produk,
+                        'price' => $cart->cartable_type === 'KoiStock' ? $cart->cartable->harga_ikan : $cart->cartable->harga,
+                        'quantity' => $cart->jumlah,
+                    ]);
+                }
+    
+                $fees = [
+                    [
+                        'type' => 'Ongkos Kirim',
+                        'value' => $request['ongkos_kirim'],
+                    ]
+                ];
+    
+                $createInvoice = new CreateInvoiceRequest([
+                    'external_id' => (string) $order->no_order,
+                    'amount' => (int) $request->input('total_tagihan'),
+                    'items' => $items,
+                    'fees' => $fees,
+                    'success_redirect_url' => route('order.success', ['external_id' => $order->no_order]),
+                    'failure_redirect_url' => url()->previous(),
                 ]);
+    
+                $apiInstance = new InvoiceApi();
+                $generateInvoice = $apiInstance->createInvoice($createInvoice);
+                $order->update([
+                    'invoice_url' => $generateInvoice['invoice_url'],
+                    'expiry_date' => $generateInvoice['expiry_date'],
+                ]);
+
+                Notification::create([
+                    'peserta_id' => $order->id_peserta,
+                    'label' => 'Order Berhasil! Segera Selesaikan Pembayaran Anda',
+                    'description' => "Pesanan Anda dengan Nomor Order $order->no_order telah berhasil dibuat. Pastikan untuk menyelesaikan pembayaran sebelum tanggal " . $order->expiry_date->format('Y-m-d H:i:s') . ". Anda bisa memeriksa detail pesanan Anda kapan saja.",
+                    'link' => route('shopping-cart.belum-dibayar'),
+                ]);
+
+                return redirect()->route('shopping-cart.belum-dibayar');
+            } else {
+                $order->update([
+                    'status_order' => 'paid',
+                    'paid_at' => now(),
+                    'payment_method' => 'Onelito Coins',
+                    'payment_channel' => 'Onelito Coins',
+                ]);
+    
+                $member = Member::where('id_peserta', $order->id_peserta)->first();
+    
+                if ($member && $order->coin_yang_digunakan > 0) {
+                    $member->update([
+                        'coin' => $member->coin - $order->coin_yang_digunakan,
+                    ]);
+                }
+
+                Notification::create([
+                    'peserta_id' => $order->id_peserta,
+                    'label' => 'Order Berhasil!',
+                    'description' => "Pesanan Anda dengan Nomor Order $order->no_order telah berhasil dibuat. Anda dapat memeriksa detail pesanan Anda kapan saja.",
+                    'link' => route('shopping-cart.menunggu-konfirmasi'),
+                ]);
+        
+                
+                return redirect()->route('order.success', ['external_id' => $order->no_order]);
             }
 
-            $fees = [
-                [
-                    'type' => 'Ongkos Kirim',
-                    'value' => $request['ongkos_kirim'],
-                ]
-            ];
-
-            $createInvoice = new CreateInvoiceRequest([
-                'external_id' => (string) $order->no_order,
-                'amount' => (int) $request->input('total_tagihan'),
-                'items' => $items,
-                'fees' => $fees,
-                'success_redirect_url' => route('order.success', ['external_id' => $order->no_order, 'status' => 'PAID', 'payment_method' => 'BANK_TRANSFER', 'payment_channel' => 'EWALLET']),
-                // 'success_redirect_url' => route('order.success'),
-                'failure_redirect_url' => url()->previous(),
-            ]);
-
-            
-            $apiInstance = new InvoiceApi();
-            $generateInvoice = $apiInstance->createInvoice($createInvoice);
-            $order->update([
-                'invoice_url' => $generateInvoice['invoice_url'],
-                'expiry_date' => $generateInvoice['expiry_date'],
-            ]);
-            // dd($generateInvoice);
-
-            // return redirect($order->invoice_url);
-            return redirect()->route('shopping-cart.belum-dibayar');
-
+            foreach ($order->details as $detail) {
+                $productable = $detail->productable;
+                $newStock = $productable->stock - $detail->quantity;
+                $productable->update(['stock' => $newStock]);
+            }
         } catch (\Throwable $th) {
             return back()->with('error', $th->getMessage());
         }
-    }
-
-    public function orderSuccess(Request $request) {
-        $data = $request->all();
-
-        $order = Order::where('no_order', $data['external_id'])->where('status_aktif', 1)->first();
-
-        if ($order) {
-            $order->update([
-                'status_order' => strtolower($data['status']),
-                // 'paid_at' => $data['paid_at'],
-                'paid_date' => now(),
-                'payment_method' => $data['payment_method'],
-                'payment_channel' => $data['payment_channel'],
-            ]);
-
-            Notification::create([
-                'peserta_id' => $order->id_peserta,
-                'label' => 'Pesanan Anda Sedang Diproses',
-                'description' => "Pesanan dengan Nomor Order $order->no_order sedang dalam proses. Tim kami segera menyiapkan dan mengirimkan pesananmu.",
-                'link' => route('shopping-cart.sedang-diproses'),
-            ]);
-        }
-
-        // return response()->json([
-        //     'status' => 'success',
-        // ], 200);
-
-        return view('new.pages.order.success', compact(
-            'order',
-        ));
     }
 
     public function orderInvoice($no_order) {
@@ -270,9 +371,9 @@ class OrderController extends Controller
                     'value' => $orderDetail->value,
                     'quantity' => $orderDetail->quantity,
                     'height' => $orderDetail->height,
-                    'length' => '',
-                    'weight' => '',
-                    'width' => '',
+                    'length' => $orderDetail->length,
+                    'weight' => $orderDetail->weight,
+                    'width' => $orderDetail->width,
                 ];
             }
 
@@ -293,6 +394,13 @@ class OrderController extends Controller
                 'waybill_id' => $response->json('courier.waybill_id'),
                 'tracking_url' => $response->json('courier.link'),
             ]);
+
+            Notification::create([
+                'peserta_id' => $order->id_peserta,
+                'label' => 'Pesanan Anda Sedang Diproses',
+                'description' => "Pesanan Anda dengan Nomor Order $order->no_order telah berhasil dikirim. Harap cek secara berkala untuk memastikan pesanan Anda sampai dengan aman.",
+                'link' => route('shopping-cart.dikirim'),
+            ]);
             
             return back()->with('success', 'Order dengan No Order: ' . $no_order . ' berhasil dikirim.');
         } catch (\Throwable $th) {
@@ -301,12 +409,32 @@ class OrderController extends Controller
     }
 
     public function selesai($no_order) {
-        $order = Order::where('no_order', $no_order)->where('status_aktif', 1)->first();
+        $auth = Auth::guard('member')->user();
+        $order = Order::where('no_order', $no_order)->where('status_order', 'done')->where('status_aktif', 1)->first();
 
         try {
             if ($order) {
                 $order->update([
-                    'status_order' => 'done',
+                    'done' => 1,
+                ]);
+
+                $totalPoints = 0;
+
+                foreach ($order->details as $detail) {
+                    $productable = $detail->productable;
+
+                    $points = $productable->point * $detail->quantity;
+                    $totalPoints += $points;
+                }
+
+                $auth->coin += $totalPoints;
+                $auth->save();
+
+                Notification::create([
+                    'peserta_id' => $order->id_peserta,
+                    'label' => 'Pesanan Anda Telah Sampai',
+                    'description' => "Pesanan dengan Order ID $order->no_order telah selesai. Cek kembali barang pesanan Anda.",
+                    'link' => route('shopping-cart.selesai'),
                 ]);
     
                 return back()->with('success', 'Order dengan No Order: ' . $no_order . ' selesai.');
@@ -317,6 +445,10 @@ class OrderController extends Controller
     }
 
     public function cancel(Request $request, $no_order) {
+        $request->validate([
+            'alasan_membatalkan_pesanan' => 'required',
+        ]);
+
         $order = Order::where('no_order', $no_order)->where('status_aktif', 1)->first();
 
         try {
@@ -324,9 +456,60 @@ class OrderController extends Controller
                 $order->update([
                     'status_order' => 'cancel',
                     'alasan_membatalkan_pesanan' => $request['alasan_membatalkan_pesanan'],
+                    'dibatalkan_pembeli' => 1,
+                ]);
+
+                foreach ($order->details as $detail) {
+                    $productable = $detail->productable;
+    
+                    $newStock = $productable->stock + $detail->quantity;
+                    $productable->update(['stock' => $newStock]);
+                }
+
+                Notification::create([
+                    'peserta_id' => $order->id_peserta,
+                    'label' => 'Pesanan Anda Dibatalkan',
+                    'description' => "Pesanan dengan Nomor Order $order->no_order dibatalkan.",
+                    'link' => route('shopping-cart.dibatalkan'),
                 ]);
     
                 return redirect()->route('shopping-cart.dibatalkan')->with('success', 'Order dengan No Order: ' . $no_order . ' dibatalkan.');
+            }
+        } catch (\Throwable $th) {
+            return back()->with('error', $th->getMessage());
+        }
+    }
+
+    public function cancelByAdmin(Request $request, $no_order) {
+        $request->validate([
+            'alasan_membatalkan_pesanan' => 'required',
+        ]);
+
+        $order = Order::where('no_order', $no_order)->where('status_aktif', 1)->first();
+
+        try {
+            if ($order) {
+                $order->update([
+                    'status_order' => 'cancel',
+                    'alasan_membatalkan_pesanan' => $request['alasan_membatalkan_pesanan'],
+                    'dibatalkan_pembeli' => 2,
+                ]);
+
+                foreach ($order->details as $detail) {
+                    $productable = $detail->productable;
+    
+                    $newStock = $productable->stock + $detail->quantity;
+                    $productable->update(['stock' => $newStock]);
+                }
+
+                Notification::create([
+                    'peserta_id' => $order->id_peserta,
+                    'label' => 'Pesanan Anda Dibatalkan oleh Admin',
+                    'description' => "Pesanan dengan Nomor Order $order->no_order dibatalkan oleh Admin dengan konfirmasi pengguna.",
+                    'link' => route('shopping-cart.dibatalkan'),
+                ]);
+    
+                return back()->with('success', 'Order dengan No Order: ' . $no_order . ' dibatalkan.');
             }
         } catch (\Throwable $th) {
             return back()->with('error', $th->getMessage());

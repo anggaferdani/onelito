@@ -21,12 +21,12 @@
         <tr>
           <td style="width: 30%;" class="fw-bold">Amount Paid</td>
           <td>:</td>
-          <td>Rp. {{ number_format($order->total_tagihan, 0, '.', '.') }}</td>
+          <td>{{ 'Rp. ' . number_format($order->total_tagihan, 0, '.', '.') }} @if($order->coin_yang_digunakan > 0) <span class="text-success small">(Potongan Onelito Coins {{ 'Rp. ' . number_format($order->coin_yang_digunakan, 0, '.', '.') }})</span> @endif</td>
         </tr>
         <tr>
           <td style="width: 30%;" class="fw-bold">Date Paid</td>
           <td>:</td>
-          <td>{{ \Carbon\Carbon::parse($order->paid_date)->translatedFormat('d F Y, H:i') }}</td>
+          <td>{{ \Carbon\Carbon::parse($order->paid_at)->translatedFormat('d F Y, H:i') }}</td>
         </tr>
         <tr>
           <td style="width: 30%;" class="fw-bold">Payment</td>
@@ -36,7 +36,7 @@
       </tbody>
     </table>
     <div class="d-flex">
-      <a href="{{ route('shopping-cart.semua') }}" class="btn btn-primary text-center mx-auto">Back</a>
+      <a href="{{ route('shopping-cart.menunggu-konfirmasi') }}" class="btn btn-primary text-center mx-auto">Next</a>
     </div>
   </div>
 </div>
