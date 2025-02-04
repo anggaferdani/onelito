@@ -120,6 +120,16 @@
                 thousandsSeparator: '.'
             });
 
+            $('.percent').on('input', function() {
+                let value = parseFloat($(this).val());
+
+                if (isNaN(value)) {
+                $(this).val('');
+                } else {
+                $(this).val(Math.min(Math.max(value, 0), 100));
+                }
+            });
+
             $('#table-1').DataTable({
                 // dom: 'Bfrtip',
                 lengthMenu: [
@@ -175,7 +185,7 @@
                     $('#show_height').val(res.height)
                     $('#show_length').val(res.length)
                     $('#show_width').val(res.width)
-                    $('#show_point').val(res.point)
+                    $('#show_percent').val(res.percent)
                     $('#show_stock').val(res.stock)
                     $('#show_harga').val(res.harga)
                     $('#show_deskripsi').html(res.deskripsi)
@@ -217,12 +227,7 @@
                         centsLimit: 0,
                         thousandsSeparator: '.'
                     });
-                    $('#edit_point').val(res.point)
-                    $('#edit_point').priceFormat({
-                        prefix: '',
-                        centsLimit: 0,
-                        thousandsSeparator: '.'
-                    });
+                    $('#edit_percent').val(res.percent)
 
                     $('#edit_deskripsi').summernote('code', res.deskripsi)
 
@@ -254,7 +259,7 @@
             formData.append('width', formData.get('edit_width'));
             formData.append('stock', formData.get('edit_stock'));
             formData.append('harga', formData.get('edit_harga'));
-            formData.append('point', formData.get('edit_point'));
+            formData.append('percent', formData.get('edit_percent'));
             formData.append('deskripsi', formData.get('edit_deskripsi'));
             formData.append('path_foto', formData.get('edit_foto'));
             formData.append('_method', 'PATCH');
@@ -269,7 +274,7 @@
             formData.delete('edit_width');
             formData.delete('edit_stock');
             formData.delete('edit_harga');
-            formData.delete('edit_point');
+            formData.delete('edit_percent');
             formData.delete('edit_deskripsi');
             formData.delete('edit_foto');
 

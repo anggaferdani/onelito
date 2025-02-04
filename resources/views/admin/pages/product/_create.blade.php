@@ -48,10 +48,7 @@
                 <label for="width">Width (cm)</label>
                 <input  type="number" id="width" class="form-control" name="width" placeholder="">
             </div>
-            <div class="form-group">
-                <label for="point">Point (Cashback)</label>
-                <input  type="text" id="point" class="form-control" name="point" placeholder="">
-            </div>
+            
             <div class="form-group">
                 <label for="stock">Stock</label>
                 <input  type="number" id="stock" class="form-control" name="stock" placeholder="">
@@ -59,6 +56,10 @@
             <div class="form-group">
                 <label for="harga">Harga</label>
                 <input  type="text" id="harga" class="form-control" name="harga" placeholder="">
+            </div>
+            <div class="form-group">
+                <label for="percent">Percent (Point Cashback)</label>
+                <input  type="text" id="percent" class="form-control percent" name="percent" placeholder="" min="0" max="100">
             </div>
             <div class="form-group">
                 <label for="deskripsi">Deskripsi</label>

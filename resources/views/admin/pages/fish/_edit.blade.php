@@ -59,10 +59,7 @@
                 <label for="edit_width">Width (cm)</label>
                 <input  type="number" id="edit_width" class="form-control" name="edit_width" placeholder="">
             </div>
-            <div class="form-group">
-                <label for="edit_point">Point (Cashback)</label>
-                <input  type="text" id="edit_point" class="form-control" name="edit_point" placeholder="">
-            </div>
+            
             <div class="form-group">
                 <label for="edit_stock">Stock</label>
                 <input  type="number" id="edit_stock" class="form-control" name="edit_stock" placeholder="">
@@ -70,6 +67,10 @@
             <div class="form-group">
                 <label for="edit_harga_ikan">Harga</label>
                 <input  type="text" id="edit_harga_ikan" class="form-control" name="edit_harga_ikan" placeholder="" required>
+            </div>
+            <div class="form-group">
+                <label for="edit_percent">Percent (Point Cashback)</label>
+                <input  type="text" id="edit_percent" class="form-control percent" name="edit_percent" placeholder="" min="0" max="100">
             </div>
             <div class="form-group">
                 <label for="edit_note">Deskripsi</label>

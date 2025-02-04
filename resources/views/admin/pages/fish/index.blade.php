@@ -125,6 +125,16 @@
             //     minViewMode: "months"
             // });
 
+            $('.percent').on('input', function() {
+                let value = parseFloat($(this).val());
+
+                if (isNaN(value)) {
+                $(this).val('');
+                } else {
+                $(this).val(Math.min(Math.max(value, 0), 100));
+                }
+            });
+
             $('#harga_ikan').priceFormat({
                 prefix: '',
                 centsLimit: 0,
@@ -197,7 +207,7 @@
                     $('#show_height').val(res.height)
                     $('#show_length').val(res.length)
                     $('#show_width').val(res.width)
-                    $('#show_point').val(res.point)
+                    $('#show_percent').val(res.percent)
                     $('#show_stock').val(res.stock)
                     $('#show_harga_ikan').val(res.harga_ikan)
                     $('#show_note').html(res.note)
@@ -242,8 +252,8 @@
                     $('#edit_length').val(res.length)
                     $('#edit_width').val(res.width)
                     $('#edit_stock').val(res.stock)
-                    $('#edit_point').val(res.point)
-                    $('#edit_point').priceFormat({
+                    $('#edit_percent').val(res.percent)
+                    $('#edit_percent').priceFormat({
                         prefix: '',
                         centsLimit: 0,
                         thousandsSeparator: '.'
@@ -286,7 +296,7 @@
             formData.append('height', formData.get('edit_height'));
             formData.append('length', formData.get('edit_length'));
             formData.append('width', formData.get('edit_width'));
-            formData.append('point', formData.get('edit_point'));
+            formData.append('percent', formData.get('edit_percent'));
             formData.append('stock', formData.get('edit_stock'));
             formData.append('harga_ikan', formData.get('edit_harga_ikan'));
             formData.append('note', formData.get('edit_note'));
@@ -306,7 +316,7 @@
             formData.delete('edit_length');
             formData.delete('edit_width');
             formData.delete('edit_stock');
-            formData.delete('edit_point');
+            formData.delete('edit_percent');
             formData.delete('edit_harga_ikan');
             formData.delete('edit_note');
             formData.delete('edit_link_video');

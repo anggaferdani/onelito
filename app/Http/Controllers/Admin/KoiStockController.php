@@ -57,6 +57,12 @@ class KoiStockController extends Controller
         $data['harga_ikan'] = str_replace('.', '', $data['harga_ikan']);
         $data['status_aktif'] = 1;
 
+        if (isset($data['harga_ikan']) && isset($data['percent']) && is_numeric($data['harga_ikan']) && is_numeric($data['percent']) && $data['percent'] != 0) {
+            $data['point'] = $data['harga_ikan'] / $data['percent'];
+        } else {
+            $data['point'] = 0; // Or handle the error as needed
+        }
+
         $image = null;
         if($this->request->hasFile('path_foto')){
             $image = $this->request->file('path_foto')->store(
@@ -121,6 +127,12 @@ class KoiStockController extends Controller
         unset($data['path_foto']);
 
         $data['harga_ikan'] = str_replace('.', '', $data['harga_ikan']);
+
+        if (isset($data['harga_ikan']) && isset($data['percent']) && is_numeric($data['harga_ikan']) && is_numeric($data['percent']) && $data['percent'] != 0) {
+            $data['point'] = $data['harga_ikan'] / $data['percent'];
+        } else {
+            $data['point'] = 0; // Or handle the error as needed
+        }
         $data['update_by'] = Auth::guard('admin')->id();
 
         $updateFish = $fish->update($data);
