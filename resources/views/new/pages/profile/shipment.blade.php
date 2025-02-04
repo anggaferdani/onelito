@@ -163,17 +163,17 @@
           </div>
           <hr class="m-0">
           <div class="card-body">
-              <input type="text" class="form-control" name="coin_yang_digunakan" value="0">
-              <input type="text" class="form-control" name="total_harga_barang" value="{{ $totalPrice }}">
-              <input type="text" class="form-control" name="peserta_id" value="{{ $auth->id_peserta }}">
-              <input type="text" class="form-control" name="ids" value="{{ request('ids') }}">
-              <input type="text" class="form-control" name="jumlah_total" value="">
-              <input type="text" class="form-control" name="total_tagihan" value="">
-              <input type="text" class="form-control" name="courier_name" value="">
-              <input type="text" class="form-control" name="courier_code" value="">
-              <input type="text" class="form-control" name="courier_type" value="">
-              <input type="text" class="form-control" name="courier_service_name" value="">
-              <input type="text" class="form-control" name="ongkos_kirim" value="">
+              <input type="hidden" class="form-control" name="coin_yang_digunakan" value="0">
+              <input type="hidden" class="form-control" name="total_harga_barang" value="{{ $totalPrice }}">
+              <input type="hidden" class="form-control" name="peserta_id" value="{{ $auth->id_peserta }}">
+              <input type="hidden" class="form-control" name="ids" value="{{ request('ids') }}">
+              <input type="hidden" class="form-control" name="jumlah_total" value="">
+              <input type="hidden" class="form-control" name="total_tagihan" value="">
+              <input type="hidden" class="form-control" name="courier_name" value="">
+              <input type="hidden" class="form-control" name="courier_code" value="">
+              <input type="hidden" class="form-control" name="courier_type" value="">
+              <input type="hidden" class="form-control" name="courier_service_name" value="">
+              <input type="hidden" class="form-control" name="ongkos_kirim" value="">
               <button id="buttonBayar" type="submit" class="btn btn-danger w-100" disabled>Order</button>
           </div>
         </div>

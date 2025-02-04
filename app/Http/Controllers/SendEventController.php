@@ -7,6 +7,8 @@ use Carbon\Carbon;
 use App\Models\Event;
 use App\Models\Notification;
 use App\Models\Member;
+use App\Models\Order;
+use App\Models\Tracking;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 
@@ -14,6 +16,18 @@ class SendEventController extends Controller
 {
     public function sendEventReminder()
     {
+        $trackingOrders = Order::where('status_order', 'delivered')->where('status_aktif', 1)
+            ->get();
+
+        foreach ($trackingOrders as $order) {
+            $tracking = Tracking::where('order_id', $order->order_id)->where('status', 'delivered')->first();
+
+            if ($tracking && $tracking->status == 'delivered') {
+                $order->update(['status_order' => 'done']);
+            }
+
+        }
+            
         // Ambil semua event yang memenuhi kriteria notifikasi_dikirim = 1
         $events = Event::where('status_aktif', 1)
             ->where('tgl_akhir', '>', Carbon::now())

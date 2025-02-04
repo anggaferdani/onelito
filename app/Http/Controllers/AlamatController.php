@@ -104,8 +104,6 @@ class AlamatController extends Controller
         if ($response->successful()) {
             $lokasi = $response->json();
 
-            dd($lokasi);
-
             if (isset($lokasi['areas'][0])) {
                 $idLokasi = $lokasi['areas'][0]['id'];
             } else {
