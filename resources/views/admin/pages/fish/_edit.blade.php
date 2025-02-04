@@ -69,8 +69,12 @@
                 <input  type="text" id="edit_harga_ikan" class="form-control" name="edit_harga_ikan" placeholder="" required>
             </div>
             <div class="form-group">
-                <label for="edit_percent">Percent (Point Cashback)</label>
-                <input  type="text" id="edit_percent" class="form-control percent" name="edit_percent" placeholder="" min="0" max="100">
+                <label for="edit_percent">Percent (Max: 100)</label>
+                <input  type="number" id="edit_percent" class="form-control" name="percent" placeholder="">
+            </div>
+            <div class="form-group">
+                <label for="edit_point">Point (Cashback)</label>
+                <input  type="text" id="edit_point" class="form-control" name="edit_point" placeholder="" readonly>
             </div>
             <div class="form-group">
                 <label for="edit_note">Deskripsi</label>

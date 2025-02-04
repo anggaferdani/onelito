@@ -120,16 +120,6 @@
                 thousandsSeparator: '.'
             });
 
-            $('.percent').on('input', function() {
-                let value = parseFloat($(this).val());
-
-                if (isNaN(value)) {
-                $(this).val('');
-                } else {
-                $(this).val(Math.min(Math.max(value, 0), 100));
-                }
-            });
-
             $('#table-1').DataTable({
                 // dom: 'Bfrtip',
                 lengthMenu: [
@@ -185,7 +175,7 @@
                     $('#show_height').val(res.height)
                     $('#show_length').val(res.length)
                     $('#show_width').val(res.width)
-                    $('#show_percent').val(res.percent)
+                    $('#show_point').val(res.point)
                     $('#show_stock').val(res.stock)
                     $('#show_harga').val(res.harga)
                     $('#show_deskripsi').html(res.deskripsi)
@@ -227,7 +217,17 @@
                         centsLimit: 0,
                         thousandsSeparator: '.'
                     });
-                    $('#edit_percent').val(res.percent)
+                    // Calculate and set the percent value
+                    let harga = parseFloat(res.harga.replace(/\./g, '')); // Remove thousand separators
+                    let point = parseFloat(res.point.replace(/\./g, '')); // Remove thousand separators
+                    let percent = (point / harga) * 100;
+                    $('#edit_percent').val(percent); // Display with 2 
+                    $('#edit_point').val(point); // Display with 2 
+                    $('#edit_point').priceFormat({
+                        prefix: '',
+                        centsLimit: 0,
+                        thousandsSeparator: '.'
+                    });
 
                     $('#edit_deskripsi').summernote('code', res.deskripsi)
 
@@ -259,7 +259,7 @@
             formData.append('width', formData.get('edit_width'));
             formData.append('stock', formData.get('edit_stock'));
             formData.append('harga', formData.get('edit_harga'));
-            formData.append('percent', formData.get('edit_percent'));
+            formData.append('point', formData.get('edit_point'));
             formData.append('deskripsi', formData.get('edit_deskripsi'));
             formData.append('path_foto', formData.get('edit_foto'));
             formData.append('_method', 'PATCH');
@@ -274,7 +274,7 @@
             formData.delete('edit_width');
             formData.delete('edit_stock');
             formData.delete('edit_harga');
-            formData.delete('edit_percent');
+            formData.delete('edit_point');
             formData.delete('edit_deskripsi');
             formData.delete('edit_foto');
 
@@ -350,6 +350,46 @@
                     });
                 }
             });
+        });
+
+        $(document).on('input', '#harga, #percent', function() {
+            let harga = $('#harga').val().replace(/\./g, '');
+            let percent = $('#percent').val();
+
+            // Validate percent is not greater than 100
+            if (percent > 100) {
+                $('#percent').val(100); // Set percent to 100 if it exceeds
+                percent = 100; // Update the local percent variable
+            }
+
+            if (harga && percent) {
+                let point = (parseInt(harga) * parseInt(percent)) / 100;
+                // Format the point value to "1.000.000" format
+                let formattedPoint = point.toLocaleString('id-ID');
+                $('#point').val(formattedPoint);
+            } else {
+                $('#point').val('');
+            }
+        });
+
+        $(document).on('input', '#edit_harga, #edit_percent', function() {
+            let harga = $('#edit_harga').val().replace(/\./g, '');
+            let percent = $('#edit_percent').val();
+
+            // Validate percent is not greater than 100
+            if (percent > 100) {
+                $('#edit_percent').val(100); // Set percent to 100 if it exceeds
+                percent = 100; // Update the local percent variable
+            }
+
+            if (harga && percent) {
+                let point = (parseInt(harga) * parseInt(percent)) / 100;
+                // Format the point value to "1.000.000" format
+                let formattedPoint = point.toLocaleString('id-ID');
+                $('#edit_point').val(formattedPoint);
+            } else {
+                $('#edit_point').val('');
+            }
         });
     </script>
 

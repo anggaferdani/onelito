@@ -55,13 +55,8 @@ class KoiStockController extends Controller
         $data['create_by'] = Auth::guard('admin')->id();
         $data['update_by'] = Auth::guard('admin')->id();
         $data['harga_ikan'] = str_replace('.', '', $data['harga_ikan']);
+        $data['point'] = str_replace('.', '', $data['point']);
         $data['status_aktif'] = 1;
-
-        if (isset($data['harga_ikan']) && isset($data['percent']) && is_numeric($data['harga_ikan']) && is_numeric($data['percent']) && $data['percent'] != 0) {
-            $data['point'] = $data['harga_ikan'] / $data['percent'];
-        } else {
-            $data['point'] = 0; // Or handle the error as needed
-        }
 
         $image = null;
         if($this->request->hasFile('path_foto')){
@@ -93,6 +88,7 @@ class KoiStockController extends Controller
     {
         $fish = KoiStock::findOrFail($id);
         $fish->harga = number_format( $fish->harga , 0 , '.' , '.' );
+        $fish->point = number_format( $fish->point , 0 , '.' , '.' );
 
         if($fish){
             return response()->json($fish);
@@ -127,12 +123,7 @@ class KoiStockController extends Controller
         unset($data['path_foto']);
 
         $data['harga_ikan'] = str_replace('.', '', $data['harga_ikan']);
-
-        if (isset($data['harga_ikan']) && isset($data['percent']) && is_numeric($data['harga_ikan']) && is_numeric($data['percent']) && $data['percent'] != 0) {
-            $data['point'] = $data['harga_ikan'] / $data['percent'];
-        } else {
-            $data['point'] = 0; // Or handle the error as needed
-        }
+        $data['point'] = str_replace('.', '', $data['point']);
         $data['update_by'] = Auth::guard('admin')->id();
 
         $updateFish = $fish->update($data);

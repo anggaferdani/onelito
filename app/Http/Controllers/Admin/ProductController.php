@@ -66,14 +66,9 @@ class ProductController extends Controller
 
         $data['create_by'] = Auth::guard('admin')->id();
         $data['update_by'] = Auth::guard('admin')->id();
+        $data['point'] = str_replace('.', '', $data['point']);
         $data['harga'] = str_replace('.', '', $data['harga']);
         $data['status_aktif'] = 1;
-
-        if (isset($data['harga']) && isset($data['percent']) && is_numeric($data['harga']) && is_numeric($data['percent']) && $data['percent'] != 0) {
-            $data['point'] = $data['harga'] / $data['percent'];
-        } else {
-            $data['point'] = 0; // Or handle the error as needed
-        }
 
         $image = null;
         if($this->request->hasFile('path_foto')){
@@ -115,6 +110,7 @@ class ProductController extends Controller
     {
         $product = Product::with(['photo', 'category'])->findOrFail($id);
         $product->harga = number_format( $product->harga , 0 , '.' , '.' );
+        $product->point = number_format( $product->point , 0 , '.' , '.' );
 
         if($product){
             return response()->json($product);
@@ -131,11 +127,7 @@ class ProductController extends Controller
         $product = Product::With('photo')->findOrFail($id);
         $data = $this->request->all();
         $data['harga'] = str_replace('.', '', $data['harga']);
-        if (isset($data['harga']) && isset($data['percent']) && is_numeric($data['harga']) && is_numeric($data['percent']) && $data['percent'] != 0) {
-            $data['point'] = $data['harga'] / $data['percent'];
-        } else {
-            $data['point'] = 0; // Or handle the error as needed
-        }
+        $data['point'] = str_replace('.', '', $data['point']);
 
         $validator = Validator::make($this->request->all(), [
         ]);
