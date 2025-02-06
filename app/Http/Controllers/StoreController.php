@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\Wishlist;
+use App\Models\Banner;
+use App\Models\Event;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 
@@ -88,6 +90,26 @@ class StoreController extends Controller
         $fishEquipmentProducts = [];
         $fishMedicineProducts = [];
 
+        $banners = Banner::all();
+
+        $now = Carbon::now();
+        $nowAkhir = Carbon::now()->subDays(2)->endOfDay();
+
+        $nextAuction = Event::with(['auctionProducts' => function ($q) {
+            $q->withCount('bidDetails')->with(['photo', 'maxBid', 'event']);
+        }
+        ])
+        ->where('tgl_mulai', '<=', $now)
+        ->where('tgl_akhir', '>=', $nowAkhir)
+        ->where('status_aktif', 1)
+        ->where('status_tutup', 0)
+        ->orderBy('tgl_mulai')
+        ->get();
+
+        $currentProducts = $nextAuction->pluck('auctionProducts')
+        ->flatten(1)
+        ->take(5);
+
         return view('onelito_store',[
             'auth' => $auth,
             'products' => $products,
@@ -95,7 +117,9 @@ class StoreController extends Controller
             // 'fishEquipmentProducts' => $fishEquipmentProducts,
             // 'fishMedicineProducts' => $fishMedicineProducts,
             'title' => 'ONELITO STORE',
-            'kategori' => $this->request->input('kategori', null)
+            'kategori' => $this->request->input('kategori', null),
+            'banners' => $banners,
+            'auctions' => $nextAuction,
         ]);
     }
 

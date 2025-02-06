@@ -120,7 +120,7 @@
                       <a style="font-size: 13px;" class="nav-link small" href="/onelito_store">ONELITO STORE</a>
                   </li>
                   <li class="nav-item">
-                      <a style="font-size: 13px;" class="nav-link small" href="/koi_stok">KOI STOCK</a>
+                      <a style="font-size: 13px;" class="nav-link small" href="/koi_stok">KOI STORE</a>
                   </li>
                   <li class="nav-item">
                       <a style="font-size: 13px;" class="nav-link small" href="/wishlistlog">WISHLIST</a>
@@ -167,7 +167,7 @@
       <a class="nav-link" href="/">HOME</a>
       <a class="nav-link" href="/auction">AUCTION</a>
       <a class="nav-link" href="/onelito_store">ONELITO STORE</a>
-      <a class="nav-link" href="/koi_stok">KOI STOCK</a>
+      <a class="nav-link" href="/koi_stok">KOI STORE</a>
 
       <a class="nav-link" href="/wishlistlog">WISHLIST</a>
       <a class="nav-link" href="/shoppingcart">WINNING AUCTION</a>

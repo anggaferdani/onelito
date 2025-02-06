@@ -143,7 +143,7 @@
                     </li>
 
                     <li class="nav-item">
-                        <a style="font-size: 13px;" class="nav-link small {{ $title === 'KOI STOCK' ? 'active text-danger' : '' }}"href="/koi_stok">KOI STOCK</a>
+                        <a style="font-size: 13px;" class="nav-link small {{ $title === 'KOI STOCK' ? 'active text-danger' : '' }}"href="/koi_stok">KOI STORE</a>
                     </li>
 
                     <li class="nav-item">
@@ -189,7 +189,7 @@
         <a class="nav-link {{ $title === 'home' ? 'active text-danger' : '' }}"href="/">HOME</a>
         <a class="nav-link {{ $title === 'auction' ? 'active text-danger' : '' }}"href="/auction">AUCTION</a>
         <a class="nav-link {{ $title === 'onelito_store' ? 'active text-danger' : '' }}"href="/onelito_store">ONELITO STORE</a>
-        <a class="nav-link {{ $title === 'KOI STOCK' ? 'active text-danger' : '' }}"href="/koi_stok">KOI STOCK</a>
+        <a class="nav-link {{ $title === 'KOI STOCK' ? 'active text-danger' : '' }}"href="/koi_stok">KOI STORE</a>
 
         <a class="nav-link {{ $title === 'wishlistlog' ? 'active text-danger' : '' }}"href="/wishlistlog">WISHLIST</a>
         <a class="nav-link {{ $title === 'cart' ? 'active text-danger' : '' }}"href="/shoppingcart">WINNING AUCTION</a>

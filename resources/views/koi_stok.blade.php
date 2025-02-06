@@ -34,8 +34,63 @@
         }
     @endphp
 
-
     <br><br><br><br>
+    <div id="carouselExampleControls" class="pt-2 carousel slide" data-bs-interval="3000" data-bs-ride="carousel">
+        <div class="carousel-inner img-mh-300">
+            @forelse($banners as $key => $val)
+                @php
+                    $banner = 'img/banner1.png';
+
+                    if ($val->banner !== null) {
+                        $bannerImg = url('storage') . '/' . $val->banner;
+                    }
+                @endphp
+
+                @if ($val->banner !== null)
+                    <div class="carousel-item {{ $key === 0 ? '' : '' }}">
+                        <div class="container-fluit" style="background-color:red;">
+                            <img src="{{ $bannerImg }}" class="w-100" alt="...">
+                        </div>
+                    </div>
+                @endif
+            @empty
+            @endforelse
+
+            @forelse($auctions as $key => $auction)
+                @php
+                    $bannerImg = 'img/event.png';
+
+                    if ($auction->banner !== null) {
+                        $bannerImg = url('storage') . '/' . $auction->banner;
+                    }
+                @endphp
+
+                @if ($auction->banner !== null)
+                    <div class="carousel-item {{ $key === 0 ? '' : '' }}">
+                        <div class="container-fluit" style="background-color:red;">
+                            <img src="{{ $bannerImg }}" class="w-100" alt="...">
+                        </div>
+                    </div>
+                @endif
+            @empty
+            @endforelse
+            <div class="carousel-item active">
+                <div class="container-fluit" style="background-color:red;">
+                    <img src="img/banner1.png" class="d-block w-100" alt="Frame">
+                </div>
+            </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+
+    <br>
 
     <div class="container-fluit">
         <div class="container" style="min-height:400px;">
