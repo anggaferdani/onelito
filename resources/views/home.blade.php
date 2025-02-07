@@ -135,6 +135,7 @@
                 <div class="card border border-danger border-3">
                     <div class="card-body rounded" style="background-size: cover; background: url({{ asset('img/456316341858feba5573a11f9184026c.jpg') }});">
                         <div class="fs-1 text-center text-white fw-bold">Auction</div>
+                        <a href="/auction" class="stretched-link"></a>
                     </div>
                 </div>
             </div>
@@ -142,6 +143,7 @@
                 <div class="card border border-danger border-3">
                     <div class="card-body rounded" style="background-size: cover; background: url({{ asset('img/33a3c43e331738cb9c471e6efc84e256.jpg') }});">
                         <div class="fs-1 text-center text-white fw-bold">Onelito Store</div>
+                        <a href="/onelito_store" class="stretched-link"></a>
                     </div>
                 </div>
             </div>
@@ -149,6 +151,7 @@
                 <div class="card border border-danger border-3">
                     <div class="card-body rounded" style="background-size: cover; background: url({{ asset('img/7d67bd44b8f0a951a6121ca011d418d3.jpg') }});">
                         <div class="fs-1 text-center text-white fw-bold">Koi Store</div>
+                        <a href="/koi_stok" class="stretched-link"></a>
                     </div>
                 </div>
             </div>
