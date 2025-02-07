@@ -69,7 +69,7 @@
             </div>
             <div class="form-group">
                 <label for="percent">Percent (Max: 100)</label>
-                <input  type="number" id="percent" class="form-control" name="percent" placeholder="">
+                <input  type="number" id="percent" class="form-control" name="" placeholder="">
             </div>
             <div class="form-group">
                 <label for="point">Point (Cashback)</label>

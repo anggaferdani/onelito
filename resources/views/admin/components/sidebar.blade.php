@@ -55,7 +55,7 @@
             </li>
             <li class="nav-item {{ $type_menu === 'manage-fish' ? 'active' : '' }}">
                 <a class="nav-link"
-                    href="{{ url('admin/fishes') }}"><i class="fas fa-fish"></i> <span>Koi Stock</span></a>
+                    href="{{ url('admin/fishes') }}"><i class="fas fa-fish"></i> <span>Koi Store</span></a>
             </li>
             <li class="nav-item {{ $type_menu === 'manage-champion-fish' ? 'active' : '' }}">
                 <a class="nav-link"
