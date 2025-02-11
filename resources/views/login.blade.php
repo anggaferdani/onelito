@@ -19,7 +19,7 @@
     <title>ONELITO KOI</title>
 </head>
 
-<body style="background-image: url('img/login.png'); background-size: cover">
+<body style="background-image: url('img/login-background.jpg'); background-size: cover">
     <style>
         body {
             background-repeat: no-repeat;

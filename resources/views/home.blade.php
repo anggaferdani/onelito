@@ -78,7 +78,7 @@
         <div class="carousel-inner img-mh-300">
             @forelse($banners as $key => $val)
                 @php
-                    $banner = 'img/banner1.png';
+                    $banner = 'img/new-banner.jpg';
 
                     if ($val->banner !== null) {
                         $bannerImg = url('storage') . '/' . $val->banner;
@@ -115,7 +115,7 @@
             @endforelse
             <div class="carousel-item active">
                 <div class="container-fluit" style="background-color:red;">
-                    <img src="img/banner1.png" class="d-block w-100" alt="Frame">
+                    <img src="img/new-banner.jpg" class="d-block w-100" alt="Frame">
                 </div>
             </div>
         </div>
