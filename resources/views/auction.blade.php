@@ -284,7 +284,7 @@
                         </div>
                     </div>
                 @empty
-                    <img src="{{ url('img/lelang.png') }}" class="d-block w-100 mt-5" alt="ceklis">
+                    <img src="{{ url('img/no-auction.jpg') }}" class="d-block w-100 mt-5" alt="ceklis">
                 @endforelse
             </div>
         </div>
