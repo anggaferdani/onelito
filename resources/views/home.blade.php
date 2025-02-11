@@ -133,21 +133,21 @@
         <div class="row g-2">
             <div class="col-md-4">
                 <div class="card border rounded rounded-5" style="height: 125px;">
-                    <div class="card-body rounded rounded-5" style="background-size: cover; background-image: url({{ asset('img/onelito-auction.jpg') }});">
+                    <div class="card-body rounded rounded-5" style="background-position: center; background-size: cover; background-image: url({{ asset('img/onelito-auction.jpg') }});">
                         <a href="/auction" class="stretched-link"></a>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="card border rounded rounded-5" style="height: 125px;">
-                    <div class="card-body rounded rounded-5" style="background-size: cover; background-image: url({{ asset('img/onelito-store.jpg') }});">
+                    <div class="card-body rounded rounded-5" style="background-position: center; background-size: cover; background-image: url({{ asset('img/onelito-store.jpg') }});">
                         <a href="/onelito_store" class="stretched-link"></a>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="card border rounded rounded-5" style="height: 125px;">
-                    <div class="card-body rounded rounded-5" style="background-size: cover; background-image: url({{ asset('img/koi-store.jpg') }});">
+                    <div class="card-body rounded rounded-5" style="background-position: center; background-size: cover; background-image: url({{ asset('img/koi-store.jpg') }});">
                         <a href="/koi_stok" class="stretched-link"></a>
                     </div>
                 </div>
