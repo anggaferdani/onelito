@@ -19,9 +19,6 @@
         <div class="col-md-6">
           <div class="fs-5 fw-bold mb-2">{{ $fish->variety }} | {{ $fish->breeder }} | {{ $fish->size }} | {{ $fish->sex }}</div>
           <div class="fs-5 fw-bold mb-2">Rp. {{ number_format($fish->harga_ikan, 0, '.', '.') }}</div>
-          @if($fish->point > 0)
-            <div class="text-success small mb-2">Dapatkan Cashback Rp. {{ number_format($fish->point, 0, '.', '.') }} Onelito Coins per Produk</div>
-          @endif
           <div class="text-success fw-bold mb-2">Detail</div>
           <div class="">Breeder : {{ $fish->breeder }}</div>
           <div class="">Bloodline : {{ $fish->bloodline }}</div>
