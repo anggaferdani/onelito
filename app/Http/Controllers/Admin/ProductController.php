@@ -33,6 +33,16 @@ class ProductController extends Controller
 
                 return $number;
             })
+            ->editColumn('deskripsi', function ($data) {
+                $maxLength = 150; // Batas karakter deskripsi
+                $deskripsi = strip_tags($data->deskripsi); // Hilangkan tag HTML
+
+                if (strlen($deskripsi) > $maxLength) {
+                    $deskripsi = substr($deskripsi, 0, $maxLength) . '...';
+                }
+
+                return $deskripsi;
+            })
             ->editColumn('photo', function ($data) {
                 $path = $data->photo->path_foto ?? false;
 
@@ -42,9 +52,12 @@ class ProductController extends Controller
 
                 return '
                     <img src="'.asset("storage/$path").'" style="
-                    width: 80px;
-                    height: 80px;
-                    object-fit: cover;">
+                        max-width: 150px;
+                        max-height: 150px;
+                        width: auto;
+                        height: auto;
+                        object-fit: contain;
+                    ">
                 ';
             })
             ->addColumn('action','admin.pages.product.dt-action')

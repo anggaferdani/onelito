@@ -33,17 +33,17 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(UrlGenerator $url)
     {
-        if (config('env') !== 'local') {
-            $url->forceScheme('https');
-        }
+        // if (config('env') !== 'local') {
+        //     $url->forceScheme('https');
+        // }
 
-        $this->bootMorph();
+        // $this->bootMorph();
 
-        $this->app->booted(function () {
-            $schedule = $this->app->make(Schedule::class);
-              $schedule->command(SendEventReminder::class)
-                  ->everyMinute();
-        });
+        // $this->app->booted(function () {
+        //     $schedule = $this->app->make(Schedule::class);
+        //       $schedule->command(SendEventReminder::class)
+        //           ->everyMinute();
+        // });
 
     }
 

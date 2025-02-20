@@ -27,16 +27,19 @@ class KoiStockController extends Controller
             })
             ->editColumn('foto_ikan', function ($data) {
                 $path = $data->foto_ikan ?? false;
-
+            
                 if (!$path) {
                     return '';
                 }
-
+            
                 return '
                     <img src="'.asset("storage/$path").'" style="
-                    width: 80px;
-                    height: 80px;
-                    object-fit: cover;">
+                        max-width: 200px;
+                        max-height: 200px;
+                        width: auto;
+                        height: auto;
+                        object-fit: contain;
+                    ">
                 ';
             })
             ->rawColumns(['action', 'note', 'foto_ikan'])

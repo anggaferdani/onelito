@@ -60,9 +60,12 @@ class CurrentAuctionController extends Controller
 
                 return '
                     <img src="'.asset("storage/$path").'" style="
-                    width: 80px;
-                    height: 80px;
-                    object-fit: cover;">
+                        max-width: 200px;
+                        max-height: 200px;
+                        width: auto;
+                        height: auto;
+                        object-fit: contain;
+                    ">
                 ';
             })
             ->addColumn('current_price', function ($data) {

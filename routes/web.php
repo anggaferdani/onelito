@@ -25,6 +25,7 @@ use App\Http\Controllers\NotifikasiController;
 use App\Http\Controllers\ChampionFishController;
 use App\Http\Controllers\ShoppingCartController;
 use App\Http\Controllers\AuthenticationController;
+use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\SendEventController;
 
 /*
@@ -217,6 +218,7 @@ Route::group(['prefix' => 'admin', 'middleware' => 'auth:admin'], function () {
         Route::resource('tag', TagController::class);
         Route::resource('news', NewsController::class);
         Route::resource('pesanan', PesananController::class);
+        Route::resource('kategori', KategoriController::class);
         Route::get('pesanan/detail/{no_order}', [PesananController::class, 'detail'])->name('pesanan.detail');
         Route::get('pesanan/kirim/{no_order}', [OrderController::class, 'kirim'])->name('pesanan.kirim');
         Route::get('pesanan/process/{no_order}', [OrderController::class, 'process'])->name('pesanan.process');

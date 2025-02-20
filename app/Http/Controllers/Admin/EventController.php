@@ -39,15 +39,28 @@ class EventController extends Controller
 
                 return '
                     <img src="'.asset("storage/$path").'" style="
-                    width: 80px;
-                    height: 80px;
-                    object-fit: cover;">
+                        max-width: 400px;
+                        max-height: 150px;
+                        width: auto;
+                        height: auto;
+                        object-fit: contain;
+                    ">
                 ';
             })
             ->editColumn('total_hadiah', function ($data) {
                 $number = number_format( $data->total_hadiah , 0 , '.' , '.' );
 
                 return $number;
+            })
+            ->editColumn('rules_event', function ($data) {
+                $maxLength = 150; // Batas karakter rules_event
+                $rules_event = strip_tags($data->rules_event); // Hilangkan tag HTML
+
+                if (strlen($rules_event) > $maxLength) {
+                    $rules_event = substr($rules_event, 0, $maxLength) . '...';
+                }
+
+                return $rules_event;
             })
             ->addColumn('text_status_tutup', function ($data) {
                 $text = "Ya";
