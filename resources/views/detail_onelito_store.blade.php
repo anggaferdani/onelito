@@ -19,6 +19,9 @@
         <div class="col-md-6">
           <div class="fs-5 fw-bold mb-2">{{ "$product->merek_produk $product->nama_produk" }}</div>
           <div class="fs-5 fw-bold mb-2">Rp. {{ number_format($product->harga, 0, '.', '.') }}</div>
+          @if($product->point > 0)
+            <div class="text-success small mb-2">Dapatkan Cashback Rp. {{ number_format($product->point, 0, '.', '.') }} Onelito Coins per Produk</div>
+          @endif
           <div class="text-success fw-bold mb-2">Detail</div>
           <div>{!! $product->deskripsi !!}</div>
         </div>
