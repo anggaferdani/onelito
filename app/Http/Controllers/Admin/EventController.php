@@ -106,7 +106,6 @@ class EventController extends Controller
                 $data['rules_event'] = preg_replace('/[\x00-\x1F\x7F]/u', '', $data['rules_event']);
                 
                 // Log untuk debugging jika perlu
-                \Log::info('Rules Event Raw Bytes: ' . bin2hex($data['rules_event']));
             }
 
             $data['create_by'] = Auth::guard('admin')->id();
@@ -141,7 +140,6 @@ class EventController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
-            \Log::error('Error in store auction: ' . $e->getMessage());
             return redirect()->back()->with([
                 'success' => false,
                 'message' => 'Gagal Menambahkan Auction: ' . $e->getMessage()
@@ -300,7 +298,6 @@ class EventController extends Controller
 
         } catch(\Exception $e) {
             DB::rollback();
-            \Log::error('Error in update auction: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -320,7 +317,6 @@ class EventController extends Controller
                 'success' => true,
             ],200);
         } catch (\Exception $e) {
-            \Log::error('Error in destroy auction: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage()
