@@ -49,26 +49,26 @@ class EventController extends Controller
             })
             ->editColumn('total_hadiah', function ($data) {
                 $number = number_format( $data->total_hadiah , 0 , '.' , '.' );
-
                 return $number;
             })
             ->editColumn('rules_event', function ($data) {
-                $maxLength = 150; // Batas karakter rules_event
-                $rules_event = strip_tags($data->rules_event); // Hilangkan tag HTML
+                // Konversi dan bersihkan rules_event saat ditampilkan
+                $rules_event = mb_convert_encoding($data->rules_event, 'UTF-8', mb_detect_encoding($data->rules_event));
+                $rules_event = preg_replace('/[\x00-\x1F\x7F]/u', '', $rules_event);
+                $maxLength = 150;
+                $rules_event = strip_tags($rules_event);
 
                 if (strlen($rules_event) > $maxLength) {
-                    $rules_event = substr($rules_event, 0, $maxLength) . '...';
+                    $rules_event = mb_substr($rules_event, 0, $maxLength, 'UTF-8') . '...';
                 }
 
                 return $rules_event;
             })
             ->addColumn('text_status_tutup', function ($data) {
                 $text = "Ya";
-
                 if ($data->status_tutup === 0) {
                     $text = "Tidak";
                 }
-
                 return $text;
             })
             ->addColumn('action','admin.pages.auction.dt-action')
@@ -88,42 +88,64 @@ class EventController extends Controller
 
     public function store()
     {
-        $data = $this->request->all();
+        try {
+            DB::beginTransaction();
+            
+            $data = $this->request->all();
 
-        $data['create_by'] = Auth::guard('admin')->id();
-        $data['update_by'] = Auth::guard('admin')->id();
-        $data['total_hadiah'] = (int) str_replace('.', '', $data['total_hadiah']);
-        $data['status_aktif'] = 1;
+            // Tangani rules_event
+            if (isset($data['rules_event'])) {
+                // Hapus BOM jika ada
+                $data['rules_event'] = preg_replace('/[\x{FEFF}]/u', '', $data['rules_event']);
+                
+                // Deteksi encoding dan konversi ke UTF-8
+                $encoding = mb_detect_encoding($data['rules_event'], ['UTF-8', 'ASCII', 'ISO-8859-1']);
+                $data['rules_event'] = mb_convert_encoding($data['rules_event'], 'UTF-8', $encoding);
+                
+                // Bersihkan karakter non-printable
+                $data['rules_event'] = preg_replace('/[\x00-\x1F\x7F]/u', '', $data['rules_event']);
+                
+                // Log untuk debugging jika perlu
+                \Log::info('Rules Event Raw Bytes: ' . bin2hex($data['rules_event']));
+            }
 
-        $image = null;
-        if($this->request->hasFile('banner')){
-            $image = $this->request->file('banner')->store(
-                'foto_auction','public'
-            );
-        }
+            $data['create_by'] = Auth::guard('admin')->id();
+            $data['update_by'] = Auth::guard('admin')->id();
+            $data['total_hadiah'] = (int) str_replace('.', '', $data['total_hadiah']);
+            $data['status_aktif'] = 1;
 
-        $data['banner'] = $image;
+            $image = null;
+            if($this->request->hasFile('banner')){
+                $image = $this->request->file('banner')->store(
+                    'foto_auction','public'
+                );
+            }
 
-        $auctionProductIds = $data['auction_products'];
-        unset($data['auction_products']);
+            $data['banner'] = $image;
 
-        $createAuction = Event::create($data);
+            $auctionProductIds = $data['auction_products'];
+            unset($data['auction_products']);
 
-        EventFish::whereIn('id_ikan', $auctionProductIds)->update([
-            'id_event' => $createAuction->id_event
-        ]);
+            $createAuction = Event::create($data);
 
-        if($createAuction){
+            EventFish::whereIn('id_ikan', $auctionProductIds)->update([
+                'id_event' => $createAuction->id_event
+            ]);
+
+            DB::commit();
+
             return redirect()->back()->with([
                 'success' => true,
-                'message' => 'Sukses Menambahkan Auction',
+                'message' => 'Sukses Menambahkan Auction'
+            ], 200);
 
-            ],200);
-        }else{
+        } catch (\Exception $e) {
+            DB::rollback();
+            \Log::error('Error in store auction: ' . $e->getMessage());
             return redirect()->back()->with([
                 'success' => false,
-                'message' => 'Gagal Menambahkan Auction'
-            ],500);
+                'message' => 'Gagal Menambahkan Auction: ' . $e->getMessage()
+            ], 500);
         }
     }
 
@@ -132,196 +154,140 @@ class EventController extends Controller
         $auction = Event::with('auctionProducts.photo')->findOrFail($id);
 
         if($auction){
+            // Konversi rules_event ke UTF-8 yang valid
+            if ($auction->rules_event) {
+                $auction->rules_event = mb_convert_encoding($auction->rules_event, 'UTF-8', mb_detect_encoding($auction->rules_event));
+            }
             return response()->json($auction);
-        }else{
-            return response()->json([
-                'success' => false,
-                'message' => 'Data Not Found'
-            ],404);
         }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Data Not Found'
+        ],404);
     }
 
     public function update($id)
     {
-        $action = $this->request->input('action', null);
-        $auction = Event::With('auctionProducts')->findOrFail($id);
+        try {
+            DB::beginTransaction();
 
-        if ($action === 'close-auction') {
-            $auction->status_tutup = 1;
-            $auction->save();
+            $action = $this->request->input('action', null);
+            $auction = Event::with('auctionProducts')->findOrFail($id);
 
-            $now = Carbon::now();
+            if ($action === 'close-auction') {
+                $auction->status_tutup = 1;
+                $auction->save();
 
-            $auctionProducts = EventFish::doesntHave('winners')
-                ->whereHas('event', function ($q) use ($now) {
-                    $q->where('tgl_akhir', '<', $now);
-                })
-                ->with(['bids.member', 'maxBid', 'event'])
-                ->where('status_aktif', 1)
-                ->get()
-                ->mapWithKeys(fn($a) => [$a->id_ikan => $a]);
+                $now = Carbon::now();
 
-            $fishInWinner = AuctionWinner::whereIn('id_bidding', $auctionProducts->pluck('maxBid.id_bidding'))
-                ->get()
-                ->mapWithKeys(fn($q) => [$q->id_bidding => $q]);
+                $auctionProducts = EventFish::doesntHave('winners')
+                    ->whereHas('event', function ($q) use ($now) {
+                        $q->where('tgl_akhir', '<', $now);
+                    })
+                    ->with(['bids.member', 'maxBid', 'event'])
+                    ->where('status_aktif', 1)
+                    ->get()
+                    ->mapWithKeys(fn($a) => [$a->id_ikan => $a]);
 
-            // Array untuk menampung response dari notifikasi
-            $notificationResponses = [];
+                $fishInWinner = AuctionWinner::whereIn('id_bidding', $auctionProducts->pluck('maxBid.id_bidding'))
+                    ->get()
+                    ->mapWithKeys(fn($q) => [$q->id_bidding => $q]);
 
-            foreach ($auctionProducts as $cProduct) {
-                if ($cProduct->maxBid === null) {
-                    continue;
-                }
+                $notificationResponses = [];
 
-                $dateDiff = Carbon::parse($now, 'id')->diffInMinutes($cProduct->maxBid->updated_at);
-                $dateEventEnd = Carbon::parse($cProduct->event->tgl_akhir)->addMinutes($cProduct->extra_time);
+                foreach ($auctionProducts as $cProduct) {
+                    if ($cProduct->maxBid === null) {
+                        continue;
+                    }
 
-                if ($now < $dateEventEnd) {
-                    continue;
-                }
+                    $dateDiff = Carbon::parse($now, 'id')->diffInMinutes($cProduct->maxBid->updated_at);
+                    $dateEventEnd = Carbon::parse($cProduct->event->tgl_akhir)->addMinutes($cProduct->extra_time);
 
-                if ($dateDiff < $cProduct->extra_time || array_key_exists($cProduct->maxBid->id_bidding, $fishInWinner->toArray())) {
-                    continue;
-                }
+                    if ($now < $dateEventEnd) {
+                        continue;
+                    }
 
-                $data = [
-                    'id_bidding' => $cProduct->maxBid->id_bidding,
-                    'create_by' => Auth::guard('admin')->id(),
-                    'update_by' => Auth::guard('admin')->id(),
-                    'status_aktif' => 1,
-                ];
-
-                AuctionWinner::create($data);
-
-                $winner = $cProduct->maxBid->member;
-                $fishVariety = "{$cProduct->no_ikan} | {$cProduct->variety} | {$cProduct->breeder} | {$cProduct->bloodline} | {$cProduct->sex}";
-                $finalBidPrice = $cProduct->maxBid->nominal_bid;
-
-                $notification = Notification::create([
-                    'peserta_id' => $winner->id_peserta,
-                    'label' => 'Auction Winner',
-                    'description' => "Selamat kepada Mr. / Ms. {$winner->nama} telah memenangkan Lelang Koi {$fishVariety} dengan nilai final bid Rp " . number_format($finalBidPrice, 0, ',', '.'),
-                    'link' => route('winning-auction'),
-                ]);
-
-                if($notification) {
-                    $url = 'https://service-chat.qontak.com/api/open/v1/broadcasts/whatsapp/direct';
-                    $token = env('QONTAK_API_KEY');
-
-                    $phoneNumber = $winner->no_hp;
-                    $phoneNumber = preg_replace('/\D/', '', $phoneNumber);
-                    if (strpos($phoneNumber, '0') === 0) {
-                        $phoneNumber = '62' . substr($phoneNumber, 1);
-                    } else if (strpos($phoneNumber, '62') !== 0){
-                        $phoneNumber = '62' . $phoneNumber;
+                    if ($dateDiff < $cProduct->extra_time || array_key_exists($cProduct->maxBid->id_bidding, $fishInWinner->toArray())) {
+                        continue;
                     }
 
                     $data = [
-                        "to_name" => $winner->nama,
-                        "to_number" => $phoneNumber,
-                        "message_template_id" => "2c9c5f12-4578-4d36-9df9-b9296e9e9af2",
-                        "channel_integration_id" => env('QONTAK_CHANNEL_INTEGRATION_ID'),
-                        "language" => [
-                            "code" => "id",
-                        ],
-                        "parameters" => [
-                            "header" => [
-                                "format" => "DOCUMENT",
-                                "params" => [],
-                            ],
-                            "body" => [
-                                [
-                                    "key" => "0",
-                                    "value_text" => $winner->nama,
-                                    "value" => "customer_name",
-                                ],
-                                [
-                                    "key" => "1",
-                                    "value_text" => $fishVariety,
-                                    "value" => "fish_variety",
-                                ],
-                                [
-                                    "key" => "2",
-                                    "value_text" => $finalBidPrice,
-                                    "value" => "final_bid_price",
-                                ],
-                            ],
-                            "buttons" => []
-                        ]
+                        'id_bidding' => $cProduct->maxBid->id_bidding,
+                        'create_by' => Auth::guard('admin')->id(),
+                        'update_by' => Auth::guard('admin')->id(),
+                        'status_aktif' => 1,
                     ];
 
-                    $response = Http::withHeaders([
-                        'Authorization' => 'Bearer ' . $token,
-                        'Content-Type' => 'application/json',
-                    ])->post($url, $data);
+                    AuctionWinner::create($data);
 
+                    $winner = $cProduct->maxBid->member;
+                    $fishVariety = "{$cProduct->no_ikan} | {$cProduct->variety} | {$cProduct->breeder} | {$cProduct->bloodline} | {$cProduct->sex}";
+                    $finalBidPrice = $cProduct->maxBid->nominal_bid;
 
-                    if ($response->successful()) {
-                    $notificationResponses[] = [
-                        'success' => true,
-                        'message' => 'Broadcast berhasil dikirim ke: ' . $winner->nama,
-                        'data' => $response->json(),
-                        ];
-                    } else {
-                        $notificationResponses[] = [
-                            'success' => false,
-                            'message' => 'Broadcast gagal dikirim ke: ' . $winner->nama,
-                            'error' => $response->body(),
-                            'status' => $response->status(),
-                        ];
+                    $notification = Notification::create([
+                        'peserta_id' => $winner->id_peserta,
+                        'label' => 'Auction Winner',
+                        'description' => "Selamat kepada Mr. / Ms. {$winner->nama} telah memenangkan Lelang Koi {$fishVariety} dengan nilai final bid Rp " . number_format($finalBidPrice, 0, ',', '.'),
+                        'link' => route('winning-auction'),
+                    ]);
+
+                    if($notification) {
+                        $notificationResponses[] = $this->sendWhatsAppNotification($winner, $fishVariety, $finalBidPrice);
                     }
                 }
+
+                DB::commit();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => [
+                        'title' => 'Berhasil',
+                        'content' => 'Mengubah data auction dan menentukan pemenang lelang',
+                        'type' => 'success',
+                    ],
+                    'notification_responses' => $notificationResponses,
+                ], 200);
             }
 
-            return response()->json([
-                'success' => true,
-                'message' => [
-                    'title' => 'Berhasil',
-                    'content' => 'Mengubah data auction dan menentukan pemenang lelang',
-                    'type' => 'success',
-                ],
-                'notification_responses' => $notificationResponses,
-            ], 200);
-        }
+            $data = $this->request->all();
+            
+            // Tangani rules_event untuk update
+            if (isset($data['rules_event'])) {
+                $data['rules_event'] = preg_replace('/[\x{FEFF}]/u', '', $data['rules_event']);
+                $encoding = mb_detect_encoding($data['rules_event'], ['UTF-8', 'ASCII', 'ISO-8859-1']);
+                $data['rules_event'] = mb_convert_encoding($data['rules_event'], 'UTF-8', $encoding);
+                $data['rules_event'] = preg_replace('/[\x00-\x1F\x7F]/u', '', $data['rules_event']);
+            }
 
-        $data = $this->request->all();
-        $data['total_hadiah'] = (int) str_replace('.', '', $data['total_hadiah']);
-        $validator = Validator::make($this->request->all(), [
+            $data['total_hadiah'] = (int) str_replace('.', '', $data['total_hadiah']);
+            $data['update_by'] = Auth::guard('admin')->id();
 
-        ]);
+            $existsProductIds = $auction->auctionProducts->pluck('id_ikan')->toArray();
+            $auctionProductIds = $data['edit_auction_products'];
+            $removeProductIds = array_diff($existsProductIds, $auctionProductIds);
+            unset($data['edit_auction_products']);
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 400);
-        }
+            $image = $auction->banner;
+            if($this->request->hasFile('banner')){
+                $image = $this->request->file('banner')->store(
+                    'foto_auction','public'
+                );
+            }
 
-        $data['update_by'] = Auth::guard('admin')->id();
-        $existsProductIds = $auction->auctionProducts->pluck('id_ikan')->toArray();
-        $auctionProductIds = $data['edit_auction_products'];
-        $removeProductIds = array_diff($existsProductIds, $auctionProductIds);
-        unset($data['edit_auction_products']);
+            $data['banner'] = $image;
 
-        $image = $auction->banner;
-        if($this->request->hasFile('banner')){
-            $image = $this->request->file('banner')->store(
-                'foto_auction','public'
-            );
-        }
+            $auction->update($data);
 
-        $data['banner'] = $image;
+            EventFish::whereIn('id_ikan', $auctionProductIds)->update([
+                'id_event' => $auction->id_event
+            ]);
 
-        try {
-            DB::transaction(function () use ($data, $auction, $auctionProductIds, $removeProductIds){
-                $auction->update($data);
+            EventFish::whereIn('id_ikan', $removeProductIds)->update([
+                'id_event' => null
+            ]);
 
-                EventFish::whereIn('id_ikan', $auctionProductIds)->update([
-                    'id_event' => $auction->id_event
-                ]);
-
-                //removed item
-                EventFish::whereIn('id_ikan', $removeProductIds)->update([
-                    'id_event' => null
-                ]);
-            });
+            DB::commit();
 
             return response()->json([
                 'success' => true,
@@ -333,6 +299,8 @@ class EventController extends Controller
             ],200);
 
         } catch(\Exception $e) {
+            DB::rollback();
+            \Log::error('Error in update auction: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -343,13 +311,88 @@ class EventController extends Controller
 
     public function destroy($id)
     {
-        $auction = Event::findOrFail($id);
-        $auction->status_aktif = 0;
+        try {
+            $auction = Event::findOrFail($id);
+            $auction->status_aktif = 0;
+            $auction->save();
 
-        $auction->save();
+            return response()->json([
+                'success' => true,
+            ],200);
+        } catch (\Exception $e) {
+            \Log::error('Error in destroy auction: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ],500);
+        }
+    }
 
-        return response()->json([
-            'success' => true,
-        ],200);
+    private function sendWhatsAppNotification($winner, $fishVariety, $finalBidPrice)
+    {
+        $url = 'https://service-chat.qontak.com/api/open/v1/broadcasts/whatsapp/direct';
+        $token = env('QONTAK_API_KEY');
+
+        $phoneNumber = $winner->no_hp;
+        $phoneNumber = preg_replace('/\D/', '', $phoneNumber);
+        if (strpos($phoneNumber, '0') === 0) {
+            $phoneNumber = '62' . substr($phoneNumber, 1);
+        } else if (strpos($phoneNumber, '62') !== 0){
+            $phoneNumber = '62' . $phoneNumber;
+        }
+
+        $data = [
+            "to_name" => $winner->nama,
+            "to_number" => $phoneNumber,
+            "message_template_id" => "2c9c5f12-4578-4d36-9df9-b9296e9e9af2",
+            "channel_integration_id" => env('QONTAK_CHANNEL_INTEGRATION_ID'),
+            "language" => [
+                "code" => "id",
+            ],
+            "parameters" => [
+                "header" => [
+                    "format" => "DOCUMENT",
+                    "params" => [],
+                ],
+                "body" => [
+                    [
+                        "key" => "0",
+                        "value_text" => $winner->nama,
+                        "value" => "customer_name",
+                    ],
+                    [
+                        "key" => "1",
+                        "value_text" => $fishVariety,
+                        "value" => "fish_variety",
+                    ],
+                    [
+                        "key" => "2",
+                        "value_text" => $finalBidPrice,
+                        "value" => "final_bid_price",
+                    ],
+                ],
+                "buttons" => []
+            ]
+        ];
+
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $token,
+            'Content-Type' => 'application/json',
+        ])->post($url, $data);
+
+        if ($response->successful()) {
+            return [
+                'success' => true,
+                'message' => 'Broadcast berhasil dikirim ke: ' . $winner->nama,
+                'data' => $response->json(),
+            ];
+        } 
+
+        return [
+            'success' => false,
+            'message' => 'Broadcast gagal dikirim ke: ' . $winner->nama,
+            'error' => $response->body(),
+            'status' => $response->status(),
+        ];
     }
 }

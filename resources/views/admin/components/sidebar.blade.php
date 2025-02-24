@@ -17,7 +17,7 @@
                 <a class="nav-link" href="{{ route('admin.pesanan.index') }}"><i class="fas fa-box"></i> <span>Pesanan</span></a>
             </li>
             <li class="menu-header">Master</li>
-            <li class="nav-item {{ Route::is('admin.pesanan.*') ? 'active' : '' }}">
+            <li class="nav-item {{ Route::is('admin.kategori.*') ? 'active' : '' }}">
                 <a class="nav-link" href="{{ route('admin.kategori.index') }}"><i class="fas fa-box"></i> <span>Kategori</span></a>
             </li>
             <li class="nav-item {{ $type_menu === 'manage-currency' ? 'active' : '' }}">
