@@ -155,7 +155,7 @@
         </div>
     </div>
 
-    <div class="container nav-atas">
+    {{-- <div class="container nav-atas">
         <div class="row">
             @forelse($auctionProducts as $auctionProduct)
                 @php
@@ -203,7 +203,7 @@
                     </div>
                 </div>
             @empty
-                {{-- <img src="{{ url('img/lelang.png') }}" class="d-block w-100 mt-5" alt="ceklis"> --}}
+                <img src="{{ url('img/lelang.png') }}" class="d-block w-100 mt-5" alt="ceklis">
             @endforelse
         </div>
     </div>
@@ -263,13 +263,13 @@
                     </a>
                 </div>
             @empty
-                {{-- <img src="{{ url('img/lelang.png') }}" class="d-block w-100 mt-5" alt="ceklis"> --}}
+                <img src="{{ url('img/lelang.png') }}" class="d-block w-100 mt-5" alt="ceklis">
             @endforelse
         </div>
     </div>
 
     <div class="container mt-5">
-    </div>
+    </div> --}}
 
     <div class="container mt-5 text-center">
         <h3>ONELITO <span style="color:red;">KOI</span></h3>
