@@ -2,93 +2,46 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Event;
+use App\Models\Banner;
 use App\Models\Product;
 use App\Models\Wishlist;
-use App\Models\Banner;
-use App\Models\Event;
+use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use App\Models\ProductCategory;
 use Illuminate\Support\Facades\Auth;
 
 class StoreController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $item = $this->request->input('item', null);
+        $item = $request->input('item', null);
 
         $auth = Auth::guard('member')->user();
 
-        $kategori = $this->request->input('kategori', null);
-        $search = $this->request->input('search', null);
+        $kategori = $request->input('kategori', null);
+        $search = $request->input('search', null);
 
-        $products = Product::
-            where('status_aktif', 1)
+        $products = Product::where('status_aktif', 1)
             ->selectRaw('*, CONCAT(merek_produk, " ", nama_produk) AS search_text')
-            ->when($kategori !== null, function ($q) use ($kategori){
+            ->when($kategori !== null, function ($q) use ($kategori) {
                 $q->where('id_kategori_produk', $kategori);
             })
-            ->when($auth !== null, function ($q) use ($auth){
+            ->when($auth !== null, function ($q) use ($auth) {
                 return $q->with([
                     'category',
                     'photo',
-                    'wishlist' => fn($w) => $w->where('id_peserta', $auth->id_peserta)]
-                );
+                    'wishlist' => fn ($w) => $w->where('id_peserta', $auth->id_peserta),
+                ]);
             }, function ($q) {
                 return $q->with(['category', 'photo']);
             })
-            ->when($search !== null, function ($query) use ($search){
+            ->when($search !== null, function ($query) use ($search) {
                 $query->whereRaw('CONCAT(merek_produk, " ", nama_produk) LIKE ?', ["%$search%"]);
             })
             ->orderBy('created_at', 'desc')
             ->paginate($this->perPage());
 
-        // $fishFoodProducts = Product::
-        //     where('status_aktif', 1)
-        //     ->where('id_kategori_produk', 2)
-        //     ->when($auth !== null, function ($q) use ($auth){
-        //         return $q->with([
-        //             'category',
-        //             'photo',
-        //             'wishlist' => fn($w) => $w->where('id_peserta', $auth->id_peserta)]
-        //         );
-        //     }, function ($q) {
-        //         return $q->with(['category', 'photo']);
-        //     })
-        //     ->orderBy('created_at', 'desc')
-        //     ->paginate($this->perPage());
-
-        // $fishEquipmentProducts = Product::
-        //     where('status_aktif', 1)
-        //     ->where('id_kategori_produk', 1)
-        //     ->when($auth !== null, function ($q) use ($auth){
-        //         return $q->with([
-        //             'category',
-        //             'photo',
-        //             'wishlist' => fn($w) => $w->where('id_peserta', $auth->id_peserta)]
-        //         );
-        //     }, function ($q) {
-        //         return $q->with(['category', 'photo']);
-        //     })
-        //     ->orderBy('created_at', 'desc')
-        //     ->paginate($this->perPage());
-
-        // $fishMedicineProducts = Product::
-        //     where('status_aktif', 1)
-        //     ->where('id_kategori_produk', 3)
-        //     ->when($auth !== null, function ($q) use ($auth){
-        //         return $q->with([
-        //             'category',
-        //             'photo',
-        //             'wishlist' => fn($w) => $w->where('id_peserta', $auth->id_peserta)]
-        //         );
-        //     }, function ($q) {
-        //         return $q->with(['category', 'photo']);
-        //     })
-        //     ->orderBy('created_at', 'desc')
-        //     ->paginate($this->perPage());
-
-        $fishFoodProducts = [];
-        $fishEquipmentProducts = [];
-        $fishMedicineProducts = [];
 
         $banners = Banner::all();
 
@@ -97,29 +50,28 @@ class StoreController extends Controller
 
         $nextAuction = Event::with(['auctionProducts' => function ($q) {
             $q->withCount('bidDetails')->with(['photo', 'maxBid', 'event']);
-        }
-        ])
-        ->where('tgl_mulai', '<=', $now)
-        ->where('tgl_akhir', '>=', $nowAkhir)
-        ->where('status_aktif', 1)
-        ->where('status_tutup', 0)
-        ->orderBy('tgl_mulai')
-        ->get();
+        }])
+            ->where('tgl_mulai', '<=', $now)
+            ->where('tgl_akhir', '>=', $nowAkhir)
+            ->where('status_aktif', 1)
+            ->where('status_tutup', 0)
+            ->orderBy('tgl_mulai')
+            ->get();
 
-        $currentProducts = $nextAuction->pluck('auctionProducts')
-        ->flatten(1)
-        ->take(5);
+        $productCategories = ProductCategory::where('status_aktif', 1)->get();
 
-        return view('onelito_store',[
+
+        $category = ProductCategory::where('id_kategori_produk', $kategori)->first();
+
+        return view('onelito_store', [
             'auth' => $auth,
             'products' => $products,
-            // 'fishFoodProducts' => $fishFoodProducts,
-            // 'fishEquipmentProducts' => $fishEquipmentProducts,
-            // 'fishMedicineProducts' => $fishMedicineProducts,
             'title' => 'ONELITO STORE',
-            'kategori' => $this->request->input('kategori', null),
+            'kategori' => $request->input('kategori', null),
             'banners' => $banners,
             'auctions' => $nextAuction,
+            'productCategories' => $productCategories,
+            'category' => $category,
         ]);
     }
 

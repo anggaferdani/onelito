@@ -39,7 +39,9 @@ class AlamatController extends Controller
             'label' => 'required',
             'nama' => 'required',
             'no_hp' => 'required',
-            'alamat_lengkap' => 'required',
+            'kode_pos' => 'required',
+            'latitude' => 'required',
+            'longitude' => 'required',
         ]);
 
         $auth = Auth::guard('member')->user();
@@ -95,6 +97,9 @@ class AlamatController extends Controller
             'nama' => 'required',
             'no_hp' => 'required',
             'alamat_lengkap' => 'required',
+            'kode_pos' => 'required',
+            'latitude' => 'required',
+            'longitude' => 'required',
         ]);
 
         $search = $request->filled('kode_pos') ? $request['kode_pos'] : $request['alamat_lengkap'];

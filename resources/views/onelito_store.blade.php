@@ -21,6 +21,7 @@
         #filter-tab {
             display: none;
         }
+
         /* On screens that are 992px or less, set the background color to blue */
         @media screen and (min-width: 601px) {
             .nav-atas {
@@ -118,9 +119,9 @@
         .search-container {
             margin-top: 15px;
         }
-        
+
         .search-container button {
-            float: left;            
+            float: left;
             padding: 11px 11px 11px 11px;
             margin-bottom: 12px;
             margin-right: 5px;
@@ -131,7 +132,7 @@
         }
 
         .topnav .search-container button:hover {
-        background: #ccc;
+            background: #ccc;
         }
     </style>
     <br><br><br><br>
@@ -147,7 +148,7 @@
                 @endphp
 
                 @if ($val->banner !== null)
-                    <div class="carousel-item {{ $key === 0 ? '' : '' }}">
+                    <div class="carousel-item {{ $key === 0 ? 'active' : '' }}">
                         <div class="container-fluit" style="background-color:red;">
                             <img src="{{ $bannerImg }}" class="w-100" alt="...">
                         </div>
@@ -174,17 +175,19 @@
                 @endif
             @empty
             @endforelse
-            <div class="carousel-item active">
+            {{-- <div class="carousel-item active">
                 <div class="container-fluit" style="background-color:red;">
                     <img src="img/new-banner.jpg" class="d-block w-100" alt="Frame">
                 </div>
-            </div>
+            </div> --}}
         </div>
-        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="prev">
+        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleControls"
+            data-bs-slide="prev">
             <span class="carousel-control-prev-icon" aria-hidden="true"></span>
             <span class="visually-hidden">Previous</span>
         </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="next">
+        <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleControls"
+            data-bs-slide="next">
             <span class="carousel-control-next-icon" aria-hidden="true"></span>
             <span class="visually-hidden">Next</span>
         </button>
@@ -193,37 +196,30 @@
 
         <br>
 
-             @php 
-                $auth = Auth::guard('member')->user();
-                
+        @php
+            $auth = Auth::guard('member')->user();
 
-                if ($auth !== null) {
-                    $auth = true;
-                }
 
-                $kategoriTitle = 'All Product';
+            if ($auth !== null) {
+                $auth = true;
+            }
 
-                if ($kategori == 1) {
-                    $kategoriTitle = 'Fish Equipment';
-                }
+            $kategoriTitle = 'All Product';
 
-                if ($kategori == 2) {
-                    $kategoriTitle = 'Fish Food';
-                }
+            if ($kategori) {
+                $kategoriTitle = $category->nama_kategori;
+            }
 
-                if ($kategori == 3) {
-                    $kategoriTitle = 'Fish Medicine';
-                }
 
-                $search = request()->search;
-            @endphp
+            $search = request()->search;
+        @endphp
 
         <!-- <a id="filter-tab" class="float">
             <i class="fa fa-fukter my-float">Filter</i>
         </a> -->
         <button type="button" id="filter-tab" class="btn btn-outline-secondary rounded-pill mr-2"><i
-        class='bx bx-menu-alt-left'></i> Filter</button>
-        
+                class='bx bx-menu-alt-left'></i> Filter</button>
+
         <div class="row gx-3">
             {{-- On screens that are 992px or less, set the display on --}}
             <div class="col-3 nav-samping">
@@ -233,22 +229,20 @@
                         <div class="card-body">
                             <div class="nav flex-column nav-pills me-3" id="v-pills-tab" role="tablist"
                                 aria-orientation="vertical">
-                                <a href="{{ url('/onelito_store') }}" class="nav-link bg-tranparent text-body m-2 {{ ($kategori) == null ? 'active' : '' }}" style="text-align:left"
-                                    id="v-pills-Semua-tab" 
-                                    role="tab" aria-controls="v-pills-Semua" aria-selected="true">All
+                                <a href="{{ url('/onelito_store') }}"
+                                    class="nav-link bg-tranparent text-body m-2 {{ $kategori == null ? 'active' : '' }}"
+                                    style="text-align:left" id="v-pills-Semua-tab" role="tab"
+                                    aria-controls="v-pills-Semua" aria-selected="true">All
                                     Product</a>
-                                <a href="{{ url('/onelito_store?kategori=2') }}" class="nav-link bg-tranparent text-body m-2 {{ ($kategori) == 2 ? 'active' : '' }}" style="text-align:left"
-                                    id="v-pills-makanan-tab"
-                                    type="button" role="tab" aria-controls="v-pills-makanan" aria-selected="false">Fish
-                                    Food</a>
-                                <a href="{{ url('/onelito_store?kategori=1') }}" class="nav-link bg-tranparent text-body m-2 {{ ($kategori) == 1 ? 'active' : '' }}" style="text-align:left"
-                                    id="v-pills-alat-tab" 
-                                    type="button" role="tab" aria-controls="v-pills-alat" aria-selected="false">Fish
-                                    Equipment</a>
-                                <a href="{{ url('/onelito_store?kategori=3') }}" class="nav-link bg-tranparent text-body m-2 {{ ($kategori) == 3 ? 'active' : '' }}" style="text-align:left"
-                                    id="v-pills-medicine-tab" 
-                                    type="button" role="tab" aria-controls="v-pills-medicine" aria-selected="false">Fish
-                                    Medicine</a>
+
+                                @foreach ($productCategories as $cat)
+                                    <a href="{{ url('/onelito_store?kategori=' . $cat->id_kategori_produk) }}"
+                                        class="nav-link bg-tranparent text-body m-2 {{ $kategori == $cat->id_kategori_produk ? 'active' : '' }}"
+                                        style="text-align:left"
+                                        id="v-pills-{{ $cat->kategori_produk }}-tab" type="button" role="tab"
+                                        aria-controls="v-pills-{{ $cat->kategori_produk }}"
+                                        aria-selected="false">{{ $cat->kategori_produk }}</a>
+                                @endforeach
                             </div>
                         </div>
                     </div>
@@ -258,20 +252,21 @@
             {{-- On screens that are 600px or less, set the display none --}}
             <div class="container nav-atas overflow-auto">
                 <div class="d-flex nav nav-pills" id="v-pills-tab" role="tablist">
-                    <button type="button" id="filter-mobile" class="btn btn-outline-secondary rounded-pill mr-2"><i
+                    <button type="button" id="filter-mobile" class="btn btn-outline-secondary rounded-pill"><i
                             class='bx bx-menu-alt-left'></i> Filter</button>
-                    <button onclick="window.location.href='/onelito_store'" type="button" class="{{ ($kategori) == null ? 'active' : '' }} filter-items btn btn-outline-secondary rounded-pill mr-2 d-none" id="v-pills-Semua-tab"
-                         type="button" role="tab"
-                        aria-controls="v-pills-Semua" aria-selected="true">All Product</button>
-                    <button onclick="window.location.href='/onelito_store?kategori=2'" type="button" class="{{ ($kategori) == 2 ? 'active' : '' }} filter-items btn btn-outline-secondary rounded-pill mr-2 d-none" id="v-pills-makanan-tab"
-                         type="button" role="tab"
-                        aria-controls="v-pills-makanan" aria-selected="false">Fish Food</button>
-                    <button onclick="window.location.href='/onelito_store?kategori=1'" type="button" class="{{ ($kategori) == 1 ? 'active' : '' }} filter-items btn btn-outline-secondary rounded-pill mr-2 d-none" id="v-pills-alat-tab"
-                         type="button" role="tab"
-                        aria-controls="v-pills-alat" aria-selected="false">Fish Equipment</button>
-                    <button onclick="window.location.href='/onelito_store?kategori=3'" type="button" class="{{ ($kategori) == 3 ? 'active' : '' }} filter-items btn btn-outline-secondary rounded-pill mr-2 d-none" id="v-pills-medicine-tab"
-                         type="button" role="tab"
-                        aria-controls="v-pills-alat" aria-selected="false">Fish Medicine</button>
+                    <div id="filter-container" class="d-flex gap-1 ms-1">
+                        <button onclick="window.location.href='/onelito_store'" type="button"
+                            class="filter-items btn btn-outline-secondary rounded-pill mr-2" id="v-pills-Semua-tab" type="button"
+                            role="tab" aria-controls="v-pills-Semua" aria-selected="true">All Product</button>
+
+                        @foreach ($productCategories as $cat)
+                            <button onclick="window.location.href='/onelito_store?kategori={{ $cat->id_kategori_produk }}'"
+                                type="button" class="filter-items btn btn-outline-secondary rounded-pill mr-2"
+                                id="v-pills-{{ $cat->kategori_produk }}-tab" type="button" role="tab"
+                                aria-controls="v-pills-{{ $cat->kategori_produk }}"
+                                aria-selected="false">{{ $cat->kategori_produk }}</button>
+                        @endforeach
+                    </div>
                 </div>
             </div>
 
@@ -283,8 +278,9 @@
                             <div class="search-container">
                                 <form id="search" action="{{ url()->full() }}" method="GET">
                                     <button type="submit"><i class="fa fa-search"></i></button>
-                                    <input type="input" id="searchInput" name="search" placeholder="Cari Produk" title="Cari Produk" value="{{ $search }}">
-                                    @if($kategori !== null)
+                                    <input type="input" id="searchInput" name="search" placeholder="Cari Produk"
+                                        title="Cari Produk" value="{{ $search }}">
+                                    @if ($kategori !== null)
                                         <input type="hidden" name="kategori" value="{{ $kategori }}">
                                     @endif
                                 </form>
@@ -344,14 +340,16 @@
                                                             <span>Wishlist</span></button>
                                                     </div>
                                                     <div class="col-6 mb-1 text-end">
-                                                        @if($product->stock == 0)
-                                                        <button class="rounded text-white" style="font-size: 9px; background-color: red;border-color:red; outline: none; border: none;">stock habis</button>
+                                                        @if ($product->stock == 0)
+                                                            <button class="rounded text-white"
+                                                                style="font-size: 9px; background-color: red;border-color:red; outline: none; border: none;">stock
+                                                                habis</button>
                                                         @else
-                                                        <button class="rounded addcart"
-                                                            data-id="{{ $product->id_produk }}"
-                                                            style="background-color: red;border-color:red; outline: none; border: none; font-size:x-small"><i
-                                                                class="fa-solid fa-cart-shopping"
-                                                                style="color: white"></i></button>
+                                                            <button class="rounded addcart"
+                                                                data-id="{{ $product->id_produk }}"
+                                                                style="background-color: red;border-color:red; outline: none; border: none; font-size:x-small"><i
+                                                                    class="fa-solid fa-cart-shopping"
+                                                                    style="color: white"></i></button>
                                                         @endif
                                                     </div>
                                                 </div>
@@ -359,67 +357,73 @@
                                         </div>
                                     </div>
                                 @empty
+                                    <tr>
+                                        <td colspan="5" class="text-center">No Product Found</td>
+                                    </tr>
                                 @endforelse
                             </div>
                             @php
-    $oriPrev = $products->previousPageUrl();
-    $oriNext = $products->nextPageUrl();
+                                $oriPrev = $products->previousPageUrl();
+                                $oriNext = $products->nextPageUrl();
 
-    $prev = $products->previousPageUrl();
-    $next = $products->nextPageUrl();
-    $page = '';
+                                $prev = $products->previousPageUrl();
+                                $next = $products->nextPageUrl();
+                                $page = '';
 
-    if ($kategori !== null) {
-        $prev .= '&kategori='.$kategori;
-        $next .= '&kategori='.$kategori;
-        $page  .= "&kategori=$kategori";
-    }
+                                if ($kategori !== null) {
+                                    $prev .= '&kategori=' . $kategori;
+                                    $next .= '&kategori=' . $kategori;
+                                    $page .= "&kategori=$kategori";
+                                }
 
-    if ($search !== null) {
-        $prev .= '&search='.$search;
-        $next .= '&search='.$search;
-        $page  .= "&search=$search";
-    }
+                                if ($search !== null) {
+                                    $prev .= '&search=' . $search;
+                                    $next .= '&search=' . $search;
+                                    $page .= "&search=$search";
+                                }
 
-    if ($oriPrev == null) {
-        $prev = "#";
-    }
+                                if ($oriPrev == null) {
+                                    $prev = '#';
+                                }
 
-    if ($oriNext == null) {
-        $next = "#";
-    }
-@endphp
+                                if ($oriNext == null) {
+                                    $next = '#';
+                                }
+                            @endphp
 
-<div class="btn-toolbar my-3 justify-content-end" role="toolbar" aria-label="Toolbar with button groups">
-    <div class="btn-group me-2" role="group" aria-label="First group">
-        @if ($products->onFirstPage())
-            <button type="button" class="btn btn-danger disabled">Prev</button>
-        @else
-            <a href="{{ $prev }}"><button type="button" class="btn btn-danger">Prev</button></a>
-        @endif
-    </div>
-    
-    @foreach ($products->onEachSide(0)->links()->elements as $elements)
-        @if (is_array($elements))
-            @foreach ($elements as $key => $element)
-                <div class="btn-group me-2" role="group" aria-label="First group">
-                    <a href="?page={{ $key.$page }}"><button type="button"
-                            class="btn btn-danger {{ (request()->page ?? 1) == $key ? 'active disabled' : '' }}"">{{ $key }}</button></a>
-                </div>
-            @endforeach
-        @endif
-    @endforeach
-    
-    <div class="btn-group me-2" role="group" aria-label="First group">
-        @if ($products->hasMorePages())
-            <a href="{{ $next }}"><button type="button" class="btn btn-danger">Next</button></a>
-        @else
-            <button type="button" class="btn btn-danger disabled">Next</button>
-        @endif
-    </div>
-</div>
+                            <div class="btn-toolbar my-3 justify-content-end" role="toolbar"
+                                aria-label="Toolbar with button groups">
+                                <div class="btn-group me-2" role="group" aria-label="First group">
+                                    @if ($products->onFirstPage())
+                                        <button type="button" class="btn btn-danger disabled">Prev</button>
+                                    @else
+                                        <a href="{{ $prev }}"><button type="button"
+                                                class="btn btn-danger">Prev</button></a>
+                                    @endif
+                                </div>
+
+                                @foreach ($products->onEachSide(0)->links()->elements as $elements)
+                                    @if (is_array($elements))
+                                        @foreach ($elements as $key => $element)
+                                            <div class="btn-group me-2" role="group" aria-label="First group">
+                                                <a href="?page={{ $key . $page }}"><button type="button"
+                                                        class="btn btn-danger {{ (request()->page ?? 1) == $key ? 'active disabled' : '' }}"">{{ $key }}</button></a>
+                                            </div>
+                                        @endforeach
+                                    @endif
+                                @endforeach
+
+                                <div class="btn-group me-2" role="group" aria-label="First group">
+                                    @if ($products->hasMorePages())
+                                        <a href="{{ $next }}"><button type="button"
+                                                class="btn btn-danger">Next</button></a>
+                                    @else
+                                        <button type="button" class="btn btn-danger disabled">Next</button>
+                                    @endif
+                                </div>
+                            </div>
                         </div>
-                    
+
                     </div>
                 </div>
             </div>
@@ -429,124 +433,166 @@
 @push('scripts')
     <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script type="text/javascript">
-        let user = @json($auth);
-        $.ajaxSetup({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            }
-        });
+            let user = @json($auth);
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        }
+    });
 
-        function isMobile() {
-            const regex = /Mobi|Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
-            return regex.test(navigator.userAgent);
+    function isMobile() {
+        const regex = /Mobi|Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
+        return regex.test(navigator.userAgent);
+    }
+    // Add this:
+    let filterVisible = true; // Initialize the filter as VISIBLE
+
+    $(document).on('click', '#filter-mobile', function(e) {
+        var filterContainer = $('#filter-container');
+
+        if (filterVisible) {
+            filterContainer.addClass('d-none');
+            filterVisible = false; // Update the state to HIDDEN
+        } else {
+            filterContainer.removeClass('d-none');
+            filterVisible = true;  // Update the state to VISIBLE
+        }
+    });
+
+    $(document).on('click', '#filter-tab', function(e) {
+        var $this = $(this);
+
+        $this.toggleClass('is-checked');
+
+        if ($this.is('.is-checked')) {
+            $('.filter-box').addClass('d-none');
+
+        } else {
+            $('.filter-box').removeClass('d-none');
+        }
+    });
+
+    const swalWithBootstrapButtons = Swal.mixin({
+        customClass: {
+            confirmButton: 'btn btn-success',
+            cancelButton: 'btn btn-danger'
+        },
+        buttonsStyling: false
+    })
+
+    $(document).on('click', '.button-wishlist', function(e) {
+        var element = $(e.currentTarget);
+        var id = element.attr('data-id');
+        var children = document.getElementsByClassName(`wishlist produk-${id}`)[0];
+        var elClass = children.getAttribute('class');
+        var targetClass = elClass.substr(0, 21);
+        var idClass = elClass.substr(22);
+        var targetElements = $(`.${idClass}`)
+
+        if (targetClass === 'far fa-heart wishlist') {
+            $.ajax({
+                type: 'POST',
+                url: `wishlists`,
+                data: {
+                    id_produk: id
+                },
+                dataType: "json",
+                success: function(res) {
+                    $.map(targetElements, function(item) {
+                        $(item).attr('class', `fas fa-heart wishlist ${idClass}`);
+                    })
+
+                    return true;
+                },
+                error: function(error) {
+                    console.log(error)
+                    return false
+                }
+            })
         }
 
-        $(document).on('click', '#filter-mobile', function(e) {
-            var $this = $( this );
+        if (targetClass === 'fas fa-heart wishlist') {
+            $.ajax({
+                type: 'DELETE',
+                url: `wishlists/${id}`,
+                data: {
+                    id_produk: id
+                },
+                dataType: "json",
+                success: function(res) {
+                    $.map(targetElements, function(item) {
+                        $(item).attr('class', `far fa-heart wishlist ${idClass}`);
+                    })
 
-            if ( $this.is('.is-checked') ) {
-                $('.filter-items').addClass('d-none');
+                    return true;
+                },
+                error: function(error) {
+                    console.log(error)
+                    return false
+                }
+            })
+        }
+    })
 
-            } else {
-                $('.filter-items').removeClass('d-none');
-            }
+    $(document).on('click', '.addcart', function(e) {
+        var button = $(this);
+        var productId = $(this).attr('data-id')
+        // $(this).attr('disabled', true)
+        // var output = document.querySelector("#output");
+        if (user == null) {
+            swalWithBootstrapButtons.fire({
+                title: 'Belum Login',
+                text: `Harap login terlebih dulu untuk pemesanan`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ke halaman login',
+                cancelButtonText: 'Tidak',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location = '/login';
 
-            $this.toggleClass('is-checked');
-        });
+                } else if (
+                    /* Read more about handling dismissals below */
+                    result.dismiss === Swal.DismissReason.cancel
+                ) {
+                    // swalWithBootstrapButtons.fire(
+                    //     'Batal',
+                    //     'Pesanan dibatalkan',
+                    //     'error'
+                    // )
+                }
+            })
 
-        $(document).on('click', '#filter-tab', function(e) {
-            var $this = $( this );
+            return true;
+        }
 
-            $this.toggleClass('is-checked');
-
-            if ( $this.is('.is-checked') ) {
-                $('.filter-box').addClass('d-none');
-
-            } else {
-                $('.filter-box').removeClass('d-none');
-            }
-        });
-
-        const swalWithBootstrapButtons = Swal.mixin({
-            customClass: {
-                confirmButton: 'btn btn-success',
-                cancelButton: 'btn btn-danger'
+        $.ajax({
+            type: 'POST',
+            url: `/carts`,
+            data: {
+                jumlah: 1,
+                cartable_id: productId,
+                cartable_type: 'Product',
             },
-            buttonsStyling: false
-        })
-
-        $(document).on('click', '.button-wishlist', function(e) {
-            var element = $(e.currentTarget);
-            var id = element.attr('data-id');
-            var children = document.getElementsByClassName(`wishlist produk-${id}`)[0];
-            var elClass = children.getAttribute('class');
-            var targetClass = elClass.substr(0, 21);
-            var idClass = elClass.substr(22);
-            var targetElements = $(`.${idClass}`)
-
-            if (targetClass === 'far fa-heart wishlist') {
-                $.ajax({
-                    type: 'POST',
-                    url: `wishlists`,
-                    data: {
-                        id_produk: id
-                    },
-                    dataType: "json",
-                    success: function(res) {
-                        $.map(targetElements, function(item) {
-                            $(item).attr('class', `fas fa-heart wishlist ${idClass}`);
-                        })
-
-                        return true;
-                    },
-                    error: function(error) {
-                        console.log(error)
-                        return false
-                    }
-                })
-            }
-
-            if (targetClass === 'fas fa-heart wishlist') {
-                $.ajax({
-                    type: 'DELETE',
-                    url: `wishlists/${id}`,
-                    data: {
-                        id_produk: id
-                    },
-                    dataType: "json",
-                    success: function(res) {
-                        $.map(targetElements, function(item) {
-                            $(item).attr('class', `far fa-heart wishlist ${idClass}`);
-                        })
-
-                        return true;
-                    },
-                    error: function(error) {
-                        console.log(error)
-                        return false
-                    }
-                })
-            }
-        })
-
-        $(document).on('click', '.addcart', function(e) {
-            var button = $(this);
-            var productId = $(this).attr('data-id')
-            // $(this).attr('disabled', true)
-            // var output = document.querySelector("#output");
-            if (user == null) {
+            dataType: "json",
+            complete: function(res) {
+                // document.location = '/profil?section=store-cart'
                 swalWithBootstrapButtons.fire({
-                    title: 'Belum Login',
-                    text: `Harap login terlebih dulu untuk pemesanan`,
-                    icon: 'warning',
+                    title: 'Product berhasil ditambahkan',
+                    text: `Klik Ya, untuk lihat keranjang`,
+                    icon: 'success',
                     showCancelButton: true,
-                    confirmButtonText: 'Ke halaman login',
+                    confirmButtonText: 'Ya',
                     cancelButtonText: 'Tidak',
                     reverseButtons: true
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        window.location = '/login';
-
+                        if (isMobile()) {
+                            document.location = '/cart'
+                        } else {
+                            document.location = '/cart'
+                        }
                     } else if (
                         /* Read more about handling dismissals below */
                         result.dismiss === Swal.DismissReason.cancel
@@ -558,68 +604,27 @@
                         // )
                     }
                 })
-
-                return true;
+            },
+            error: function(error) {
+                console.log(error)
+                return false
             }
+        })
+    });
 
-            $.ajax({
-                type: 'POST',
-                url: `/carts`,
-                data: {
-                    jumlah: 1,
-                    cartable_id: productId,
-                    cartable_type: 'Product',
-                },
-                dataType: "json",
-                complete: function(res) {
-                    // document.location = '/profil?section=store-cart'
-                    swalWithBootstrapButtons.fire({
-                        title: 'Product berhasil ditambahkan',
-                        text: `Klik Ya, untuk lihat keranjang`,
-                        icon: 'success',
-                        showCancelButton: true,
-                        confirmButtonText: 'Ya',
-                        cancelButtonText: 'Tidak',
-                        reverseButtons: true
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            if (isMobile()) {
-                                document.location = '/cart'
-                            } else {
-                                document.location = '/cart'
-                            }
-                        } else if (
-                            /* Read more about handling dismissals below */
-                            result.dismiss === Swal.DismissReason.cancel
-                        ) {
-                            // swalWithBootstrapButtons.fire(
-                            //     'Batal',
-                            //     'Pesanan dibatalkan',
-                            //     'error'
-                            // )
-                        }
-                    })
-                },
-                error: function(error) {
-                    console.log(error)
-                    return false
-                }
-            })
-        });
+    function thousandSeparator(x) {
+        var reverse = x.toString().split('').reverse().join(''),
+            ribuan = reverse.match(/\d{1,3}/g);
+        ribuan = ribuan.join('.').split('').reverse().join('');
 
-        function thousandSeparator(x) {
-            var	reverse = x.toString().split('').reverse().join(''),
-            ribuan 	= reverse.match(/\d{1,3}/g);
-            ribuan	= ribuan.join('.').split('').reverse().join('');
+        return ribuan
+    }
 
-            return ribuan
-        }
+    $(document).on('click', '.order-now', function(e) {
+        var nominal = $(this).attr('data-price');
+        nominal = thousandSeparator(nominal)
 
-        $(document).on('click', '.order-now', function(e) {
-            var nominal = $(this).attr('data-price');
-            nominal = thousandSeparator(nominal)
-
-            if (user == null) {
+        if (user == null) {
             swalWithBootstrapButtons.fire({
                 title: 'Belum Login',
                 text: `Anda harus login terlebih dahulu untuk dapat melakukan order`,
@@ -643,9 +648,9 @@
                     // )
                 }
             })
-            }
+        }
 
-            if (user == true) {
+        if (user == true) {
 
             swalWithBootstrapButtons.fire({
                 title: 'Apakah anda akan segera membeli produk ini?',
@@ -669,53 +674,52 @@
                     // )
                 }
             })
-            }
-
-        })
-
-        function orderNowProcess(element) {
-            var nominal = $(element).attr('data-price');
-            const output = 1;
-            var totalPrice = 0;
-            var items = 0;
-            var transaction = $('.transaction')
-            var dataOrder = []
-
-            var orderItem = {}
-
-            var id = $(element).attr('data-id');
-
-            // orderItem.id = id;
-
-            location.href = `/order-now?item=${id}`;
-            // orderItem.price = nominal;
-
-            // items += Number(output)
-            // orderItem.price = nominal * Number(output)
-            // orderItem.type = 'Product';
-            // orderItem.total_produk = Number(output);
-
-            // dataOrder.push(orderItem);
-
-            // $.ajax({
-            //     type: 'GET',
-            //     url: `/order-now`,
-            //     data: {
-            //         // data_order: dataOrder,
-            //         // total: nominal * Number(output),
-            //         // item: items,
-            //         item: dataOrder
-            //     },
-            //     dataType: "json",
-            //     success: function(res) {
-            //         location.href = `/carts/${res.id}`;
-            //     },
-            //     error: function(error) {
-            //         // console.log(error)
-            //         return false
-            //     }
-            // })
         }
 
+    })
+
+    function orderNowProcess(element) {
+        var nominal = $(element).attr('data-price');
+        const output = 1;
+        var totalPrice = 0;
+        var items = 0;
+        var transaction = $('.transaction')
+        var dataOrder = []
+
+        var orderItem = {}
+
+        var id = $(element).attr('data-id');
+
+        // orderItem.id = id;
+
+        location.href = `/order-now?item=${id}`;
+        // orderItem.price = nominal;
+
+        // items += Number(output)
+        // orderItem.price = nominal * Number(output)
+        // orderItem.type = 'Product';
+        // orderItem.total_produk = Number(output);
+
+        // dataOrder.push(orderItem);
+
+        // $.ajax({
+        //     type: 'GET',
+        //     url: `/order-now`,
+        //     data: {
+        //         // data_order: dataOrder,
+        //         // total: nominal * Number(output),
+        //         // item: items,
+        //         item: dataOrder
+        //     },
+        //     dataType: "json",
+        //     success: function(res) {
+        //         location.href = `/carts/${res.id}`;
+        //     },
+        //     error: function(error) {
+        //         // console.log(error)
+        //         return false
+        //     }
+        // })
+    }
     </script>
 @endpush

@@ -79,7 +79,7 @@
           @if(!$auth->pilih_alamat)
           <div class="alert alert-danger">Pilih alamat terlebih dahulu <a class="text-dark" href="{{ route('alamat.index') }}">disini</a></div>
           @endif
-          <button class="btn btn-danger w-100" id="buyButton" {{ $carts->isEmpty() ? 'disabled' : '' }}>Beli</button>
+          <button class="btn btn-danger w-100" id="buyButton" {{ $carts->isEmpty() || !$auth->pilih_alamat ? 'disabled' : '' }}>Beli</button>
         </div>
       </div>
     </div>
@@ -115,6 +115,16 @@
     const $buyButton = $('#buyButton');
     const $cartCheckboxes = $('.cart-checkbox');
     const $selectAll = $('#selectAll');
+
+    // Fungsi untuk menonaktifkan/mengaktifkan tombol beli berdasarkan ketersediaan barang dan alamat
+    function updateBuyButtonState() {
+      @php
+          $auth = Auth::guard('member')->user();
+      @endphp
+      const hasCarts = !{{ $carts->isEmpty() ? 'true' : 'false' }};
+      const hasSelectedAddress = {{ $auth->pilih_alamat ? 'true' : 'false' }};
+      $buyButton.prop('disabled', !hasCarts || !hasSelectedAddress);
+    }
 
     $buyButton.click(function() {
       const selectedIds = $('.cart-checkbox:checked').map(function() {
@@ -204,6 +214,8 @@
     });
 
     updateTotalPrice();
+    updateBuyButtonState(); // Initial state on page load
+
   });
 </script>
 

@@ -37,7 +37,7 @@
                 <div class="fw-bold" id="hargaTotal">Rp. {{ number_format($product->harga, 0, '.', '.') }}</div>
               </div>
               <div class="mb-3">
-                <button id="keranjangButton" class="mb-2 btn btn-success w-100"><i class="fa-solid fa-plus"></i> Keranjang</button>
+                <button id="keranjangButton" class="mb-2 btn btn-success w-100"><i class="fa-solid fa-plus"></i> Tambah Keranjang</button>
                 {{-- <button id="beliLangsungButton" class="btn btn-outline-success w-100">Beli Langsung</button> --}}
               </div>
               <div class="d-flex justify-content-between small">

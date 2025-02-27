@@ -92,24 +92,28 @@
           <div class="mb-3">
             <label class="form-label">Alamat Lengkap <span class="text-danger">*</span></label>
             <textarea class="form-control" rows="3" name="alamat_lengkap" required></textarea>
+            <div class="text-danger small lh-sm mt-2">Isi dengan alamat lengkap. Contoh : Cinere Residence F5 / 30  Meruyung, Limo,  Depok, Jawa Barat</div>
           </div>
           <div class="mb-3">
             <label class="form-label">Catatan <span class="text-muted">(optional)</span></label>
             <textarea class="form-control" rows="3" name="catatan"></textarea>
           </div>
           <div class="mb-3">
-            <label class="form-label">Kode Pos <span class="text-muted">(optional)</span></label>
-            <input type="number" class="form-control" name="kode_pos">
+            <label class="form-label">Kode Pos <span class="text-danger">*</span></label>
+            <input type="number" class="form-control" name="kode_pos" required>
           </div>
           <div class="mb-3">
-            <label class="form-label">Pin Point Lokasi <span class="text-muted">(optional)</span></label>
+            <label class="form-label">Pin Point Lokasi <span class="text-danger">*</span></label>
             <div id="map" style="height: 300px;"></div>
-            <div class="text-danger">Pastikan lokasi pin point sudah sesuai</div>
+            <div class="text-danger small lh-sm mt-2">Pastikan lokasi pin point sudah sesuai *Disarankan menggunakan handphone agar titik pin point lebih akurat.</div>
             <input type="hidden" id="latitude" name="latitude">
             <input type="hidden" id="longitude" name="longitude">
           </div>
+          <div id="location-alert" class="alert alert-success d-none" role="alert">
+            Berhasil get lokasi pada <span id="location-time"></span>
+          </div>
           <div>
-            <button class="btn btn-primary getCurrentLocation"><i class="fa-solid fa-location-crosshairs"></i> Gunakan lokasi saat ini</button>
+            <button class="btn btn-primary getCurrentLocation w-100"><i class="fa-solid fa-location-crosshairs"></i> Gunakan lokasi saat ini</button>
           </div>
         </div>
         <div class="modal-footer">
@@ -152,24 +156,28 @@
           <div class="mb-3">
             <label class="form-label">Alamat Lengkap <span class="text-danger">*</span></label>
             <textarea class="form-control" rows="3" name="alamat_lengkap" required>{{ $alamat->alamat_lengkap }}</textarea>
+            <div class="text-danger small lh-sm mt-2">Isi dengan alamat lengkap. Contoh : Cinere Residence F5 / 30  Meruyung, Limo,  Depok, Jawa Barat</div>
           </div>
           <div class="mb-3">
             <label class="form-label">Catatan <span class="text-muted">(optional)</span></label>
             <textarea class="form-control" rows="3" name="catatan">{{ $alamat->catatan }}</textarea>
           </div>
           <div class="mb-3">
-            <label class="form-label">Kode Pos <span class="text-muted">(optional)</span></label>
+            <label class="form-label">Kode Pos <span class="text-danger">*</span></label>
             <input type="number" class="form-control" name="kode_pos" value="{{ $alamat->kode_pos }}">
           </div>
           <div class="mb-3">
-            <label class="form-label">Pin Point Lokasi <span class="text-muted">(optional)</span></label>
+            <label class="form-label">Pin Point Lokasi <span class="text-danger">*</span></label>
             <div id="map-edit{{ $alamat->id }}" style="height: 300px;"></div>
-            <div class="text-danger">Pastikan lokasi pin point sudah sesuai</div>
+            <div class="text-danger small lh-sm mt-2">Pastikan lokasi pin point sudah sesuai *Disarankan menggunakan handphone agar titik pin point lebih akurat.</div>
             <input type="hidden" id="latitude-edit{{ $alamat->id }}" name="latitude" value="{{ $alamat->latitude }}">
             <input type="hidden" id="longitude-edit{{ $alamat->id }}" name="longitude" value="{{ $alamat->longitude }}">
           </div>
+          <div id="location-alert-edit{{ $alamat->id }}" class="alert alert-success d-none" role="alert">
+            Berhasil get lokasi pada <span id="location-time-edit{{ $alamat->id }}"></span>
+          </div>
           <div>
-            <button class="btn btn-primary getCurrentLocationEdit" data-id="{{ $alamat->id }}"><i class="fa-solid fa-location-crosshairs"></i> Gunakan lokasi saat ini</button>
+            <button class="btn btn-primary getCurrentLocationEdit w-100" data-id="{{ $alamat->id }}"><i class="fa-solid fa-location-crosshairs"></i> Gunakan lokasi saat ini</button>
           </div>
         </div>
         <div class="modal-footer">
@@ -199,7 +207,7 @@
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           maxZoom: 19,
-          attribution: '&copy; OpenStreetMap contributors'
+          attribution: '© OpenStreetMap contributors'
       }).addTo(map);
 
       map.on('click', function(e) {
@@ -216,30 +224,61 @@
       });
   }
 
+  // Function to get current location with high accuracy
   function setCurrentLocation() {
-      if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-              function(position) {
-                  const { latitude, longitude } = position.coords;
-                  document.getElementById('latitude').value = latitude;
-                  document.getElementById('longitude').value = longitude;
+    if (navigator.geolocation) {
+      const options = {
+        enableHighAccuracy: true, // Request high accuracy
+        timeout: 10000,           // Set a timeout of 10 seconds
+        maximumAge: 0            // Don't use a cached location
+      };
 
-                  map.setView([latitude, longitude], 15);
+      navigator.geolocation.getCurrentPosition(
+        function(position) {
+          const { latitude, longitude } = position.coords;
+          document.getElementById('latitude').value = latitude;
+          document.getElementById('longitude').value = longitude;
 
-                  if (marker) {
-                      marker.setLatLng([latitude, longitude]);
-                  } else {
-                      marker = L.marker([latitude, longitude]).addTo(map);
-                  }
-              },
-              function(error) {
-                  alert('Error retrieving location. Please enable location access and try again.');
-              }
-          );
-      } else {
-          alert('Geolocation is not supported by this browser.');
-      }
+          map.setView([latitude, longitude], 15);
+
+          if (marker) {
+            marker.setLatLng([latitude, longitude]);
+          } else {
+            marker = L.marker([latitude, longitude]).addTo(map);
+          }
+
+          // Show success alert with timestamp
+          const now = new Date();
+          const timeString = now.toLocaleTimeString();
+          document.getElementById('location-time').innerText = timeString;
+          document.getElementById('location-alert').classList.remove('d-none');
+        },
+        function(error) {
+          // Handle errors more gracefully
+          let errorMessage = 'Error retrieving location. ';
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              errorMessage += "Please allow location access to use this feature.";
+              break;
+            case error.POSITION_UNAVAILABLE:
+              errorMessage += "Location information is unavailable.";
+              break;
+            case error.TIMEOUT:
+              errorMessage += "The request to get location timed out.  Try again.";
+              break;
+            case error.UNKNOWN_ERROR:
+              errorMessage += "An unknown error occurred.";
+              break;
+          }
+          alert(errorMessage);
+        },
+        options // Pass the accuracy options
+      );
+    } else {
+      alert('Geolocation is not supported by this browser.');
+    }
   }
+
 
   document.querySelector('.getCurrentLocation').addEventListener('click', function(event) {
       event.preventDefault();
@@ -259,7 +298,7 @@
 
               L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                   maxZoom: 19,
-                  attribution: '&copy; OpenStreetMap contributors'
+                  attribution: '© OpenStreetMap contributors'
               }).addTo(mapEdit);
 
               let markerEdit = L.marker([{{ $alamat->latitude ?? '-6.200000' }}, {{ $alamat->longitude ?? '106.816666' }}]).addTo(mapEdit);
@@ -275,28 +314,63 @@
 
               document.querySelector('.getCurrentLocationEdit[data-id="{{ $alamat->id }}"]').addEventListener('click', function(event) {
                   event.preventDefault();
-                  if (navigator.geolocation) {
-                      navigator.geolocation.getCurrentPosition(
-                          function(position) {
-                              const { latitude, longitude } = position.coords;
-                              document.getElementById('latitude-edit{{ $alamat->id }}').value = latitude;
-                              document.getElementById('longitude-edit{{ $alamat->id }}').value = longitude;
 
-                              mapEdit.setView([latitude, longitude], 15);
+                  // Function to get current location with high accuracy
+                  function setCurrentLocationEdit(map, marker, latitudeInputId, longitudeInputId, alertId, timeId) {
+                      if (navigator.geolocation) {
+                          const options = {
+                              enableHighAccuracy: true,
+                              timeout: 10000,
+                              maximumAge: 0
+                          };
 
-                              if (markerEdit) {
-                                  markerEdit.setLatLng([latitude, longitude]);
-                              } else {
-                                  markerEdit = L.marker([latitude, longitude]).addTo(mapEdit);
-                              }
-                          },
-                          function(error) {
-                              alert('Error retrieving location. Please enable location access and try again.');
-                          }
-                      );
-                  } else {
-                      alert('Geolocation is not supported by this browser.');
+                          navigator.geolocation.getCurrentPosition(
+                              function(position) {
+                                  const { latitude, longitude } = position.coords;
+                                  document.getElementById(latitudeInputId).value = latitude;
+                                  document.getElementById(longitudeInputId).value = longitude;
+
+                                  map.setView([latitude, longitude], 15);
+
+                                  if (marker) {
+                                      marker.setLatLng([latitude, longitude]);
+                                  } else {
+                                      marker = L.marker([latitude, longitude]).addTo(map);
+                                  }
+
+                                   // Show success alert with timestamp
+                                  const now = new Date();
+                                  const timeString = now.toLocaleTimeString();
+                                  document.getElementById(timeId).innerText = timeString;
+                                  document.getElementById(alertId).classList.remove('d-none');
+                              },
+                              function(error) {
+                                  // Handle errors
+                                  let errorMessage = 'Error retrieving location. ';
+                                  switch (error.code) {
+                                      case error.PERMISSION_DENIED:
+                                          errorMessage += "Please allow location access to use this feature.";
+                                          break;
+                                      case error.POSITION_UNAVAILABLE:
+                                          errorMessage += "Location information is unavailable.";
+                                          break;
+                                      case error.TIMEOUT:
+                                          errorMessage += "The request to get location timed out.  Try again.";
+                                          break;
+                                      case error.UNKNOWN_ERROR:
+                                          errorMessage += "An unknown error occurred.";
+                                          break;
+                                  }
+                                  alert(errorMessage);
+                              },
+                              options
+                          );
+                      } else {
+                          alert('Geolocation is not supported by this browser.');
+                      }
                   }
+
+                  setCurrentLocationEdit(mapEdit, markerEdit, 'latitude-edit{{ $alamat->id }}', 'longitude-edit{{ $alamat->id }}', 'location-alert-edit{{ $alamat->id }}', 'location-time-edit{{ $alamat->id }}');
               });
           }, 200);
       });
