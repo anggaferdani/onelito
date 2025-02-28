@@ -16,6 +16,7 @@ class SendEventController extends Controller
 {
     public function sendEventReminder()
     {
+        // Update order statuses (tidak berubah dari kode asli)
         $trackingOrders = Order::where('status_order', 'delivered')->where('status_aktif', 1)
             ->get();
 
@@ -27,17 +28,19 @@ class SendEventController extends Controller
             }
 
         }
-            
+
         // Ambil semua event yang memenuhi kriteria notifikasi_dikirim = 1
         $events = Event::where('status_aktif', 1)
             ->where('tgl_akhir', '>', Carbon::now())
             ->where('tgl_akhir', '<=', Carbon::now()->addHour())
             ->where('notifikasi_dikirim', 1)
-            ->get();
+            ->get(); // Menggunakan get() untuk mendapatkan semua event yang memenuhi syarat
 
+        $notificationSent = false; // Flag untuk menandai apakah notifikasi sudah dikirim
 
         foreach ($events as $event) {
-            if (Carbon::now()->diffInMinutes($event->tgl_akhir) >= 0 && Carbon::now()->diffInMinutes($event->tgl_akhir) <= 5) {
+            if (Carbon::now()->diffInMinutes($event->tgl_akhir) >= 55 && Carbon::now()->diffInMinutes($event->tgl_akhir) <= 65 && !$notificationSent) {
+                // Kirim notifikasi hanya jika belum dikirim
                 Notification::create([
                     'label' => 'Event Akan Segera Berakhir',
                     'description' => "Hi, Onelito Koi Auction akan berakhir 1 jam ke depan, koi pilihan kamu jangan sampai terlewatkan 😊",
@@ -106,19 +109,32 @@ class SendEventController extends Controller
                         ];
                     }
                 }
-                // Update notifikasi_dikirim menjadi 0 setelah selesai mengirim notifikasi untuk semua member di event ini
-                $event->update([
-                    'notifikasi_dikirim' => 0,
-                ]);
-                
-                // Logika di sini hanya untuk keperluan contoh. 
+
+                $notificationSent = true; // Set flag menjadi true karena notifikasi sudah dikirim
+
+                // Logika di sini hanya untuk keperluan contoh.
                 // Dalam implementasi Anda, Anda mungkin tidak perlu mereturn response setelah setiap event.
-                return response()->json([
-                        'success' => true,
-                        'message' => 'Reminder event berhasil dikirim',
+                $response_data = [
+                    'success' => true,
+                    'message' => 'Reminder event berhasil dikirim',
                     'notification_responses' => $notificationResponses,
-                    ], 200);
+                ];
+                $statusCode = 200;
             }
+        }
+
+        // Update notifikasi_dikirim menjadi 0 setelah selesai mengirim notifikasi untuk semua event yang memenuhi syarat
+        if ($notificationSent) {
+            foreach ($events as $event) {
+                $event->update(['notifikasi_dikirim' => 0]);
+            }
+        }
+
+        // Return response (jika ada)
+        if (isset($response_data)) {
+            return response()->json($response_data, $statusCode);
+        } else {
+            return response()->json(['message' => 'No events to notify'], 200);
         }
     }
 

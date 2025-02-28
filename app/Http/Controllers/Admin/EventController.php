@@ -112,6 +112,7 @@ class EventController extends Controller
             $data['update_by'] = Auth::guard('admin')->id();
             $data['total_hadiah'] = (int) str_replace('.', '', $data['total_hadiah']);
             $data['status_aktif'] = 1;
+            $data['notifikasi_dikirim'] = 1;
 
             $image = null;
             if($this->request->hasFile('banner')){

@@ -514,7 +514,7 @@
             swal({
                 title: 'Anda Yakin?',
                 text: `Anda akan mereset password akun peserta menjadi
-                'password123'`,
+                'ikankoi123'`,
                 icon: 'warning',
                 buttons: true,
                 dangerMode: true,

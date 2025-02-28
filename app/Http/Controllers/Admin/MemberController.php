@@ -156,7 +156,7 @@ class MemberController extends Controller
 
         if ($action === 'reset-password') {
 
-            $member->password = 'password123';
+            $member->password = 'ikankoi123';
             $member->save();
 
             return response()->json([
