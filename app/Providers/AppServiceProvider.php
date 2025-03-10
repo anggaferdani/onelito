@@ -34,7 +34,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(UrlGenerator $url)
     {
         if (config('env') !== 'local') {
-            $url->forceScheme('https');
+            $url->forceScheme('http');
         }
 
         $this->bootMorph();
@@ -44,7 +44,6 @@ class AppServiceProvider extends ServiceProvider
               $schedule->command(SendEventReminder::class)
                   ->everyMinute();
         });
-
     }
 
     public function bootMorph()

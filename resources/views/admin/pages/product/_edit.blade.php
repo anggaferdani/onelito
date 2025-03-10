@@ -84,7 +84,6 @@
           <button type="button" class="btn" data-dismiss="modal">Tutup</button>
           <button type="submit" id="btn-update" class="btn btn-primary">Simpan</button>
         </div>
-
         </form>
       </div>
     </div>

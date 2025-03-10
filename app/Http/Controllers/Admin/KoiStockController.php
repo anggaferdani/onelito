@@ -7,9 +7,17 @@ use App\Models\KoiStock;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Http\Request;
 
 class KoiStockController extends Controller
 {
+    protected $request;
+
+    public function __construct(Request $request)
+    {
+        $this->request = $request;
+    }
+
     public function index()
     {
         if ($this->request->ajax()) {
@@ -18,22 +26,25 @@ class KoiStockController extends Controller
                 ->orderBy('created_at', 'desc');
 
             return DataTables::of($fishes)
-            ->addIndexColumn()
-            ->addColumn('action','admin.pages.fish.dt-action')
-            ->editColumn('harga_ikan', function ($data) {
-                $number = number_format( $data->harga_ikan , 0 , '.' , '.' );
+                ->addIndexColumn()
+                ->addColumn('action', 'admin.pages.fish.dt-action')
+                ->editColumn('harga_ikan', function ($data) {
+                    if(isset($data->harga_ikan)){
+                        $number = number_format(floatval($data->harga_ikan) , 0 , '.' , '.' );
+                    }else{
+                        $number = "0"; // Or whatever default you want
+                    }
+                    return $number;
+                })
+                ->editColumn('foto_ikan', function ($data) {
+                    $path = $data->foto_ikan ?? false;
 
-                return $number;
-            })
-            ->editColumn('foto_ikan', function ($data) {
-                $path = $data->foto_ikan ?? false;
-            
-                if (!$path) {
-                    return '';
-                }
-            
-                return '
-                    <img src="'.asset("storage/$path").'" style="
+                    if (!$path) {
+                        return '';
+                    }
+
+                    return '
+                    <img src="' . asset("storage/$path") . '" style="
                         max-width: 200px;
                         max-height: 200px;
                         width: auto;
@@ -41,9 +52,15 @@ class KoiStockController extends Controller
                         object-fit: contain;
                     ">
                 ';
-            })
-            ->rawColumns(['action', 'note', 'foto_ikan'])
-            ->make(true);
+                })
+                ->addColumn('stock_input', function ($data) {  // Add a column for stock input field
+                    return '<input type="number" class="form-control edit-stock" data-id="' . $data->id_koi_stock . '" value="' . $data->stock . '">';
+                })
+                ->addColumn('weight_input', function ($data) {  // Add a column for weight input field
+                    return '<input type="number" class="form-control edit-weight" data-id="' . $data->id_koi_stock . '" value="' . $data->weight . '">';
+                })
+                ->rawColumns(['action', 'note', 'foto_ikan', 'stock_input', 'weight_input'])
+                ->make(true);
         }
 
         return view('admin.pages.fish.index')->with([
@@ -57,14 +74,28 @@ class KoiStockController extends Controller
 
         $data['create_by'] = Auth::guard('admin')->id();
         $data['update_by'] = Auth::guard('admin')->id();
-        $data['harga_ikan'] = str_replace('.', '', $data['harga_ikan']);
-        $data['point'] = str_replace('.', '', $data['point']);
+
+        // Check if 'harga_ikan' exists and is not null before processing
+        if (isset($data['harga_ikan'])) {
+            $data['harga_ikan'] = str_replace('.', '', $data['harga_ikan']);
+        } else {
+            $data['harga_ikan'] = 0; // Set a default value if missing
+        }
+
+        // Check if 'point' exists and is not null before processing
+        if (isset($data['point'])) {
+            $data['point'] = str_replace('.', '', $data['point']);
+        } else {
+            $data['point'] = 0; // Set a default value if missing
+        }
+
         $data['status_aktif'] = 1;
 
         $image = null;
-        if($this->request->hasFile('path_foto')){
+        if ($this->request->hasFile('path_foto')) {
             $image = $this->request->file('path_foto')->store(
-                'foto_koi_stock','public'
+                'foto_koi_stock',
+                'public'
             );
         }
 
@@ -73,33 +104,49 @@ class KoiStockController extends Controller
 
         $createFish = KoiStock::create($data);
 
-        if($createFish){
+        if ($createFish) {
             return redirect()->back()->with([
                 'success' => true,
                 'message' => 'Sukses Menambahkan Ikan',
 
-            ],200);
-        }else{
+            ], 200);
+        } else {
             return redirect()->back()->with([
                 'success' => false,
                 'message' => 'Gagal Menambahkan Ikan'
-            ],500);
+            ], 500);
         }
     }
+
+    // public function show($id)
+    // {
+    //     $fish = KoiStock::findOrFail($id);
+    //     $fish->harga = number_format($fish->harga, 0, '.', '.');
+    //     $fish->point = number_format($fish->point, 0, '.', '.');
+
+    //     if ($fish) {
+    //         return response()->json($fish);
+    //     } else {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Data Not Found'
+    //         ], 404);
+    //     }
+    // }
 
     public function show($id)
     {
         $fish = KoiStock::findOrFail($id);
-        $fish->harga = number_format( $fish->harga , 0 , '.' , '.' );
-        $fish->point = number_format( $fish->point , 0 , '.' , '.' );
+        $fish->harga = isset($fish->harga) ? number_format(floatval($fish->harga) , 0 , '.' , '.' ) : "0";
+        $fish->point = isset($fish->point) ? number_format(floatval($fish->point) , 0 , '.' , '.' ) : "0";
 
-        if($fish){
+        if ($fish) {
             return response()->json($fish);
-        }else{
+        } else {
             return response()->json([
                 'success' => false,
                 'message' => 'Data Not Found'
-            ],404);
+            ], 404);
         }
     }
 
@@ -116,22 +163,40 @@ class KoiStockController extends Controller
         }
 
         $image = $fish->foto_ikan;
-        if($this->request->hasFile('path_foto')){
+        if ($this->request->hasFile('path_foto')) {
             $image = $this->request->file('path_foto')->store(
-                'foto_koi_stock','public'
+                'foto_koi_stock',
+                'public'
             );
         }
 
         $data['foto_ikan'] = $image;
         unset($data['path_foto']);
 
-        $data['harga_ikan'] = str_replace('.', '', $data['harga_ikan']);
-        $data['point'] = str_replace('.', '', $data['point']);
-        $data['update_by'] = Auth::guard('admin')->id();
+        // Map form fields to database columns
+        $updateData = [
+            'no_ikan' => $data['no_ikan'] ?? null, // Access it with the actual db key
+            'variety' => $data['variety'] ?? null, // Access it with the actual db key
+            'breeder' => $data['breeder'] ?? null,
+            'bloodline' => $data['bloodline'] ?? null,
+            'sex' => $data['sex'] ?? null,
+            'dob' => $data['dob'] ?? null,
+            'size' => $data['size'] ?? null,
+            'weight' => $data['weight'] ?? null,
+            'height' => $data['height'] ?? null,
+            'length' => $data['length'] ?? null,
+            'width' => $data['width'] ?? null,
+            'point' => isset($data['point']) ? str_replace('.', '', $data['point']) : 0,
+            'stock' => $data['stock'] ?? null,
+            'harga_ikan' => isset($data['harga_ikan']) ? str_replace('.', '', $data['harga_ikan']) : 0,
+            'note' => $data['note'] ?? null,
+            'link_video' => $data['link_video'] ?? null,
+            'update_by' => Auth::guard('admin')->id(),
+        ];
 
-        $updateFish = $fish->update($data);
+        $updateFish = $fish->update($updateData);  // Update with correctly mapped keys
 
-        if($updateFish){
+        if ($updateFish) {
             return response()->json([
                 'success' => true,
                 'message' => [
@@ -139,8 +204,8 @@ class KoiStockController extends Controller
                     'content' => 'Mengubah data ikan',
                     'type' => 'success'
                 ],
-            ],200);
-        }else{
+            ], 200);
+        } else {
             return response()->json([
                 'success' => false,
                 'message' => [
@@ -148,7 +213,7 @@ class KoiStockController extends Controller
                     'content' => 'Mengubah data ikan',
                     'type' => 'error'
                 ],
-            ],400);
+            ], 400);
         }
     }
 
@@ -161,6 +226,66 @@ class KoiStockController extends Controller
 
         return response()->json([
             'success' => true,
-        ],200);
+        ], 200);
+    }
+
+    public function updateStock(Request $request, KoiStock $fish)
+    {
+        $validator = Validator::make($request->all(), [
+            'stock' => 'required|integer|min:0',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first()
+            ], 400);
+        }
+
+        try {
+            $fish->stock = $request->stock;
+            $fish->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Stock updated successfully',
+                'data' => $fish->stock // Return the updated stock value
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update stock. Please try again later.',
+            ], 500);
+        }
+    }
+
+    public function updateWeight(Request $request, KoiStock $fish)
+    {
+        $validator = Validator::make($request->all(), [
+            'weight' => 'required|numeric|min:0',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first()
+            ], 400);
+        }
+
+        try {
+            $fish->weight = $request->weight;
+            $fish->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Weight updated successfully',
+                'data' => $fish->weight // Return the updated weight value
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update weight. Please try again later.',
+            ], 500);
+        }
     }
 }

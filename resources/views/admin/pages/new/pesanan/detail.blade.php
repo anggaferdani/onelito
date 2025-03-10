@@ -211,6 +211,7 @@
                             @endif
                           </div>
                           <div>
+                            <a href="{{ route('admin.order.resi', $order->no_order) }}" class="btn btn-primary" target="_blank">Cetak RESI</a>
                             <a href="{{ route('admin.order.invoice', $order->no_order) }}" class="btn btn-success" target="_blank">Cetak Invoice</a>
                           </div>
                         </div>

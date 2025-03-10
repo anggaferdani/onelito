@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
@@ -71,6 +72,68 @@ class ProductController extends Controller
             'type_menu' => 'manage-product',
             'categories' => $categories,
         ]);
+    }
+
+    public function updateStock(Request $request, Product $product)
+    {
+        $validator = Validator::make($request->all(), [
+            'stock' => 'required|integer|min:0',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first()
+            ], 400);
+        }
+
+        try {
+            $product->stock = $request->stock;
+            $product->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Stock updated successfully',
+                'data' => $product->stock // Return the updated stock value
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update stock. Please try again later.',
+            ], 500);
+        }
+    }
+
+    public function updateWeight(Request $request, Product $product)
+    {
+        $validator = Validator::make($request->all(), [
+            'weight' => 'required|numeric|min:0',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first()
+            ], 400);
+        }
+
+        try {
+            $product->weight = $request->weight;
+            $product->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Weight updated successfully',
+                'data' => $product->weight // Return the updated weight value
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update weight. Please try again later.',
+            ], 500);
+        }
     }
 
     public function store()

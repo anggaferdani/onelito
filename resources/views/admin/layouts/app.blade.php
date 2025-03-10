@@ -7,6 +7,7 @@
         name="viewport">
     <meta name="biteship-api-key" content="{{ env('BITESHIP_API_KEY') }}">
     <meta name="csrf-token" content="{{ csrf_token() }}" />
+    <link rel="stylesheet" href="{{ asset('library/new/dataTables.bootstrap5.min.css') }}">
     <title>@yield('title')</title>
 
     <!-- General CSS Files -->
@@ -71,6 +72,8 @@
     <script src="{{ asset('library/jquery.nicescroll/dist/jquery.nicescroll.min.js') }}"></script>
     <script src="{{ asset('library/moment/min/moment.min.js') }}"></script>
     <script src="{{ asset('js/stisla.js') }}"></script>
+    <script src="{{ asset('library/new/jquery.dataTables.min.js') }} "></script>
+    <script src="{{ asset('library/new/dataTables.bootstrap5.min.js') }} "></script>
 
     @stack('scripts')
 

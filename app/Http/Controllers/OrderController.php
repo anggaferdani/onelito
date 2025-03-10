@@ -303,6 +303,14 @@ class OrderController extends Controller
         ));
     }
 
+    public function orderResi($no_order) {
+        $order = Order::where('no_order', $no_order)->first();
+
+        return view('new.pages.order.resi', compact(
+            'order',
+        ));
+    }
+
     public function process($no_order) {
         $order = Order::where('no_order', $no_order)->where('status_aktif', 1)->first();
 

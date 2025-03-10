@@ -223,6 +223,7 @@ Route::group(['prefix' => 'admin', 'middleware' => 'auth:admin'], function () {
         Route::get('pesanan/kirim/{no_order}', [OrderController::class, 'kirim'])->name('pesanan.kirim');
         Route::get('pesanan/process/{no_order}', [OrderController::class, 'process'])->name('pesanan.process');
         Route::get('/order/invoice/{no_order}', [OrderController::class, 'orderInvoice'])->name('order.invoice');
+        Route::get('/order/resi/{no_order}', [OrderController::class, 'orderResi'])->name('order.resi');
         Route::post('order/cancel/{no_order}', [OrderController::class, 'cancelByAdmin'])->name('order.cancel');
     });
 
@@ -242,6 +243,8 @@ Route::group(['prefix' => 'admin', 'middleware' => 'auth:admin'], function () {
     Route::resource('members', Admin\MemberController::class);
 
     Route::resource('fishes', Admin\KoiStockController::class);
+    Route::post('/fishes/{fish:id_koi_stock}/update-stock', [Admin\KoiStockController::class, 'updateStock'])->name('fishes.updateStock');
+    Route::post('/fishes/{fish:id_koi_stock}/update-weight', [Admin\KoiStockController::class, 'updateWeight'])->name('fishes.updateWeight');
 
     Route::resource('auction-products', Admin\EventFishController::class);
 
@@ -250,6 +253,8 @@ Route::group(['prefix' => 'admin', 'middleware' => 'auth:admin'], function () {
     Route::resource('current-auctions', Admin\CurrentAuctionController::class);
 
     Route::resource('products', Admin\ProductController::class);
+    Route::post('/products/{product:id_produk}/update-stock', [Admin\ProductController::class, 'updateStock'])->name('products.updateStock');
+    Route::post('/products/{product:id_produk}/update-weight', [Admin\ProductController::class, 'updateWeight'])->name('products.updateWeight');
 
     Route::resource('champion-fishes', Admin\ChampionFishController::class);
 

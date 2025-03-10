@@ -1,28 +1,11 @@
 @extends('admin.layouts.app')
-
 @section('title', 'Barang Store')
-
 @push('style')
-    <!-- CSS Libraries -->
-    {{-- <link rel="stylesheet"
-        href="assets/modules/datatables/datatables.min.css">
-    <link rel="stylesheet"
-        href="assets/modules/datatables/DataTables-1.10.16/css/dataTables.bootstrap4.min.css">
-    <link rel="stylesheet"
-        href="assets/modules/datatables/Select-1.2.4/css/select.bootstrap4.min.css"> --}}
+    <link rel="stylesheet" href="{{ asset('library/select2/dist/css/select2.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.css') }}">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap4.min.css">
 
-    <link rel="stylesheet"
-        href="{{ asset('library/datatables/media/css/jquery.dataTables.min.css') }}">
-    <link rel="stylesheet"
-        href="{{ asset('library/datatables.net-bs4/css/dataTables.bootstrap4.min.css') }}">
-
-    <link rel="stylesheet"
-        href="{{ asset('library/select2/dist/css/select2.min.css') }}">
-
-    <link rel="stylesheet"
-        href="{{ asset('library/summernote/dist/summernote-bs4.css') }}">
 @endpush
-
 @section('main')
     <div class="main-content">
         <section class="section">
@@ -80,23 +63,15 @@
         @include('admin.pages.product._edit')
     </div>
 @endsection
-
 @push('scripts')
-    <!-- JS Libraies -->
-    {{-- <script src="assets/modules/datatables/DataTables-1.10.16/js/dataTables.bootstrap4.min.js"></script>
-    <script src="assets/modules/datatables/Select-1.2.4/js/dataTables.select.min.js"></script> --}}
-    <script src="{{ asset('library/datatables/media/js/jquery.dataTables.min.js') }}"></script>
-    <!-- <script src="{{ asset('library/datatables.net-bs4/css/dataTables.bootstrap4.min.js') }}"></script> -->
-    {{-- <script src="{{ asset() }}"></script> --}}
     <script src="{{ asset('library/jquery-ui-dist/jquery-ui.min.js') }}"></script>
-
-    <script src="https://demo.getstisla.com/assets/modules/datatables/DataTables-1.10.16/js/dataTables.bootstrap4.min.js"></script>
-    <script src="https://demo.getstisla.com/assets/modules/datatables/Select-1.2.4/js/dataTables.select.min.js"></script>
-    <!-- Page Specific JS File -->
     <script src="{{ asset('library/sweetalert/dist/sweetalert.min.js') }}"></script>
     <script src="{{ asset('library/summernote/dist/summernote-bs4.js') }}"></script>
     <script src="{{ asset('library/select2/dist/js/select2.full.min.js') }}"></script>
     <script src="{{ asset('/js/price-separator.min.js') }}"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap4.min.js"></script>
+
 
 
     <script type="text/javascript">
@@ -120,8 +95,8 @@
                 thousandsSeparator: '.'
             });
 
-            $('#table-1').DataTable({
-                // dom: 'Bfrtip',
+              // Inisialisasi DataTable (Pastikan ini ada jika belum ada)
+            var table = $('#table-1').DataTable({
                 lengthMenu: [
                     [ 10, 25, 50, -1 ],
                     [ '10 rows', '25 rows', '50 rows', 'Show all' ]
@@ -139,7 +114,6 @@
                 ajax : {
                 url : '{{ url("admin/products") }}',
                 data : function(d) {
-                    // d.jenis_task = $('#filter_jenis_task').val()
                 }
                 },
                 columns : [
@@ -149,13 +123,102 @@
                     { data : 'nama_produk'},
                     { data : 'berat'},
                     { data : 'weight'},
-                    { data : 'stock'},
+                    { data : 'stock', name: 'stock'},
                     { data : 'harga'},
                     { data : 'deskripsi'},
                     { data : 'photo', name: 'photo.path_foto', orderable : false,searchable :false},
                     { data : 'action' , orderable : false,searchable :false},
+                ],
+                "columnDefs": [
+                    {
+                        "targets": 5, // Index of the 'Weight' column (Weight column index)
+                        "render": function (data, type, row) {
+                            if (type === 'display') {
+                                return '<input type="number" class="form-control edit-weight" data-id="' + row.id_produk + '" value="' + data + '">';
+                            }
+                            return data;
+                        }
+                    },
+                    {
+                        "targets": 6, // Index of the 'Stock' column
+                        "render": function (data, type, row) {
+                            if (type === 'display') {
+                                return '<input type="number" class="form-control edit-stock" data-id="' + row.id_produk + '" value="' + data + '">';
+                            }
+                            return data;
+                        }
+                    }
                 ]
             });
+
+            $(document).on('change', '.edit-stock', function() {
+                let productId = $(this).data('id');
+                let newStock = $(this).val();
+                let $input = $(this);
+                //let table = $('#table-1').DataTable(); // Sudah diinisialisasi di atas
+                //let currentPage = table.page(); // Tidak perlu disimpan lagi
+
+                $.ajax({
+                    url: '/admin/products/' + productId + '/update-stock',
+                    type: 'POST',
+                    data: {
+                        stock: newStock,
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            swal('Success', 'Stock updated successfully', 'success');
+                            // Update the cell data directly
+                            let cell = table.cell($input.closest('td'));
+                            cell.data(response.data); // Update the data source
+                            $input.val(response.data);    // Update input value
+                            cell.invalidate();
+                        } else {
+                            swal('Error', response.message, 'error');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error(xhr.responseText);
+                        swal('Error', 'Failed to update stock', 'error');
+                    }
+                });
+            });
+
+
+            $(document).on('change', '.edit-weight', function() {
+                let productId = $(this).data('id');
+                let newWeight = $(this).val();
+                let $input = $(this);
+                //let table = $('#table-1').DataTable(); // Sudah diinisialisasi di atas
+                //let currentPage = table.page(); // Tidak perlu disimpan lagi
+
+                $.ajax({
+                    url: '/admin/products/' + productId + '/update-weight',
+                    type: 'POST',
+                    data: {
+                        weight: newWeight,
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            swal('Success', 'Weight updated successfully', 'success');
+                             // Update the cell data directly
+                             let cell = table.cell($input.closest('td'));
+                             cell.data(response.data); // Update the data source
+                             $input.val(response.data);    // Update input value
+                             cell.invalidate();
+
+                        } else {
+                            swal('Error', response.message, 'error');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error(xhr.responseText);
+                        swal('Error', 'Failed to update weight', 'error');
+                    }
+                });
+            });
+
         });
 
         $(document).on('click','button#btn-show',function() {
@@ -221,8 +284,8 @@
                     let harga = parseFloat(res.harga.replace(/\./g, '')); // Remove thousand separators
                     let point = parseFloat(res.point.replace(/\./g, '')); // Remove thousand separators
                     let percent = (point / harga) * 100;
-                    $('#edit_percent').val(percent); // Display with 2 
-                    $('#edit_point').val(point); // Display with 2 
+                    $('#edit_percent').val(percent); // Display with 2
+                    $('#edit_point').val(point); // Display with 2
                     $('#edit_point').priceFormat({
                         prefix: '',
                         centsLimit: 0,
@@ -278,7 +341,6 @@
             formData.delete('edit_deskripsi');
             formData.delete('edit_foto');
 
-
             $.ajax({
                 type: 'POST',
                 data : formData,
@@ -294,14 +356,11 @@
                 },
                 success: function(res){
                     if(res.success == true){
-
-                        location.reload();
                         $('#modalEdit').modal('hide');
-
                         $('#formDataEdit').trigger('reset');
-                        $('#example').DataTable().ajax.reload();
 
                         swal(res.message.title, res.message.content, res.message.type);
+                        $('#table-1').DataTable().ajax.reload(null, false);
                     }
                 },
                 error(err){
@@ -336,8 +395,7 @@
                                 swal('Data barang product berhasil dihapus', {
                                     icon: 'success',
                                 });
-
-                                location.reload();
+                                $('#table-1').DataTable().ajax.reload(null, false);
                             }
                         },
                         error:function(err){
@@ -392,6 +450,4 @@
             }
         });
     </script>
-
-
 @endpush
