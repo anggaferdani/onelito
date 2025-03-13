@@ -4,16 +4,18 @@ namespace App\Http\Controllers;
 
 use Carbon\Carbon;
 use App\Models\Cart;
-use App\Models\Tracking;
 use App\Models\Order;
-use App\Models\Member;
 use App\Models\Alamat;
+use App\Models\Member;
+use App\Models\Tracking;
+use Milon\Barcode\DNS1D;
 use Xendit\Configuration;
 use App\Mail\OrderRequest;
 use App\Models\OrderDetail;
 use App\Models\Notification;
 use Illuminate\Http\Request;
 use Xendit\Invoice\InvoiceApi;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Xendit\Invoice\InvoiceItem;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
@@ -303,12 +305,61 @@ class OrderController extends Controller
         ));
     }
 
-    public function orderResi($no_order) {
+    public function orderResi($no_order)
+    {
         $order = Order::where('no_order', $no_order)->first();
 
-        return view('new.pages.order.resi', compact(
-            'order',
-        ));
+        if (!$order) {
+            abort(404, 'Order not found');
+        }
+
+        $totalQuantity = 0;
+        $totalWeight = 0;
+        foreach ($order->details as $detail) {
+            $totalQuantity += $detail->quantity;
+            $weightInKilograms = $detail->weight / 1000;
+            $totalWeight += $weightInKilograms * $detail->quantity;
+        }
+        $totalWeight = number_format($totalWeight, 2);
+
+        $dns1d = new DNS1D();
+
+        $waybillBarcode = $dns1d->getBarcodeHTML($order->waybill_id, 'C128', 1.5, 30);
+
+        $referenceNumberBarcode = $dns1d->getBarcodeHTML($order->order_id, 'C128', 1.5, 30);
+
+        $logoPath = public_path('img/logo-onelito.png');
+
+        if (file_exists($logoPath)) {
+            $logoBase64 = base64_encode(file_get_contents($logoPath));
+            $logoSrc = 'data:image/png;base64,' . $logoBase64;
+        } else {
+            $logoSrc = null;
+        }
+
+        $data = [
+            'order' => $order,
+            'totalQuantity' => $totalQuantity,
+            'totalWeight' => $totalWeight,
+            'waybillBarcode' => $waybillBarcode,
+            'waybillId' => $order->waybill_id,
+            'referenceNumberBarcode' => $referenceNumberBarcode,
+            'orderId' => $order->order_id,
+            'logoSrc' => $logoSrc,
+        ];
+
+        $waybillIdChunks = str_split($order->waybill_id, 4);
+        $data['waybillIdFormatted'] = implode(' ', $waybillIdChunks);
+
+        $orderIdChunks = str_split($order->order_id, 4);
+        $data['orderIdFormatted'] = implode(' ', $orderIdChunks);
+
+        $html = view('new.pages.order.resi', $data)->render();
+
+        $pdf = Pdf::loadHTML($html);
+        $pdf->setPaper('A4', 'portrait');
+
+        return $pdf->stream('order_label_' . $order->no_order . '.pdf');
     }
 
     public function process($no_order) {

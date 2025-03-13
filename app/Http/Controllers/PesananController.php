@@ -4,104 +4,85 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use Illuminate\Http\Request;
+use Yajra\DataTables\DataTables;
+use Carbon\Carbon;
 
 class PesananController extends Controller
 {
-    public function index(Request $request) {
-        $query = Order::where('status_aktif', 1);
+    public function index(Request $request)
+    {
+        if ($request->ajax()) {
+            $data = Order::where('status_aktif', 1)->orderBy('created_at', 'DESC');
 
-        if ($request->has('search')) {
-            $search = $request->input('search');
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', '%' . $search . '%');
-            });
+            return Datatables::of($data)
+                ->addIndexColumn()
+                ->addColumn('tanggal', function($row){
+                    return Carbon::parse($row->tanggal)->format('Y M d H:i:s');
+                })
+                ->addColumn('total_tagihan', function($row){
+                    $totalTagihanFormatted = 'Rp. ' . number_format($row->total_tagihan, 0, '.', '.');
+                    if ($row->coin_yang_digunakan > 0) {
+                        $totalTagihanFormatted .= '<div class="text-success small">(Potongan Onelito Coins Rp. ' . number_format($row->coin_yang_digunakan, 0, '.', '.') . ')</div>';
+                    }
+                    return $totalTagihanFormatted;
+                })
+                ->addColumn('status', function($row){
+                    $status = '';
+                    if ($row->status_order == 'pending') {
+                        $status = '<span class="badge badge-secondary">Menunggu Pembayaran</span>';
+                    } elseif ($row->status_order == 'paid') {
+                        $status = '<span class="badge badge-primary">Menunggu Konfirmasi</span>';
+                    } elseif ($row->status_order == 'process') {
+                        $status = '<span class="badge badge-warning">Sedang Diproses</span>';
+                    } elseif ($row->status_order == 'delivered') {
+                        $status = '<span class="badge badge-info">Sedang Dalam Pengiriman</span>';
+                    } elseif ($row->status_order == 'done' && $row->done == 0) {
+                        $status = '<span class="badge badge-info">Pesanan telah sampai ditujuan</span>';
+                    } elseif ($row->status_order == 'done' && $row->done == 1) {
+                        $status = '<span class="badge badge-success">Selesai</span>';
+                    } elseif ($row->status_order == 'cancel' && $row->dibatalkan_pembeli == 0) {
+                        $status = '<span class="badge badge-danger">Dibatalkan System</span>';
+                    } elseif ($row->status_order == 'cancel' && $row->dibatalkan_pembeli == 2) {
+                        $status = '<span class="badge badge-danger">Dibatalkan Admin dengan konfirmasi</span>';
+                    } elseif ($row->status_order == 'cancel' && $row->dibatalkan_pembeli == 1) {
+                        $status = '<span class="badge badge-danger">Dibatalkan Pembeli</span>';
+                    }
+                    return $status;
+                })
+                ->addColumn('action', function($row){
+                    $actionBtn = '<a href="' . route('admin.pesanan.detail', $row->no_order) . '" class="btn btn-secondary"><i class="fa-solid fa-eye"></i></a>';
+
+                    if($row->status_order == 'pending'){
+                        $actionBtn .= ' <button class="btn btn-danger" data-toggle="modal" data-target="#batalkan-pesanan' . $row->id_order . '">Batal Pesanan</button>';
+                    } elseif($row->status_order == 'paid'){
+                        $actionBtn .= ' <a href="' . route('admin.pesanan.process', $row->no_order) . '" class="btn btn-warning delete2" data-title="Proses Pesanan" data-text="Apakah Anda yakin ingin memproses pesanan ini?" data-confirm-button="Ya, proses sekarang" data-confirm-button-class="btn btn-warning">Proses Pesanan</a>';
+                    } elseif($row->status_order == 'process'){
+                         $actionBtn .= ' <a href="' . route('admin.pesanan.kirim', $row->no_order) . '" class="btn btn-primary delete2" data-title="Kirim Pesanan" data-text="Apakah Anda yakin ingin mengirim pesanan ini?" data-confirm-button="Ya, kirim sekarang" data-confirm-button-class="btn btn-primary">Kirim Pesanan</a>';
+                    } else {
+                        $actionBtn .= ' <a href="javascript:void(0)" class="btn btn-info lacak-pengiriman-btn" data-toggle="modal" data-target="#lacak-pengiriman' . $row->id_order . '" data-tracking-id="' . $row->tracking_id . '" data-id_order="' . $row->id_order . '"><i class="fa-solid fa-truck"></i></a>';
+                    }
+
+                    return $actionBtn;
+                })
+                ->rawColumns(['total_tagihan', 'status', 'action'])
+                ->make(true);
         }
 
-        $orders = $query->latest()->paginate(10);
-
-        return view('admin.pages.new.pesanan.index', compact(
-            'orders',
-        ))->with(['type_menu' => 'order']);
+        $orders = Order::where('status_aktif', 1)->get();  //Pass to modal for show data in Modal
+        return view('admin.pages.new.pesanan.index', compact('orders'))->with(['type_menu' => 'order']);
     }
 
     public function create() {}
 
-    public function store(Request $request) {
-        try {
-            $request->validate([
-                'image' => 'required',
-                'title' => 'required',
-                'description' => 'required',
-            ]);
-
-            $slug = $this->generateSlug($request->input('title'));
-    
-            $array = [
-                'slug' => $slug,
-                'image' => $this->handleFileUpload($request->file('image'), 'storage/news/'),
-                'title' => $request['title'],
-                'description' => $request['description'],
-            ];
-
-            $new = News::create($array);
-
-            $new->tags()->sync($request->input('tags'));
-    
-            return back()->with('success', 'Success');
-        } catch (\Throwable $th) {
-            return back()->with('error', $th->getMessage());
-        }
-    }
+    public function store(Request $request) {}
 
     public function show($id) {}
 
     public function edit($id) {}
 
-    public function update(Request $request, $id) {
-        try {
-            $new = News::find($id);
-    
-            $request->validate([
-                'title' => 'required',
-                'description' => 'required',
-            ]);
-    
-            $array = [
-                'title' => $request['title'],
-                'description' => $request['description'],
-            ];
+    public function update(Request $request, $id) {}
 
-            if ($request->hasFile('image')) {
-                $array['image'] = $this->handleFileUpload($request->file('image'), 'storage/news/');
-            }
-
-            if ($new->title !== $request->input('title')) {
-                $array['slug'] = $this->generateSlug($request->input('title'));
-            }
-    
-            $new->update($array);
-
-            $new->tags()->sync($request->input('tags'));
-    
-            return back()->with('success', 'Success');
-        } catch (\Throwable $th) {
-            return back()->with('error', $th->getMessage());
-        }
-    }
-
-    public function destroy($id) {
-        try {
-            $tag = News::find($id);
-
-            $tag->update([
-                'status' => 0,
-            ]);
-
-            return back()->with('success', 'Success');
-        } catch (\Throwable $th) {
-            return back()->with('error', $th->getMessage());
-        }
-    }
+    public function destroy($id) {}
 
     public function detail($no_order) {
         try {

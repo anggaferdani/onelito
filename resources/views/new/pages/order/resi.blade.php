@@ -31,11 +31,7 @@
             justify-content: center;
             align-items: center;
             margin-bottom: 5px;
-        }
-
-        .barcode-container canvas {
-            max-width: 100%;
-            height: auto;
+            flex-direction: column;
         }
 
         .table-bordered th,
@@ -53,7 +49,6 @@
             font-size: 0.9rem !important;
         }
 
-        /* Gaya khusus untuk cetak */
         @media print {
             body {
                 -webkit-print-color-adjust: exact !important;
@@ -83,13 +78,11 @@
                 line-height: 1.1 !important;
             }
 
-            /* Hindari page break di dalam elemen penting */
             table, tr, td, tbody, thead, div {
                 page-break-inside: avoid !important;
                 page-break-after: auto !important;
             }
 
-            /* Paksa gambar agar tidak melebihi batas */
             img {
                 max-width: 100% !important;
                 height: auto !important;
@@ -100,51 +93,35 @@
             }
         }
 
-        /* Gaya untuk logo */
         .img-fluid {
             max-width: 70%;
             height: auto;
         }
     </style>
-    <script src="https://cdn.jsdelivr.net/jsbarcode/3.6.0/JsBarcode.all.min.js"></script>
 
 </head>
 <body>
-@php
-    $qrCodeValue = $order->waybill_id;
-    $referenceNumberValue = $order->order_id;
-
-    // Calculate total quantity and weight
-    $totalQuantity = 0;
-    $totalWeight = 0;
-    foreach($order->details as $detail) {
-        $totalQuantity += $detail->quantity;
-
-        // Convert weight to kilograms
-        $weightInKilograms = $detail->weight / 1000;  // Assuming $detail->weight is in grams
-
-        $totalWeight += $weightInKilograms * $detail->quantity; // Weight of item multiplied by quantity
-    }
-
-    $totalWeight = number_format($totalWeight, 2); // Format to 2 decimal places
-@endphp
 <div class="container">
     <div class="row py-5">
         <table class="table table-bordered">
             <tbody>
                 <tr>
                     <td colspan="2">
-                        <div class="text-center"><img src="{{ asset('img/logo-onelito.png') }}" class="img-fluid" ></div>
+                        <div class="text-center">
+                            @if($logoSrc)
+                                <img src="{{ $logoSrc }}" class="img-fluid" alt="Logo">
+                            @endif
+                        </div>
                     </td>
                 </tr>
                 <tr>
                     <td colspan="2">
-                        <div class="barcode-container">
-                            <canvas id="qrCodeCanvas" width="200" height="50"></canvas>
-                            <script>
-                                JsBarcode("#qrCodeCanvas", "{{ $qrCodeValue }}", {format: "CODE128"});
-                            </script>
+                        <div class="barcode-container text-center mb-1">
+                            <div style="display: inline-block;">  <!-- Add this wrapper -->
+                                {!! $waybillBarcode !!}
+                            </div>
                         </div>
+                        <div class="fs-5 text-center">Nomor Resi - {{ $waybillIdFormatted ?? $waybillId }}</div>
                     </td>
                 </tr>
                 <tr>
@@ -159,29 +136,19 @@
                 </tr>
                 <tr>
                     <td rowspan="2">
-                        <div class="fs-5 text-center fw-bold">Reference Number</div>
-                        <div class="barcode-container">
-                            <canvas id="referenceNumberCanvas" width="200" height="50"></canvas>
-                            <script>
-                                JsBarcode("#referenceNumberCanvas", "{{ $referenceNumberValue }}", {format: "CODE128"});
-                            </script>
+                        <div class="fs-5 text-center fw-bold mb-1">Reference Number</div>
+                        <div class="barcode-container mb-1">
+                            {!! $referenceNumberBarcode !!}
                         </div>
+                        <div class="fs-5 text-center">{{ $orderIdFormatted ?? $orderId }}</div>
                     </td>
                     <td class="text-center align-middle">
-                        <div class="d-flex justify-content-center align-items-center fs-3">
-                            <div class="">Quantity</div>
-                            <div class="mx-5">:</div>
-                            <div class="">{{ $totalQuantity }} Pcs</div>
-                        </div>
+                        <div class="">Quantity : {{ $totalQuantity }} Pcs</div>
                     </td>
                 </tr>
                 <tr>
                     <td class="text-center align-middle">
-                        <div class="d-flex justify-content-center align-items-center fs-3">
-                            <div class="">Weight</div>
-                            <div class="mx-5">:</div>
-                            <div class="">{{ $totalWeight }} Kg</div>
-                        </div>
+                        <div class="">Weight : {{ $totalWeight }} Kg</div>
                     </td>
                 </tr>
                 <tr>

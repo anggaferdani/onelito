@@ -14,6 +14,39 @@
             <div class="row">
                 <div class="col-12">
                     <div class="card">
+                      <div class="card-footer d-flex justify-content-between">
+                        <div>
+                          <a href="{{ route('admin.pesanan.index') }}" class="btn btn-secondary">Back</a>
+                        </div>
+                        <div>
+                          @if($order->status_order == 'pending')
+                          @elseif($order->status_order == 'paid')
+                            <a 
+                              href="{{ route('admin.pesanan.process', $order->no_order) }}" 
+                              class="btn btn-warning delete2" 
+                              data-title="Proses Pesanan" 
+                              data-text="Apakah Anda yakin ingin memproses pesanan ini?" 
+                              data-confirm-button="Ya, proses sekarang"
+                              data-confirm-button-class="btn btn-warning">
+                              Proses Pesanan
+                            </a>
+                          @elseif($order->status_order == 'process')
+                            <a 
+                              href="{{ route('admin.pesanan.kirim', $order->no_order) }}" 
+                              class="btn btn-primary delete2" 
+                              data-title="Kirim Pesanan" 
+                              data-text="Apakah Anda yakin ingin mengirim pesanan ini?" 
+                              data-confirm-button="Ya, kirim sekarang"
+                              data-confirm-button-class="btn btn-primary">
+                              Kirim Pesanan
+                            </a>
+                          @else
+                          <a href="javascript:void(0)" class="btn btn-info" data-toggle="modal" data-target="#lacak-pengiriman{{ $order->id_order }}"><i class="fa-solid fa-truck"></i> Lacak Pengiriman</a>
+                          @endif
+                          <a href="{{ route('admin.order.resi', $order->no_order) }}" class="btn btn-primary" target="_blank">Cetak RESI</a>
+                          <a href="{{ route('admin.order.invoice', $order->no_order) }}" class="btn btn-success" target="_blank">Cetak Invoice</a>
+                        </div>
+                      </div>
                         <div class="card-body">
                           <table class="table table-bordered">
                             <tbody>
@@ -28,7 +61,6 @@
                                     <span class="badge badge-warning">Sedang Diproses</span>
                                   @elseif($order->status_order == 'delivered')
                                     <span class="badge badge-info">Sedang Dalam Pengiriman</span>
-                                    <span style="cursor: pointer;" class="badge badge-info" data-toggle="modal" data-target="#lacak-pengiriman{{ $order->id_order }}"><i class="fa-solid fa-truck"></i> Lacak Pengiriman Disini</span>
                                   @elseif($order->status_order == 'done' && $order->done == 0)
                                     <span class="badge badge-info">Pesanan telah sampai ditujuan</span>
                                   @elseif($order->status_order == 'done' && $order->done == 1)
@@ -185,36 +217,7 @@
                             </tbody>
                           </table>
                         </div>
-                        <div class="card-footer d-flex justify-content-between">
-                          <div>
-                            <a href="{{ route('admin.pesanan.index') }}" class="btn btn-secondary">Back</a>
-                            @if($order->status_order == 'paid')
-                              <a 
-                                href="{{ route('admin.pesanan.process', $order->no_order) }}" 
-                                class="btn btn-warning delete2" 
-                                data-title="Proses Pesanan" 
-                                data-text="Apakah Anda yakin ingin memproses pesanan ini?" 
-                                data-confirm-button="Ya, proses sekarang"
-                                data-confirm-button-class="btn btn-warning">
-                                Proses Pesanan
-                              </a>
-                            @elseif($order->status_order == 'process')
-                              <a 
-                                href="{{ route('admin.pesanan.kirim', $order->no_order) }}" 
-                                class="btn btn-primary delete2" 
-                                data-title="Kirim Pesanan" 
-                                data-text="Apakah Anda yakin ingin mengirim pesanan ini?" 
-                                data-confirm-button="Ya, kirim sekarang"
-                                data-confirm-button-class="btn btn-primary">
-                                Kirim Pesanan
-                              </a>
-                            @endif
-                          </div>
-                          <div>
-                            <a href="{{ route('admin.order.resi', $order->no_order) }}" class="btn btn-primary" target="_blank">Cetak RESI</a>
-                            <a href="{{ route('admin.order.invoice', $order->no_order) }}" class="btn btn-success" target="_blank">Cetak Invoice</a>
-                          </div>
-                        </div>
+                        
                     </div>
                 </div>
             </div>
@@ -289,7 +292,6 @@
               const timeFormatted = updatedAt.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
 
               let statusMessage = '';
-              let isBold = update.status === 'picked' ? 'fw-bold' : 'fw-bold text-secondary';
 
               switch(update.status) {
                 case 'confirmed':
@@ -338,12 +340,12 @@
 
               content += `
                 <div id="pengiriman" class="mb-1">
-                  <div class="d-flex justify-content-between mb-2">
-                    <div>${dateFormatted}</div>
-                    <div>${timeFormatted}</div>
-                  </div>
-                  <div class="${isBold} mb-2">${statusMessage}</div>
-                  <div class="text-secondary small">${update.note}</div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <div>${dateFormatted}</div>
+                        <div>${timeFormatted}</div>
+                    </div>
+                    <div class="fw-bold text-success mb-1">${statusMessage}</div>
+                    <div class="small">${update.note}</div>
                 </div>
                 <hr>
               `;

@@ -6,6 +6,9 @@
     <!-- CSS Libraries -->
     <link rel="stylesheet"
         href="{{ asset('library/bootstrap-social/bootstrap-social.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css"
+        integrity="sha512-1sCRPdkRXhBV2PBLUdRb4tMg1w2YPf37qatUFeS7zlBy7jJI8Lf4VHwWfZZfpXtYSLy85pkm9GaYVYMfw5BC1A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
 @endpush
 
 @section('main')
@@ -45,12 +48,22 @@
                             </a>
                         </div> -->
                     </div>
-                    <input id="password"
-                        type="password"
-                        class="form-control"
-                        name="password"
-                        tabindex="2"
-                        required>
+                    <div class="input-group">
+                        <input id="password"
+                            type="password"
+                            class="form-control"
+                            name="password"
+                            tabindex="2"
+                            required>
+                        <div class="input-group-append">
+                            <div class="input-group-text">
+                                <a href="#" onclick="togglePassword()" class="text-dark">
+                                    <i id="togglePasswordIcon" class="fa fa-eye"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="invalid-feedback">
                         please fill in your password
                     </div>
@@ -103,4 +116,20 @@
     <!-- JS Libraies -->
 
     <!-- Page Specific JS File -->
+    <script>
+        function togglePassword() {
+            var passwordInput = document.getElementById("password");
+            var togglePasswordIcon = document.getElementById("togglePasswordIcon");
+
+            if (passwordInput.type === "password") {
+                passwordInput.type = "text";
+                togglePasswordIcon.classList.remove('fa-eye');
+                togglePasswordIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = "password";
+                togglePasswordIcon.classList.remove('fa-eye-slash');
+                togglePasswordIcon.classList.add('fa-eye');
+            }
+        }
+    </script>
 @endpush

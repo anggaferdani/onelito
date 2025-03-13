@@ -17,11 +17,11 @@
     <link rel="stylesheet" href="https://unpkg.com/flowbite@1.5.1/dist/flowbite.min.css" />
 
     <title>ONELITO KOI</title>
-</head>
 
-<body style="background-image: url('img/login-background.jpg'); background-size: cover">
     <style>
         body {
+            background-image: url('img/login-background.jpg');
+            background-size: cover;
             background-repeat: no-repeat;
             background-position: center;
             background-attachment: fixed;
@@ -50,6 +50,9 @@
             }
         }
     </style>
+</head>
+
+<body style="background-image: url('img/login-background.jpg'); background-size: cover">
 
     <div class="res">
         <div class="container d-flex justify-content-center align-content-center p-0">
@@ -80,6 +83,11 @@
                                     placeholder=" " required />
                                 <label for="passowrd"
                                     class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-3 scale-75 top-1 z-10 origin-[0] bg-white dark:bg-gray-900 px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-1 peer-focus:scale-75 peer-focus:-translate-y-3 left-1">Password</label>
+
+                                <!-- Show Password Button -->
+                                <span class="absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer" onclick="togglePassword('password')">
+                                    <i id="togglePasswordIcon" class="fa fa-eye"></i>
+                                </span>
                             </div>
                             <br>
                             @if (Session::has('message'))
@@ -140,19 +148,24 @@
                         <form method="POST" action="/authentications">
                             @csrf
                             <div class="relative">
-                                <input type="text" name="email" id="email"
+                                <input type="text" name="email" id="email_web"
                                     class="block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                                     placeholder=" " required />
-                                <label for="email"
+                                <label for="email_web"
                                     class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-3 scale-75 top-1 z-10 origin-[0] bg-white dark:bg-gray-900 px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-1 peer-focus:scale-75 peer-focus:-translate-y-3 left-1">Email</label>
                             </div>
                             <br>
                             <div class="relative">
-                                <input type="password" name="password" id="password"
+                                <input type="password" name="password" id="password_web"
                                     class="block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                                     placeholder=" " required />
                                 <label for="passowrd"
                                     class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-3 scale-75 top-1 z-10 origin-[0] bg-white dark:bg-gray-900 px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-1 peer-focus:scale-75 peer-focus:-translate-y-3 left-1">Password</label>
+
+                                <!-- Show Password Button -->
+                                <span class="absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer" onclick="togglePassword('password_web')">
+                                    <i id="togglePasswordIcon_web" class="fa fa-eye"></i>
+                                </span>
                             </div>
                             <br>
                             @if (Session::has('message'))
@@ -202,6 +215,29 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous">
+    </script>
+    <script>
+        function togglePassword(inputId) {
+            var passwordInput = document.getElementById(inputId);
+            var togglePasswordIcon;
+
+            if (inputId === 'password') {
+              togglePasswordIcon = document.getElementById('togglePasswordIcon');
+            } else {
+              togglePasswordIcon = document.getElementById('togglePasswordIcon_web');
+            }
+
+
+            if (passwordInput.type === "password") {
+                passwordInput.type = "text";
+                togglePasswordIcon.classList.remove('fa-eye');
+                togglePasswordIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = "password";
+                togglePasswordIcon.classList.remove('fa-eye-slash');
+                togglePasswordIcon.classList.add('fa-eye');
+            }
+        }
     </script>
 
 </body>
