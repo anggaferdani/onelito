@@ -6,14 +6,15 @@ use Carbon\Carbon;
 use App\Models\Event;
 use App\Models\EventFish;
 use App\Models\Notification;
+use Illuminate\Http\Request;
 use App\Models\AuctionWinner;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Http\Request;
 
 class EventController extends Controller
 {
@@ -194,9 +195,13 @@ class EventController extends Controller
                     ->mapWithKeys(fn($q) => [$q->id_bidding => $q]);
 
                 $notificationResponses = [];
+                $notifiedParticipants = []; // Track notified participants
 
                 foreach ($auctionProducts as $cProduct) {
+                    Log::info("Processing product ID: " . $cProduct->id_ikan); // Add logging
+
                     if ($cProduct->maxBid === null) {
+                        Log::info("Product ID: " . $cProduct->id_ikan . " has no max bid, skipping."); // Add logging
                         continue;
                     }
 
@@ -204,11 +209,21 @@ class EventController extends Controller
                     $dateEventEnd = Carbon::parse($cProduct->event->tgl_akhir)->addMinutes($cProduct->extra_time);
 
                     if ($now < $dateEventEnd) {
+                        Log::info("Product ID: " . $cProduct->id_ikan . " event not ended yet, skipping."); // Add logging
                         continue;
                     }
 
                     if ($dateDiff < $cProduct->extra_time || array_key_exists($cProduct->maxBid->id_bidding, $fishInWinner->toArray())) {
+                        Log::info("Product ID: " . $cProduct->id_ikan . " did not meet time criteria or already won, skipping."); // Add logging
                         continue;
+                    }
+
+                    $winner = $cProduct->maxBid->member;
+
+                    // Check if participant has already been notified
+                    if (in_array($winner->id_peserta, $notifiedParticipants)) {
+                        Log::info("Participant ID: " . $winner->id_peserta . " already notified, skipping.");
+                        continue; // Skip if already notified
                     }
 
                     $data = [
@@ -220,7 +235,6 @@ class EventController extends Controller
 
                     AuctionWinner::create($data);
 
-                    $winner = $cProduct->maxBid->member;
                     $fishVariety = "{$cProduct->no_ikan} | {$cProduct->variety} | {$cProduct->breeder} | {$cProduct->bloodline} | {$cProduct->sex}";
                     $finalBidPrice = $cProduct->maxBid->nominal_bid;
 
@@ -234,6 +248,9 @@ class EventController extends Controller
                     if($notification) {
                         $notificationResponses[] = $this->sendWhatsAppNotification($winner, $fishVariety, $finalBidPrice);
                     }
+
+                    $notifiedParticipants[] = $winner->id_peserta; // Add participant to notified list
+                    Log::info("Notified participant ID: " . $winner->id_peserta . " for product ID: " . $cProduct->id_ikan); // Add logging
                 }
 
                 DB::commit();
@@ -250,7 +267,7 @@ class EventController extends Controller
             }
 
             $data = $this->request->all();
-            
+
             // Tangani rules_event untuk update
             if (isset($data['rules_event'])) {
                 $data['rules_event'] = preg_replace('/[\x{FEFF}]/u', '', $data['rules_event']);
@@ -383,7 +400,7 @@ class EventController extends Controller
                 'message' => 'Broadcast berhasil dikirim ke: ' . $winner->nama,
                 'data' => $response->json(),
             ];
-        } 
+        }
 
         return [
             'success' => false,

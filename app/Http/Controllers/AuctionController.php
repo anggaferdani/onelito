@@ -5,14 +5,16 @@ namespace App\Http\Controllers;
 use Carbon\Carbon;
 use App\Models\Event;
 use App\Models\LogBid;
+use App\Models\Member;
 use App\Models\EventFish;
 use App\Models\LogBidDetail;
 use App\Models\Notification;
 use Illuminate\Http\Request;
+use App\Models\NotificationLog;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cache;
 
 class AuctionController extends Controller
 {
@@ -170,8 +172,6 @@ class AuctionController extends Controller
 
     public function bidProcess($idIkan)
     {
-        // ... (Kode inisialisasi dan validasi bid)
-
         $auth = Auth::guard('member')->user();
         $auctionProduct = EventFish::with(['photo', 'event'])->findOrFail($idIkan);
         $nominalBid = $this->request->input('nominal_bid', null);
@@ -190,7 +190,6 @@ class AuctionController extends Controller
             return response()->json(['message' => 'Nominal bid harus sesuai dengan kelipatan bid'], 400);
         }
 
-
         $bids = LogBid::where('id_ikan_lelang', $idIkan)->orderBy('nominal_bid', 'desc')->first();
 
         // Proses Bid (logic yang anda punya sebelum if pengecekan waktu)
@@ -203,8 +202,7 @@ class AuctionController extends Controller
             if ($autoBid <= $logBid->nominal_bid && $autoBid !== null) {
                 $message = 'success updated';
                 
-            }else{
-
+            } else {
                 $logBid->nominal_bid = $nominalBid;
 
                 if ($autoBid !== null) {
@@ -256,45 +254,72 @@ class AuctionController extends Controller
             ]);
 
             if ($createBid) {
-            $message = 'success created';
+                $message = 'success created';
             } else {
-            return response()->json(['message' => 'error', 500]);
+                return response()->json(['message' => 'error', 500]);
             }
-
         }
-
-        $notifData = null;
+        
+        $notifData = [];
+        
         // Cek waktu akhir event
-            $auctionEndTime = $auctionProduct->event->tgl_akhir; // Waktu akhir lelang
-            $timeRemaining = Carbon::parse($auctionEndTime)->diffInMinutes(Carbon::now());
-        // Kirim notifikasi jika diperlukan
+        $auctionEndTime = $auctionProduct->event->tgl_akhir;
+        $timeRemaining = Carbon::parse($auctionEndTime)->diffInMinutes(Carbon::now());
+        
+        // Kirim notifikasi jika dalam 15 menit terakhir dan belum berakhir
         if ($timeRemaining <= 15 && $timeRemaining > 0) {
-            if ($bids && $bids->id_peserta !== $auth->id_peserta) {
-                // Ambil top bidder sebelumnya
-                $previousTopBidder = $bids->member; // Relasi ke peserta
-
+            // Dapatkan semua bidder untuk ikan ini kecuali current bidder (yang baru bid)
+            $allBidders = LogBid::where('id_ikan_lelang', $idIkan)
+                ->where('id_peserta', '!=', $auth->id_peserta)
+                ->select('id_peserta')
+                ->distinct()
+                ->get();
+            
+            // Cek siapa saja yang sudah mendapat notifikasi untuk lelang ini
+            $notifiedUsers = NotificationLog::where('id_ikan_lelang', $idIkan)->pluck('id_peserta')->toArray();
+            
+            foreach ($allBidders as $bidder) {
+                // Skip jika user sudah pernah dinotifikasi untuk lelang ini
+                if (in_array($bidder->id_peserta, $notifiedUsers)) {
+                    continue;
+                }
+                
+                // Ambil data member
+                $member = Member::find($bidder->id_peserta);
+                if (!$member) continue;
+                
+                // Buat notifikasi
                 $notification = Notification::create([
-                    'peserta_id' => $previousTopBidder->id_peserta,
+                    'peserta_id' => $member->id_peserta,
                     'label' => 'Koi Auction Alert',
-                    'description' => "Hi Mr / Ms. {$previousTopBidder->nama},\n
+                    'description' => "Hi Mr / Ms. {$member->nama},\n
                     Koi auction yang kamu bid saat ini sudah terlampaui oleh peserta lain. Yuk segera cek dan bid kembali sebelum waktu lelang berakhir!",
                     'link' => route('auction.bid', ['idIkan' => $idIkan]),
                 ]);
-
-                if($notification) {
+                
+                // Catat bahwa user ini sudah dinotifikasi untuk lelang ini
+                NotificationLog::create([
+                    'id_peserta' => $member->id_peserta,
+                    'id_ikan_lelang' => $idIkan,
+                    'notification_id' => $notification->id,
+                    'created_at' => Carbon::now()
+                ]);
+                
+                // Kirim notifikasi WhatsApp
+                if ($notification) {
                     $url = 'https://service-chat.qontak.com/api/open/v1/broadcasts/whatsapp/direct';
                     $token = env('QONTAK_API_KEY');
 
-                    $phoneNumber = $previousTopBidder->no_hp;
+                    $phoneNumber = $member->no_hp;
                     $phoneNumber = preg_replace('/\D/', '', $phoneNumber);
                     if (strpos($phoneNumber, '0') === 0) {
                         $phoneNumber = '62' . substr($phoneNumber, 1);
-                    } else if(strpos($phoneNumber, '62') !== 0){
-                            $phoneNumber = '62' . $phoneNumber;
+                    } else if(strpos($phoneNumber, '62') !== 0) {
+                        $phoneNumber = '62' . $phoneNumber;
                     }
 
                     $data = [
-                        "to_name" => $previousTopBidder->nama,
+                        "to_name" => $member->nama,
                         "to_number" => $phoneNumber,
                         "message_template_id" => "421b85ad-6620-42b8-aafa-77cb8b50d654",
                         "channel_integration_id" => env('QONTAK_CHANNEL_INTEGRATION_ID'),
@@ -309,7 +334,7 @@ class AuctionController extends Controller
                             "body" => [
                                 [
                                     "key" => "0",
-                                    "value_text" => $previousTopBidder->nama,
+                                    "value_text" => $member->nama,
                                     "value" => "customer_name",
                                 ]
                             ],
@@ -323,24 +348,25 @@ class AuctionController extends Controller
                     ])->post($url, $data);
                     
                     if ($response->successful()) {
-                        
-                        $notifData = [
-                                'message' => 'Broadcast berhasil dikirim',
-                                'data' => $response->json(),
-                            ];
-                            
-                        } else {
-                            $notifData = [
-                                'message' => 'Broadcast gagal dikirim',
-                                'error' => $response->body(),
-                                'status' => $response->status(),
-                            ];
-                        }
+                        $notifData[] = [
+                            'user' => $member->nama,
+                            'message' => 'Broadcast berhasil dikirim',
+                            'data' => $response->json(),
+                        ];
+                    } else {
+                        $notifData[] = [
+                            'user' => $member->nama,
+                            'message' => 'Broadcast gagal dikirim',
+                            'error' => $response->body(),
+                            'status' => $response->status(),
+                        ];
+                    }
                 }
             }
         }
+        
         $returnData = ['message' => $message];
-        if($notifData !== null) {
+        if(!empty($notifData)) {
             $returnData['notif'] = $notifData;
         }
         return response()->json($returnData);

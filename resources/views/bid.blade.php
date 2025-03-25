@@ -236,6 +236,7 @@
     <script src="{{ asset('library/moment/min/moment.min.js') }}"></script>
     <script src="{{ asset('/js/price-separator.min.js') }}"></script>
     <script src="{{ asset('/library/lodash/lodash.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gasparesganga-jquery-loading-overlay@2.1.7/dist/loadingoverlay.min.js"></script>
     <script type="text/javascript">
         $.ajaxSetup({
             headers: {
@@ -328,6 +329,7 @@
         // function normalBidFormSubmit(e) {
         $('#normalBidForm').submit(function(e) {
             e.preventDefault();
+            $.LoadingOverlay("show");
             let formData = new FormData(this);
             let url = $(this).attr('action')
             let kb = parseInt(auctionProduct.kb);
@@ -389,6 +391,8 @@
                 },
                 complete: function() {
                     // console.log({statusAutoBid, autoBid, nominalBid})
+                    $.LoadingOverlay("hide");
+                    
                     if (statusAutoBid === false) {
                         return false;
                     }
