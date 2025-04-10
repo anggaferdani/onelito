@@ -59,11 +59,11 @@
                 </div>
                 <div class="form-group">
                     <label for="percent">Percent (Max: 100)</label>
-                    <input  type="number" id="percent" class="form-control" name="" placeholder="">
+                    <input  type="number" id="percent" class="form-control" name="" value="0" placeholder="">
                 </div>
                 <div class="form-group">
                     <label for="point">Point (Cashback)</label>
-                    <input  type="text" id="point" class="form-control" name="point" placeholder="" readonly>
+                    <input  type="text" id="point" class="form-control" name="point" value="0" placeholder="" readonly>
                 </div>
                 <div class="form-group">
                     <label for="deskripsi">Deskripsi</label>
