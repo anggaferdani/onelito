@@ -75,6 +75,24 @@
     <script src="{{ asset('library/new/jquery.dataTables.min.js') }} "></script>
     <script src="{{ asset('library/new/dataTables.bootstrap5.min.js') }} "></script>
 
+    <script>
+        $(document).ready(function(){
+            $('.summernote').summernote({
+            height: 250,
+            toolbar: [
+                ['style', ['style']],
+                ['font', ['bold', 'underline', 'clear']],
+                ['fontname', ['fontname']],
+                ['color', ['color']],
+                ['para', ['ul', 'ol', 'paragraph', 'height']],
+                ['table', ['table']],
+                ['insert', ['link', 'picture', 'video']],
+                ['view', ['fullscreen', 'codeview', 'help']],
+            ],
+            });
+        });
+    </script>
+
     @stack('scripts')
 
     <!-- Template JS File -->
