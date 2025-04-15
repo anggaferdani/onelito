@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Carbon;
 use App\Http\Controllers\Admin;
-use App\Http\Controllers\AktivitasLoginController;
 use App\Mail\EmailVerification;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
@@ -18,15 +17,17 @@ use App\Http\Controllers\AuctionController;
 use App\Http\Controllers\PesananController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\KoiStockController;
 use App\Http\Controllers\WishlistController;
+use App\Http\Controllers\SendEventController;
 use Illuminate\Routing\Route as RoutingRoute;
 use App\Http\Controllers\NotifikasiController;
 use App\Http\Controllers\ChampionFishController;
 use App\Http\Controllers\ShoppingCartController;
+use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\AktivitasLoginController;
 use App\Http\Controllers\AuthenticationController;
-use App\Http\Controllers\KategoriController;
-use App\Http\Controllers\SendEventController;
 
 /*
 |--------------------------------------------------------------------------
@@ -80,6 +81,8 @@ Route::get('/now', function () {
 
 
 Route::get('/', [HomeController::class, 'index'])->name('home.index');
+Route::get('/terms', [HomeController::class, 'terms'])->name('terms');
+Route::get('/privacy', [HomeController::class, 'privacy'])->name('privacy');
 Route::get('/ls/click', [AuthenticationController::class, 'emailVerification'])->name('email.verification');
 Route::get('/ls/reset', [AuthenticationController::class, 'emailChangePassword'])->name('email.change_password');
 Route::post('/ls/reset', [AuthenticationController::class, 'emailChangePasswordProsess'])->name('email.change_password.prosess');
@@ -217,6 +220,7 @@ Route::group(['prefix' => 'admin', 'middleware' => 'auth:admin'], function () {
     Route::name('admin.')->group(function() {
         Route::resource('tag', TagController::class);
         Route::resource('news', NewsController::class);
+        Route::resource('setting', SettingController::class);
         Route::resource('pesanan', PesananController::class);
         Route::resource('kategori', KategoriController::class);
         Route::get('pesanan/detail/{no_order}', [PesananController::class, 'detail'])->name('pesanan.detail');

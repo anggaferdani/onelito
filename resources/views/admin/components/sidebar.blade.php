@@ -76,6 +76,10 @@
             <li class="nav-item {{ Route::is('admin.news.*') ? 'active' : '' }}">
                 <a class="nav-link" href="{{ route('admin.news.index') }}"><i class="fas fa-newspaper"></i> <span>News</span></a>
             </li>
+            <li class="menu-header">Setting</li>
+            <li class="nav-item {{ Route::is('admin.setting.*') ? 'active' : '' }}">
+                <a class="nav-link" href="{{ route('admin.setting.index') }}"><i class="fas fa-gear"></i> <span>Setting</span></a>
+            </li>
             {{-- <li class="menu-header">Lelang Bot</li>
             <li class="nav-item {{ $type_menu === 'bot-member' ? 'active' : '' }}">
                 <a class="nav-link"

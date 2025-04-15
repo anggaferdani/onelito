@@ -131,6 +131,10 @@
                     <a class="nav-link active text-white" aria-current="page"
                         href="https://www.tokopedia.com/onelitokoi?source=universe&st=product" target="_blank"><i class="fa-solid fa-bag-shopping"></i> Tokopedia</a>
                 </div>
+                <div class="mt-5">
+                    <div><a href="{{ route('terms') }}" class="text-white text-decoration-underline">Terms & Conditions</a></div>
+                    <div><a href="{{ route('privacy') }}" class="text-white text-decoration-underline">Privacy Policy</a></div>
+                </div>
             </div>
         </div>
     </div>

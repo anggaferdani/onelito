@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Banner;
-use App\Models\ChampionFish;
-use App\Models\Event;
-use App\Models\OrderDetail;
-use App\Models\Product;
 use Carbon\Carbon;
+use App\Models\Event;
+use App\Models\Banner;
+use App\Models\Product;
+use App\Models\Setting;
+use App\Models\OrderDetail;
+use App\Models\ChampionFish;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -90,5 +91,15 @@ class HomeController extends Controller
             'auctions' => $nextAuction,
             'banners' => $banners,
         ]);
+    }
+
+    public function terms() {
+        $setting = Setting::where('status', 'terms')->first();
+        return view('new.pages.terms', compact('setting'));
+    }
+
+    public function privacy() {
+        $setting = Setting::where('status', 'privacy')->first();
+        return view('new.pages.privacy', compact('setting'));
     }
 }

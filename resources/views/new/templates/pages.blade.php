@@ -23,6 +23,7 @@
     <div class="container">
       @yield('content')
     </div>
+    @include('new.templates.footer')
 
     <script src="{{ asset('library/jquery/dist/jquery.min.js') }}"></script>
     <script src="{{ asset('library/compressorjs/dist/compressor.min.js') }}"></script>

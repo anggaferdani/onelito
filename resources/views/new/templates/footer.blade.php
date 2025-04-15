@@ -25,8 +25,9 @@
         }
     }
 </style>
+
 <div class="container-fluid" style="background-color: black;
-height = 31hv">
+ height = 31hv">
     <div class="row">
         <div class="col-3 col-lg-3 py-4 text-center">
             <img src="{{ url('img/logo-bawah.png') }}" alt="ONELITO" class="pb-1 pb-lg-1 p-lg-5 py-5 w-75">
@@ -35,28 +36,32 @@ height = 31hv">
             <nav class="justify-content-center navbar navbar-dark navbar-expand-lg py-5">
                 <ul class="navbar-nav mr-auto">
                     <li class="nav-item">
-                        <a class="nav-link {{ $title === 'home' ? 'active text-danger' : '' }}"href="/">HOME</a>
+                        <a class="nav-link" href="/">HOME</a>
                     </li>
                     <li class="nav-item">
-                        <a
-                            class="nav-link {{ $title === 'auction' ? 'active text-danger' : '' }}"href="/auction">AUCTION</a>
+                        <a class="nav-link"
+                            href="/auction">AUCTION</a>
                     </li>
                     <li class="nav-item">
-                        <a
-                            class="nav-link {{ $title === 'onelito_store' ? 'active text-danger' : '' }}"href="/onelito_store">ONELITO
-                            STORE</a>
+                        <a class="nav-link"
+                            href="/onelito_store">ONELITO STORE</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ $title === 'koi_stok' ? 'active text-danger' : '' }}"href="/koi_stok">KOI
-                            STOCK</a>
+                        <a class="nav-link"
+                            href="/koi_stok">KOI STOCK</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ $title === 'wishlistlog' ? 'active text-danger' : '' }}"href="/wishlistlog">WISHLIST</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ $title === 'login' ? 'active text-danger' : '' }}"href="/profil"><i
-                                class="fa-solid fa-circle-user" style="font-size: x-large"></i></a>
-                    </li>
+                    @auth('member')
+                        <li class="nav-item">
+                            <a class="nav-link" href="/profil"><i
+                                    class="fa-solid fa-circle-user" style="font-size: x-large"></i></a>
+                        </li>
+                    @endauth
+                    @guest('member')
+                        <li class="nav-item">
+                            <a class="nav-link"
+                                href="/login">LOGIN</a>
+                        </li>
+                    @endguest
                 </ul>
             </nav>
         </div>
@@ -72,8 +77,7 @@ height = 31hv">
                         @onelitokoi.id</a>
                 </div>
                 <div class="">
-                    <a class="nav-link active text-white" aria-current="page"
-                        href="https://www.facebook.com/profile.php?id=100089107055034&_rdc=1&_rdr" target="_blank"><i
+                    <a class="nav-link active text-white" aria-current="page" href="https://www.facebook.com/profile.php?id=100089107055034&_rdc=1&_rdr" target="_blank"><i
                             class="fa-brands fa-facebook"></i> @Onelito koi</a>
                 </div>
                 <div class="">
@@ -88,8 +92,7 @@ height = 31hv">
                 </div>
                 <div class="">
                     <a class="nav-link active text-white" aria-current="page"
-                        href="https://www.tokopedia.com/onelitokoi?source=universe&st=product" target="_blank"><i
-                            class="fa-solid fa-bag-shopping"></i> Tokopedia</a>
+                        href="https://www.tokopedia.com/onelitokoi?source=universe&st=product" target="_blank"><i class="fa-solid fa-bag-shopping"></i> Tokopedia</a>
                 </div>
                 <div class="mt-5">
                     <div><a href="{{ route('terms') }}" class="text-white text-decoration-underline">Terms & Conditions</a></div>
