@@ -6,7 +6,7 @@
     <div class="col-md-3">
         <div class="list-group">
             <a href="{{ route('terms') }}" class="list-group-item list-group-item-action {{ Route::is('terms') ? 'fw-bold' : '' }}">Terms & Conditions</a>
-            <a href="{{ route('privacy') }}" class="list-group-item list-group-item-action {{ Route::is('privacy') ? 'fw-bold' : '' }}">Privacy Policy</a>
+            <a href="{{ route('privacy') }}" class="list-group-item list-group-item-action {{ Route::is('privacy') ? 'fw-bold' : '' }}">Return and Refund Policy</a>
         </div>
     </div>
     <div class="col-md-9">
