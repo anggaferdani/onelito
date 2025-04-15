@@ -11,6 +11,7 @@ use App\Mail\EmailVerification;
 use Illuminate\Validation\Rule;
 use App\Mail\EmailResetPassword;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Session;
@@ -22,7 +23,7 @@ class AuthenticationController extends Controller
         if (Auth::guard('member')->check()) {
             $user = Auth::guard('member')->user();
 
-            if ($user->email_verified_at !== null && $user->status_hapus == 0) {
+            if ($user->email_verified_at !== null) {
                 $ipAddress = $this->request->ip();
                 $userAgent = $this->request->header('User-Agent');
                 $sessionId = session()->getId();
@@ -51,12 +52,6 @@ class AuthenticationController extends Controller
 
             $this->request->session()->regenerateToken();
 
-            if ($user->status_hapus == 1) {
-                return redirect('login')->withErrors([
-                    'email' => 'Your account has been deleted.',
-                ]);
-            }
-
             return redirect('login')->withErrors([
                 'email' => 'Segera verifikasi email anda.',
             ]);
@@ -67,11 +62,30 @@ class AuthenticationController extends Controller
             'password' => ['required'],
         ]);
 
-        if (Auth::guard('member')->attempt($credentials)) {
-            $user = Auth::guard('member')->user();
+        // Modified section to handle duplicate emails and get the most recent one
+        $email = $credentials['email'];
+        $password = $credentials['password'];
 
-            if ($user->email_verified_at !== null && $user->status_aktif == 1 && $user->status_hapus == 0) {
+        // Get all users with this email, ordered by created_at descending (most recent first)
+        $potentialUsers = Member::where('email', $email)
+            ->orderBy('created_at', 'desc')
+            ->get();
 
+        $authenticated = false;
+        $user = null;
+
+        // Try to authenticate with the most recent one first
+        foreach ($potentialUsers as $potentialUser) {
+            if (Hash::check($password, $potentialUser->password)) {
+                $user = $potentialUser;
+                $authenticated = true;
+                break;
+            }
+        }
+
+        if ($authenticated) {
+            if ($user->email_verified_at !== null && $user->status_aktif == 1) {
+                Auth::guard('member')->login($user);
                 $this->request->session()->regenerate();
 
                 $ipAddress = $this->request->ip();
@@ -96,21 +110,10 @@ class AuthenticationController extends Controller
                 return redirect()->intended('/');
             }
 
-            Auth::guard('member')->logout();
-
-            $this->request->session()->invalidate();
-
-            $this->request->session()->regenerateToken();
-
-            if ($user->status_hapus == 1) {
+            // If authenticated but not verified or not active
+            if ($user->status_aktif == 0 && $user->status_hapus == 1) {
                 return back()->withErrors([
-                    'email' => 'Your account has been deleted.',
-                ])->onlyInput('email');
-            }
-
-            if ($user->status_aktif == 0) {
-                return back()->withErrors([
-                    'email' => 'Your account is inactive.',
+                    'email' => 'Email yang anda masukan tidak aktif.',
                 ])->onlyInput('email');
             }
 
