@@ -22,7 +22,7 @@ class AuthenticationController extends Controller
         if (Auth::guard('member')->check()) {
             $user = Auth::guard('member')->user();
 
-            if ($user->email_verified_at !== null) {
+            if ($user->email_verified_at !== null && $user->status_hapus == 0) {
                 $ipAddress = $this->request->ip();
                 $userAgent = $this->request->header('User-Agent');
                 $sessionId = session()->getId();
@@ -51,6 +51,12 @@ class AuthenticationController extends Controller
 
             $this->request->session()->regenerateToken();
 
+            if ($user->status_hapus == 1) {
+                return redirect('login')->withErrors([
+                    'email' => 'Your account has been deleted.',
+                ]);
+            }
+
             return redirect('login')->withErrors([
                 'email' => 'Segera verifikasi email anda.',
             ]);
@@ -64,7 +70,7 @@ class AuthenticationController extends Controller
         if (Auth::guard('member')->attempt($credentials)) {
             $user = Auth::guard('member')->user();
 
-            if ($user->email_verified_at !== null && $user->status_aktif == 1) {
+            if ($user->email_verified_at !== null && $user->status_aktif == 1 && $user->status_hapus == 0) {
 
                 $this->request->session()->regenerate();
 
@@ -96,9 +102,15 @@ class AuthenticationController extends Controller
 
             $this->request->session()->regenerateToken();
 
-            if ($user->status_aktif == 0 && $user->status_hapus == 1) {
+            if ($user->status_hapus == 1) {
                 return back()->withErrors([
-                    'email' => 'The provided credentials do not match our records.',
+                    'email' => 'Your account has been deleted.',
+                ])->onlyInput('email');
+            }
+
+            if ($user->status_aktif == 0) {
+                return back()->withErrors([
+                    'email' => 'Your account is inactive.',
                 ])->onlyInput('email');
             }
 
