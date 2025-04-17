@@ -99,6 +99,49 @@ class AuctionController extends Controller
         ]);
     }
 
+    public function getAuctionData()
+{
+    $auth = Auth::guard('member')->user(); // Get the authenticated user
+
+    $currentAuctions = Event::with([ // Get all auctions and their details
+        'auctionProducts' => function ($q) {
+            $q->withCount('bidDetails')->with(['photo', 'maxBid', 'event', 'currency']);
+        },
+        'auctionProducts.wishlist' => fn ($w) => $w->where('id_peserta', $auth ? $auth->id_peserta : null) // Only if user is logged in
+    ])
+    ->where('tgl_mulai', '<=', Carbon::now())
+    ->where('tgl_akhir', '>=', Carbon::now()->subDays(2)->endOfDay())
+    ->where('status_aktif', 1)
+    ->where('status_tutup', 0)
+    ->orderBy('created_at', 'desc')
+    ->get();
+
+
+    $currentProducts = $currentAuctions
+        ->pluck('auctionProducts')
+        ->flatten(1)
+        ->sortBy('no_ikan', SORT_NATURAL);
+
+    $currentTotalPrize = 0;
+
+    $auctionProductsData = [];
+    foreach ($currentProducts as $product) {
+        $currentTotalPrize += $product->maxBid?->nominal_bid ?? 0; // Safely access properties
+        $auctionProductsData[] = [
+            'id_ikan' => $product->id_ikan,
+            'bid_details_count' => $product->bid_details_count,
+            'currentMaxBid' => $product->maxBid?->nominal_bid ?? $product->ob,
+            'currency' => $product->currency,
+            // Add any other data you need for the refresh here
+        ];
+    }
+
+    return response()->json([
+        'currentTotalPrize' => $currentTotalPrize,
+        'auctionProducts' => $auctionProductsData,
+    ]);
+}
+
     public function bid($idIkan)
     {
         $reqMaxBid = $this->request->input('request.max_bid', 0);

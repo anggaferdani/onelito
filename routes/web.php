@@ -96,6 +96,7 @@ Route::post('/reqreset', [AuthenticationController::class, 'reqresetProsses'])->
 Route::post('/register', [AuthenticationController::class, 'register'])->name('register');
 
 Route::get('/auction', [AuctionController::class, 'index'])->name('auction.index');
+Route::get('/auction-data', [AuctionController::class, 'getAuctionData']);
 
 Route::get('/koi_stok', [KoiStockController::class, 'index'])->name('koi_stock.index');
 Route::get('/koi_stok/{id}', [KoiStockController::class, 'show'])->name('koi_stock.show');
