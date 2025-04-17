@@ -96,7 +96,7 @@
                         <div class="col">
                             <div class="border">
                                 <a href="{{ '/auction-bid-now/' . $wishlistable->id_ikan }}"><img src="{{ $wishlistPhoto }}"
-                                        alt="bio media" class="card-img-top"></a>
+                                        alt="bio media" class="img-fluid"></a>
                                 <div class="px-1">
                                     <p class="cb-judul">{!! Illuminate\Support\Str::limit(
                                         "$wishlistable->variety | $wishlistable->breeder | $wishlistable->size | $wishlistable->bloodline",
@@ -169,7 +169,7 @@
                         <div class="col">
                             <div class="border card">
                                 <a href="{{ url('/onelito_store') . '/' . $wishlist->wishlistable_id }}"><img
-                                        src="{{ $wishlistPhoto }}" alt="bio media" class="card-img-top product"></a>
+                                        src="{{ $wishlistPhoto }}" alt="bio media" class="img-fluid product"></a>
                                 <div class="card-body px-2">
                                     <p class="">{!! Illuminate\Support\Str::limit(
                                         $wishlist->wishlistable->merek_produk . ' ' . $wishlist->wishlistable->nama_produk,
