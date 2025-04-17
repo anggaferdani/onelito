@@ -214,7 +214,7 @@
                             <div class="card">
                                 <a href="{{ url('/koi_stok') . '/' . $wishlist->wishlistable_id }}">
                                     <img
-                                    src="{{ $wishlistPhoto }}" class="card-img-top" alt="...">
+                                    src="{{ $wishlistPhoto }}" class="img-fluid" alt="...">
                                 </a>
                                 <div class="card-body px-2">
                                     <!-- <div class="cb-judul"> -->
