@@ -142,6 +142,11 @@
                         if (array_key_exists('wishlist', $auctionProduct->toArray()) && $auctionProduct->wishlist !== null) {
                             $wishlistClass = 'fas fa-heart';
                         }
+
+                        $isHighestBidder = false;
+                        if ($auth !== null && $auctionProduct->maxBid !== null && $auctionProduct->maxBid->id_peserta === $auth->id_peserta) {
+                            $isHighestBidder = true;
+                        }
                     @endphp
                     <div class="col mt-3">
                         <div class="card">
@@ -160,21 +165,15 @@
                                         <p class="" style="color: red" id="bid-count-{{ $auctionProduct->id_ikan }}">{{ $auctionProduct->bid_details_count }}</p>
                                     </div>
 
-                                    <div class="col-6 p-0">
-                                        @if ($auth !== null)
-                                            @if ($auctionProduct->maxBid !== null)
-                                                @if ($auctionProduct->maxBid->id_peserta === $auth->id_peserta)
-                                                    <div class="row">
-                                                        <div class="col-4 p-0 px-1 text-end">
-                                                            <i style="color:red" class="fa-solid fa-caret-down"></i>
-                                                        </div>
-                                                        <div class="col-8 p-0 pt-1">
-                                                            <p class="m-0" style="font-size:70%;color:red">HIGHEST BID</p>
-                                                        </div>
-                                                    </div>
-                                                @endif
-                                            @endif
-                                        @endif
+                                    <div class="col-6 p-0" id="highest-bid-container-{{ $auctionProduct->id_ikan }}"  style="{{ $isHighestBidder ? '' : 'display: none;' }}">
+                                        <div class="row">
+                                            <div class="col-4 p-0 px-1 text-end">
+                                                <i style="color:red" class="fa-solid fa-caret-down"></i>
+                                            </div>
+                                            <div class="col-8 p-0 pt-1">
+                                                <p class="m-0" style="font-size:70%;color:red">HIGHEST BID</p>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -239,9 +238,9 @@
             }
         });
 
-        let currentTime = "{{ $now }}";
+        let currentTime = moment(); // Use moment.js for current time
         let timerLabels = document.getElementsByClassName('countdown-label');
-        let addedExtraTimeGroups = [];
+        let addedExtraTimeGroups = {}; // Use an object to store extra times
 
         // Function to format currency
         function formatCurrency(amount) {
@@ -253,105 +252,8 @@
             }).format(amount);
         }
 
-        getCurrentNow();
-
-        async function getCurrentNow() {
-            $.ajax({
-                type: 'GET',
-                contentType: false,
-                processData: false,
-                url: '/now',
-                beforeSend: function() {},
-                success: function(res) {
-                    currentTime = res;
-                },
-                complete: function() {
-                    //  Refresh data every 1 seconds
-                    setTimeout(() => {
-                        getCurrentNow()
-                    }, 1000);
-                },
-                error(err) {}
-            })
-        }
-
-        function allTimer() {
-            $.each(timerLabels, function(prefix, val) {
-                var addedExtraTime = $(val).attr('data-end-extratime');
-                var currentEndTime = $(val).attr('data-endtime');
-                startTimer(addedExtraTime, currentEndTime, val)
-            })
-        }
-
-        allTimer()
-
-        function startTimer(addedExtraTime, currentEndTime, val) {
-            var endTime = new Date(currentEndTime.replace(' ', 'T'));
-
-            // Update the count down every 1 second
-            var x = setInterval(function() {
-                var now = new Date(currentTime.replace(' ', 'T'));
-
-                var duration = endTime - now;
-
-                var days = Math.floor(duration / (1000 * 60 * 60 * 24));
-                var hours = Math.floor((duration % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                hours = hours + (days * 24);
-                var minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60));
-                var seconds = Math.floor((duration % (1000 * 60)) / 1000);
-
-                const hourString = `${hours < 10 ? '0' : ''}${hours}`;
-                const minuteString = `${minutes < 10 ? '0' : ''}${minutes}`;
-                const secondString = `${seconds < 10 ? '0' : ''}${seconds}`;
-                const timerString = `${hourString}:${minuteString}:${secondString}`;
-                $(val).html(timerString);
-
-                if (duration < 0) {
-                    $(val).html(`00:00:00`);
-
-                    clearInterval(x);
-                    startExtraTimer(addedExtraTime, val);
-                }
-            }, 1000);
-        }
-
-        function startExtraTimer(addedExtraTime, val) {
-            var id = $(val).attr('id');
-
-            addedExtraTimeGroups[id] = addedExtraTime;
-
-            if (addedExtraTime > currentTime) {
-                setTimeout(() => {
-                    autoDetailBid(id)
-                }, 20000);
-            }
-
-            var x = setInterval(function() {
-                var id = $(val).attr('id');
-                var endTime = new Date(addedExtraTimeGroups[id].replace(' ', 'T'));
-
-                var now = new Date(currentTime.replace(' ', 'T'));
-                var duration = endTime - now;
-
-                var hours = Math.floor((duration % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                var minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60));
-                var seconds = Math.floor((duration % (1000 * 60)) / 1000);
-
-                const hourString = `${hours < 10 ? '0' : ''}${hours}`;
-                const minuteString = `${minutes < 10 ? '0' : ''}${minutes}`;
-                const secondString = `${seconds < 10 ? '0' : ''}${seconds}`;
-                const timerString = `${hourString}:${minuteString}:${secondString}`;
-                $(val).html(timerString);
-                var id = $(val).attr('id');
-
-                if (duration < 0) {
-                    $(val).html(`00:00:00`);
-                    clearInterval(x);
-                }
-            }, 1000);
-        }
-
-        // Function to refresh the "Current Total Bid", "Harga saat ini", and "Number of bids"
+        // --- START : Real-time Data Updates ---
+        // Refreshes real-time data (Current Bid, Number of Bids, Highest Bidder Indicator)
         function refreshAuctionData() {
             $.ajax({
                 url: '/auction-data', // Replace with your actual route
@@ -368,6 +270,16 @@
 
                         // Update "Number of bids"
                         $('#bid-count-' + product.id_ikan).text(product.bid_details_count);
+
+                        // Update Highest Bidder Indicator
+                        const highestBidContainer = $('#highest-bid-container-' + product.id_ikan);
+                        if (highestBidContainer) {
+                            if (product.is_highest_bidder) {
+                                highestBidContainer.show(); // Show if the user is the highest bidder
+                            } else {
+                                highestBidContainer.hide(); // Hide if the user is not the highest bidder
+                            }
+                        }
                     });
                 },
                 error: function(error) {
@@ -376,80 +288,207 @@
             });
         }
 
-        // Refresh data every 5 seconds (adjust interval as needed)
-        setInterval(refreshAuctionData, 5000);
+        // Refresh data every 3 seconds (adjust interval as needed)
+        setInterval(refreshAuctionData, 3000);
+
+        // --- END : Real-time Data Updates ---
 
 
-        async function autoDetailBid(idIkan) {
-            urlGet = `/auction/${idIkan}/detail?simple=yes`;
 
-            $.ajax({
-                type: 'GET',
-                contentType: false,
-                processData: false,
-                url: urlGet,
-                beforeSend: function() {},
-                success: function(res) {
-                    addedExtraTimeGroups[idIkan] = res.addedExtraTime;
+        // --- START :  Countdown Timers  ---
 
-                    if (res.addedExtraTime > currentTime) {
-                        setTimeout(() => {
-                            autoDetailBid(idIkan)
-                        }, 20000);
-                    }
+        // Function to initialize all timers
+        function initializeTimers() {
+            Array.from(timerLabels).forEach(timerLabel => { // Use Array.from to work with HTMLCollection
+                const id = timerLabel.id;
+                const currentEndTime = timerLabel.dataset.endtime;
+                const addedExtraTime = timerLabel.dataset.endExtratime;
 
-                    // Refresh the individual product data after the auto bid update
-                    refreshAuctionData();
-                },
-                complete: function() {},
-                error(err) {}
-            })
+                if (currentEndTime) { // Ensure the end time is valid
+                    startTimer(id, addedExtraTime, currentEndTime);
+                }
+            });
         }
 
-        $(document).on('click', '.wishlist', function(e) {
-            var element = $(e.currentTarget);
-            var elClass = element.attr('class');
-            var id = element.attr('data-id');
+        // Function to start or update a single timer
+        function startTimer(id, addedExtraTime, currentEndTime) {
+            // Clear any existing interval for this timer to prevent multiple timers running.
+            clearInterval(window[`timerInterval_${id}`]);
 
-            if (elClass === 'far fa-heart wishlist') {
-                $.ajax({
-                    type: 'POST',
-                    url: `wishlists`,
-                    data: {
-                        id_ikan_lelang: id
-                    },
-                    dataType: "json",
-                    success: function(res) {
+            let endTime = moment(currentEndTime.replace(' ', 'T')); // Use moment.js
+            if (!endTime.isValid()) {
+                console.error(`Invalid end time for ID ${id}: ${currentEndTime}`);
+                return; // Exit if the end time is invalid
+            }
+
+
+            // Function to update the timer display
+            function updateTimer() {
+                let now = moment(); // Get the current time using moment.js
+                let duration = moment.duration(endTime.diff(now));
+                let days = duration.days();
+                let hours = duration.hours();
+                let minutes = duration.minutes();
+                let seconds = duration.seconds();
+
+                // Handle negative durations (time already passed)
+                if (duration <= 0) {
+                    document.getElementById(id).textContent = "00:00:00";
+                    clearInterval(window[`timerInterval_${id}`]); // Clear the interval
+
+                    if (addedExtraTime && !addedExtraTimeGroups[id]) {  // Only run once per extra time added
+                        addedExtraTimeGroups[id] = true; // Prevent multiple calls
+                        startExtraTimer(id, addedExtraTime);  // Start extra timer
+                    }
+
+                    return; // Exit the function
+                }
+
+                const hourString = String(hours + (days * 24)).padStart(2, '0'); // Include days in hours
+                const minuteString = String(minutes).padStart(2, '0');
+                const secondString = String(seconds).padStart(2, '0');
+                document.getElementById(id).textContent = `${hourString}:${minuteString}:${secondString}`;
+            }
+
+            // Initial call to set the timer immediately
+            updateTimer();
+
+            // Set interval to update the timer every second
+            window[`timerInterval_${id}`] = setInterval(updateTimer, 1000);
+        }
+
+        function startExtraTimer(id, addedExtraTime) {
+            // Stop the extra timer if addedExtraTime is not valid
+            if (!addedExtraTime) {
+                console.warn(`No extra time provided for ID ${id}`);
+                return;
+            }
+
+            let endTime = moment(addedExtraTime.replace(' ', 'T'));
+
+            if (!endTime.isValid()) {
+                console.error(`Invalid extra end time for ID ${id}: ${addedExtraTime}`);
+                return;
+            }
+
+            // Call autoDetailBid after 10 seconds
+            setTimeout(() => {
+                autoDetailBid(id);
+            }, 10000);
+
+
+            // Function to update the timer display
+            function updateExtraTimer() {
+                let now = moment(); // Get the current time using moment.js
+                let duration = moment.duration(endTime.diff(now));
+
+                let hours = duration.hours();
+                let minutes = duration.minutes();
+                let seconds = duration.seconds();
+
+                if (duration <= 0) {
+                    document.getElementById(id).textContent = "00:00:00";
+                    clearInterval(window[`extraTimerInterval_${id}`]);
+                    return;
+                }
+
+                const hourString = String(hours).padStart(2, '0');
+                const minuteString = String(minutes).padStart(2, '0');
+                const secondString = String(seconds).padStart(2, '0');
+                document.getElementById(id).textContent = `${hourString}:${minuteString}:${secondString}`;
+            }
+
+            updateExtraTimer();
+
+            window[`extraTimerInterval_${id}`] = setInterval(updateExtraTimer, 1000);
+        }
+
+        // --- END :  Countdown Timers  ---
+
+
+
+        // --- START :  Asynchronous Operations (Auto Bid, Wishlist) ---
+
+        async function autoDetailBid(idIkan) {
+            const urlGet = `/auction/${idIkan}/detail?simple=yes`;
+
+            try {
+                const response = await fetch(urlGet);
+                const res = await response.json();
+
+                if (res.addedExtraTime) {
+                    // Convert addedExtraTime string to a Date object for comparison
+                    const addedExtraTime = moment(res.addedExtraTime.replace(' ', 'T'));
+                    const now = moment();
+                    if (addedExtraTime.isAfter(now)) { // Use moment.js comparison
+                        // Re-initialize the timer with the updated end time.
+                        const timerLabel = document.getElementById(idIkan);
+                        if (timerLabel) {
+                            timerLabel.dataset.endExtratime = res.addedExtraTime; // Update the attribute
+                            startTimer(idIkan, res.addedExtraTime, timerLabel.dataset.endtime);
+                        }
+                    }
+                }
+
+                refreshAuctionData(); // Refresh data after potential bid update
+            } catch (error) {
+                console.error("Error in autoDetailBid:", error);
+            }
+        }
+
+        // --- END :  Asynchronous Operations (Auto Bid, Wishlist) ---
+
+
+        // --- START : Wishlist Functionality ---
+        $(document).on('click', '.wishlist', async function(e) {
+            const element = $(e.currentTarget);
+            const elClass = element.attr('class');
+            const id = element.attr('data-id');
+
+            try {
+                let response;
+                if (elClass === 'far fa-heart wishlist') {
+                    response = await fetch('/wishlists', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        body: JSON.stringify({ id_ikan_lelang: id })
+                    });
+
+                    if (response.ok) {
                         element.attr('class', 'fas fa-heart wishlist');
-
-                        return true;
-                    },
-                    error: function(error) {
-                        console.log(error)
-                        return false
+                    } else {
+                        console.error('Failed to add to wishlist:', await response.text());
                     }
+                } else if (elClass === 'fas fa-heart wishlist') {
+                    response = await fetch(`/wishlists/${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        body: JSON.stringify({ id_ikan_lelang: id })
+                    });
 
-                })
-            }
-
-            if (elClass === 'fas fa-heart wishlist') {
-                $.ajax({
-                    type: 'DELETE',
-                    url: `wishlists/${id}`,
-                    data: {
-                        id_ikan_lelang: id
-                    },
-                    dataType: "json",
-                    success: function(res) {
+                    if (response.ok) {
                         element.attr('class', 'far fa-heart wishlist');
-                        return true;
-                    },
-                    error: function(error) {
-                        console.log(error)
-                        return false
+                    } else {
+                        console.error('Failed to remove from wishlist:', await response.text());
                     }
-                })
+                }
+            } catch (error) {
+                console.error('Error during wishlist operation:', error);
             }
-        })
+        });
+        // --- END : Wishlist Functionality ---
+
+        // --- START : Page Initialization ---
+
+        // Initialize the timers when the page loads.
+        initializeTimers();
+
+        // --- END : Page Initialization ---
     </script>
 @endpush

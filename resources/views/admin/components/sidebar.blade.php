@@ -77,6 +77,9 @@
                 <a class="nav-link" href="{{ route('admin.news.index') }}"><i class="fas fa-newspaper"></i> <span>News</span></a>
             </li>
             <li class="menu-header">Setting</li>
+            <li class="nav-item {{ Route::is('admin.label.*') ? 'active' : '' }}">
+                <a class="nav-link" href="{{ route('admin.label.index') }}"><i class="fas fa-tag"></i> <span>Label</span></a>
+            </li>
             <li class="nav-item {{ Route::is('admin.setting.*') ? 'active' : '' }}">
                 <a class="nav-link" href="{{ route('admin.setting.index') }}"><i class="fas fa-gear"></i> <span>Setting</span></a>
             </li>

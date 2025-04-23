@@ -78,17 +78,25 @@
     <script>
         $(document).ready(function(){
             $('.summernote').summernote({
-            height: 250,
-            toolbar: [
-                ['style', ['style']],
-                ['font', ['bold', 'underline', 'clear']],
-                ['fontname', ['fontname']],
-                ['color', ['color']],
-                ['para', ['ul', 'ol', 'paragraph', 'height']],
-                ['table', ['table']],
-                ['insert', ['link', 'picture', 'video']],
-                ['view', ['fullscreen', 'codeview', 'help']],
-            ],
+                height: 250,
+                toolbar: [
+                    ['style', ['style']],
+                    ['font', ['bold', 'underline', 'clear']],
+                    ['fontname', ['fontname']],
+                    ['fontsize', ['fontsize']],
+                    ['color', ['color']],
+                    ['para', ['ul', 'ol', 'paragraph', 'height']],
+                    ['table', ['table']],
+                    ['insert', ['link', 'picture', 'video']],
+                    ['view', ['fullscreen', 'codeview', 'help']],
+                ],
+                fontSizes: ['8', '9', '10', '11', '12', '14', '18', '24', '36', '48' , '64', '82', '150'],
+                lineHeights: ['0.1', '0.3', '0.5', '0.7', '0.9', '1.0', '1.2', '1.4', '1.6', '1.8', '2.0', '2.4', '3.0'],
+                callbacks: {
+                    onInit: function() {
+                        $(this).summernote('code', $(this).summernote('code').replace(/<p>/g, '<p style="line-height: 0.3;">'));
+                    },
+                }
             });
         });
     </script>

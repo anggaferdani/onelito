@@ -9,6 +9,7 @@ use App\Http\Controllers\TagController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\NewsController;
+use App\Http\Controllers\LabelController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\AlamatController;
@@ -224,6 +225,7 @@ Route::group(['prefix' => 'admin', 'middleware' => 'auth:admin'], function () {
         Route::resource('setting', SettingController::class);
         Route::resource('pesanan', PesananController::class);
         Route::resource('kategori', KategoriController::class);
+        Route::resource('label', LabelController::class);
         Route::get('pesanan/detail/{no_order}', [PesananController::class, 'detail'])->name('pesanan.detail');
         Route::get('pesanan/kirim/{no_order}', [OrderController::class, 'kirim'])->name('pesanan.kirim');
         Route::get('pesanan/process/{no_order}', [OrderController::class, 'process'])->name('pesanan.process');

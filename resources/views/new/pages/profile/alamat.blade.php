@@ -34,7 +34,7 @@
               <div class="mb-1">{{ $alamat->no_hp }}</div>
               <div class="mb-1">{{ $alamat->alamat_lengkap }}</div>
               <div class="d-md-flex align-items-center d-block gap-2">
-                <div class="text-danger small" data-bs-toggle="modal" data-bs-target="#editModal{{ $alamat->id }}">Ubah Alamat</div>
+                <div class="text-danger small" data-bs-toggle="modal" data-bs-target="#editModal{{ $alamat->id }}" style="cursor: pointer;">Ubah Alamat</div>
                 <div class="text-danger small d-none d-md-flex">|</div>
                 @if($auth->alamat_utama != $alamat->id)
                   <a href="{{ route('alamat.alamat-utama', ['alamatId' => $alamat->id]) }}" class="text-danger small text-decoration-none">Jadikan Alamat Utama</a>
@@ -75,7 +75,12 @@
         <div class="modal-body">
           <div class="mb-3">
             <label class="form-label">Label <span class="text-danger">*</span></label>
-            <input type="text" class="form-control" name="label" required>
+            <select class="form-select" name="label">
+              <option selected disabled value="">Select</option>
+              @foreach($labels as $label)
+                <option value="{{ $label->label }}">{{ $label->label }}</option>
+              @endforeach
+            </select>
           </div>
           <div class="mb-3">
             <label class="form-label">Nama <span class="text-danger">*</span></label>
@@ -139,7 +144,12 @@
         <div class="modal-body">
           <div class="mb-3">
             <label class="form-label">Label <span class="text-danger">*</span></label>
-            <input type="text" class="form-control" name="label" required value="{{ $alamat->label }}">
+            <select class="form-select" name="label">
+              <option selected disabled value="">Select ({{ $alamat->label }})</option>
+              @foreach($labels as $label)
+                <option value="{{ $label->label }}" @if($label->label == $alamat->label) @selected(true) @endif>{{ $label->label }}</option>
+              @endforeach
+            </select>
           </div>
           <div class="mb-3">
             <label class="form-label">Nama <span class="text-danger">*</span></label>

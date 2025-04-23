@@ -127,11 +127,19 @@ class AuctionController extends Controller
     $auctionProductsData = [];
     foreach ($currentProducts as $product) {
         $currentTotalPrize += $product->maxBid?->nominal_bid ?? 0; // Safely access properties
+        $isHighestBidder = false; // Default to false
+
+        // Check if the authenticated user is the highest bidder
+        if ($auth !== null && $product->maxBid !== null && $product->maxBid->id_peserta === $auth->id_peserta) {
+            $isHighestBidder = true;
+        }
+
         $auctionProductsData[] = [
             'id_ikan' => $product->id_ikan,
             'bid_details_count' => $product->bid_details_count,
             'currentMaxBid' => $product->maxBid?->nominal_bid ?? $product->ob,
             'currency' => $product->currency,
+            'is_highest_bidder' => $isHighestBidder, // Add the flag to the data
             // Add any other data you need for the refresh here
         ];
     }

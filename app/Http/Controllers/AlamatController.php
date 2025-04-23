@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Label;
 use App\Models\Alamat;
 use App\Models\Member;
 use Illuminate\Http\Request;
@@ -26,9 +27,11 @@ class AlamatController extends Controller
         }
 
         $alamats = $query->latest()->paginate(3);
+        $labels = Label::where('status', 1)->get();
 
         return view('new.pages.profile.alamat', compact(
             'alamats',
+            'labels',
         ));
     }
 
