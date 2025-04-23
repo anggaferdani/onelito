@@ -176,54 +176,69 @@ class EventController extends Controller
             $auction = Event::with('auctionProducts')->findOrFail($id);
 
             if ($action === 'close-auction') {
+                Log::info("Closing Auction ID: " . $id);
+
                 $auction->status_tutup = 1;
                 $auction->save();
 
                 $now = Carbon::now();
+                Log::info("Current Time (Now): " . $now->toDateTimeString());
 
                 $auctionProducts = EventFish::doesntHave('winners')
                     ->whereHas('event', function ($q) use ($now) {
-                        $q->where('tgl_akhir', '<', $now);
+                        // Remove the date check here.  This is the important change.
+                        // $q->where('tgl_akhir', '<', $now);  // REMOVED
                     })
                     ->with(['bids.member', 'maxBid', 'event'])
                     ->where('status_aktif', 1)
-                    ->get()
-                    ->mapWithKeys(fn($a) => [$a->id_ikan => $a]);
+                    ->get();
+
+                Log::info("Number of auction products: " . $auctionProducts->count());
+
+                $auctionProducts = $auctionProducts->mapWithKeys(fn($a) => [$a->id_ikan => $a]);
 
                 $fishInWinner = AuctionWinner::whereIn('id_bidding', $auctionProducts->pluck('maxBid.id_bidding'))
                     ->get()
                     ->mapWithKeys(fn($q) => [$q->id_bidding => $q]);
 
                 $notificationResponses = [];
-                $notifiedParticipants = []; // Track notified participants
+                $notifiedParticipants = [];
 
                 foreach ($auctionProducts as $cProduct) {
-                    Log::info("Processing product ID: " . $cProduct->id_ikan); // Add logging
+                    Log::info("Processing product ID: " . $cProduct->id_ikan);
 
                     if ($cProduct->maxBid === null) {
-                        Log::info("Product ID: " . $cProduct->id_ikan . " has no max bid, skipping."); // Add logging
+                        Log::info("Product ID: " . $cProduct->id_ikan . " has no max bid, skipping.");
                         continue;
                     }
 
-                    $dateDiff = Carbon::parse($now, 'id')->diffInMinutes($cProduct->maxBid->updated_at);
+                    Log::info("Product ID: " . $cProduct->id_ikan . " - Max Bid Updated At: " . $cProduct->maxBid->updated_at->toDateTimeString());
+
+                    // Remove the date difference check.  This is another key change.
+                    // $dateDiff = Carbon::parse($now, 'id')->diffInMinutes($cProduct->maxBid->updated_at);
+                    // Log::info("Product ID: " . $cProduct->id_ikan . " - Date Diff (Minutes): " . $dateDiff);
+
                     $dateEventEnd = Carbon::parse($cProduct->event->tgl_akhir)->addMinutes($cProduct->extra_time);
+                    Log::info("Product ID: " . $cProduct->id_ikan . " - Event End Time (Calculated): " . $dateEventEnd->toDateTimeString());
 
-                    if ($now < $dateEventEnd) {
-                        Log::info("Product ID: " . $cProduct->id_ikan . " event not ended yet, skipping."); // Add logging
-                        continue;
-                    }
+                    // Remove the check.  This is the third critical change.
+                    // if ($now < $dateEventEnd) {
+                    //     Log::info("Product ID: " . $cProduct->id_ikan . " - Event not ended yet, skipping.");
+                    //     continue;
+                    // }
 
-                    if ($dateDiff < $cProduct->extra_time || array_key_exists($cProduct->maxBid->id_bidding, $fishInWinner->toArray())) {
-                        Log::info("Product ID: " . $cProduct->id_ikan . " did not meet time criteria or already won, skipping."); // Add logging
-                        continue;
-                    }
+                    // Removed the time difference check
+                    // if ($dateDiff < $cProduct->extra_time || array_key_exists($cProduct->maxBid->id_bidding, $fishInWinner->toArray())) {
+                    //     Log::info("Product ID: " . $cProduct->id_ikan . " - Did not meet time criteria or already won, skipping.");
+                    //     continue;
+                    // }
 
                     $winner = $cProduct->maxBid->member;
 
                     // Check if participant has already been notified
                     if (in_array($winner->id_peserta, $notifiedParticipants)) {
                         Log::info("Participant ID: " . $winner->id_peserta . " already notified, skipping.");
-                        continue; // Skip if already notified
+                        continue;
                     }
 
                     $data = [
@@ -233,7 +248,12 @@ class EventController extends Controller
                         'status_aktif' => 1,
                     ];
 
-                    AuctionWinner::create($data);
+                    try {
+                      AuctionWinner::create($data);
+                      Log::info("Auction winner created for product ID: " . $cProduct->id_ikan . " and bidder ID: " . $cProduct->maxBid->member->id_peserta);
+                    } catch (\Exception $e) {
+                       Log::error("Error creating auction winner for product ID: " . $cProduct->id_ikan . ": " . $e->getMessage());
+                    }
 
                     $fishVariety = "{$cProduct->no_ikan} | {$cProduct->variety} | {$cProduct->breeder} | {$cProduct->bloodline} | {$cProduct->sex}";
                     $finalBidPrice = $cProduct->maxBid->nominal_bid;
@@ -250,7 +270,7 @@ class EventController extends Controller
                     }
 
                     $notifiedParticipants[] = $winner->id_peserta; // Add participant to notified list
-                    Log::info("Notified participant ID: " . $winner->id_peserta . " for product ID: " . $cProduct->id_ikan); // Add logging
+                    Log::info("Notified participant ID: " . $winner->id_peserta . " for product ID: " . $cProduct->id_ikan);
                 }
 
                 DB::commit();

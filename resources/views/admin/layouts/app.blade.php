@@ -94,8 +94,8 @@
                 lineHeights: ['0.1', '0.3', '0.5', '0.7', '0.9', '1.0', '1.2', '1.4', '1.6', '1.8', '2.0', '2.4', '3.0'],
                 callbacks: {
                     onInit: function() {
-                        $(this).summernote('code', $(this).summernote('code').replace(/<p>/g, '<p style="line-height: 0.3;">'));
-                    },
+                        $(this).summernote('lineHeight', '1');
+                    }
                 }
             });
         });
