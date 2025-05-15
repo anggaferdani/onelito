@@ -176,13 +176,13 @@ class EventController extends Controller
             $auction = Event::with('auctionProducts')->findOrFail($id);
 
             if ($action === 'close-auction') {
-                Log::info("Closing Auction ID: " . $id);
+                // Log::info("Closing Auction ID: " . $id);
 
                 $auction->status_tutup = 1;
                 $auction->save();
 
                 $now = Carbon::now();
-                Log::info("Current Time (Now): " . $now->toDateTimeString());
+                // Log::info("Current Time (Now): " . $now->toDateTimeString());
 
                 $auctionProducts = EventFish::doesntHave('winners')
                     ->whereHas('event', function ($q) use ($now) {
@@ -193,7 +193,7 @@ class EventController extends Controller
                     ->where('status_aktif', 1)
                     ->get();
 
-                Log::info("Number of auction products: " . $auctionProducts->count());
+                // Log::info("Number of auction products: " . $auctionProducts->count());
 
                 $auctionProducts = $auctionProducts->mapWithKeys(fn($a) => [$a->id_ikan => $a]);
 
@@ -205,21 +205,21 @@ class EventController extends Controller
                 $notifiedParticipants = [];
 
                 foreach ($auctionProducts as $cProduct) {
-                    Log::info("Processing product ID: " . $cProduct->id_ikan);
+                    // Log::info("Processing product ID: " . $cProduct->id_ikan);
 
                     if ($cProduct->maxBid === null) {
-                        Log::info("Product ID: " . $cProduct->id_ikan . " has no max bid, skipping.");
+                        // Log::info("Product ID: " . $cProduct->id_ikan . " has no max bid, skipping.");
                         continue;
                     }
 
-                    Log::info("Product ID: " . $cProduct->id_ikan . " - Max Bid Updated At: " . $cProduct->maxBid->updated_at->toDateTimeString());
+                    // Log::info("Product ID: " . $cProduct->id_ikan . " - Max Bid Updated At: " . $cProduct->maxBid->updated_at->toDateTimeString());
 
                     // Remove the date difference check.  This is another key change.
                     // $dateDiff = Carbon::parse($now, 'id')->diffInMinutes($cProduct->maxBid->updated_at);
                     // Log::info("Product ID: " . $cProduct->id_ikan . " - Date Diff (Minutes): " . $dateDiff);
 
                     $dateEventEnd = Carbon::parse($cProduct->event->tgl_akhir)->addMinutes($cProduct->extra_time);
-                    Log::info("Product ID: " . $cProduct->id_ikan . " - Event End Time (Calculated): " . $dateEventEnd->toDateTimeString());
+                    // Log::info("Product ID: " . $cProduct->id_ikan . " - Event End Time (Calculated): " . $dateEventEnd->toDateTimeString());
 
                     // Remove the check.  This is the third critical change.
                     // if ($now < $dateEventEnd) {
@@ -237,7 +237,7 @@ class EventController extends Controller
 
                     // Check if participant has already been notified
                     if (in_array($winner->id_peserta, $notifiedParticipants)) {
-                        Log::info("Participant ID: " . $winner->id_peserta . " already notified, skipping.");
+                        // Log::info("Participant ID: " . $winner->id_peserta . " already notified, skipping.");
                         continue;
                     }
 
@@ -250,7 +250,7 @@ class EventController extends Controller
 
                     try {
                       AuctionWinner::create($data);
-                      Log::info("Auction winner created for product ID: " . $cProduct->id_ikan . " and bidder ID: " . $cProduct->maxBid->member->id_peserta);
+                    //   Log::info("Auction winner created for product ID: " . $cProduct->id_ikan . " and bidder ID: " . $cProduct->maxBid->member->id_peserta);
                     } catch (\Exception $e) {
                        Log::error("Error creating auction winner for product ID: " . $cProduct->id_ikan . ": " . $e->getMessage());
                     }
@@ -270,7 +270,7 @@ class EventController extends Controller
                     }
 
                     $notifiedParticipants[] = $winner->id_peserta; // Add participant to notified list
-                    Log::info("Notified participant ID: " . $winner->id_peserta . " for product ID: " . $cProduct->id_ikan);
+                    // Log::info("Notified participant ID: " . $winner->id_peserta . " for product ID: " . $cProduct->id_ikan);
                 }
 
                 DB::commit();

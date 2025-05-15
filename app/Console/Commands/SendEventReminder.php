@@ -92,42 +92,42 @@ class SendEventReminder extends Command
 
         // $this->info('Notifikasi event terkirim.');
 
-        $url = 'https://service-chat.qontak.com/api/open/v1/broadcasts/whatsapp/direct';
-        $token = env('QONTAK_API_KEY');
+        // $url = 'https://service-chat.qontak.com/api/open/v1/broadcasts/whatsapp/direct';
+        // $token = env('QONTAK_API_KEY');
 
-        $data = [
-            "to_name" => 'Angga',
-            "to_number" => '6281290573256',
-            "message_template_id" => "0fd72c23-4703-4954-8fc3-fcdd548c8641",
-            "channel_integration_id" => env('QONTAK_CHANNEL_INTEGRATION_ID'),
-            "language" => [
-                "code" => "id",
-            ],
-            "parameters" => [
-                "header" => [
-                    "format" => "DOCUMENT",
-                    "params" => [],
-                ],
-                "body" => [
-                    [
-                        "key" => "0",
-                        "value_text" => 'Angga',
-                        "value" => "customer_name",
-                    ]
-                ],
-                "buttons" => []
-            ]
-        ];
+        // $data = [
+        //     "to_name" => 'Angga',
+        //     "to_number" => '6281290573256',
+        //     "message_template_id" => "0fd72c23-4703-4954-8fc3-fcdd548c8641",
+        //     "channel_integration_id" => env('QONTAK_CHANNEL_INTEGRATION_ID'),
+        //     "language" => [
+        //         "code" => "id",
+        //     ],
+        //     "parameters" => [
+        //         "header" => [
+        //             "format" => "DOCUMENT",
+        //             "params" => [],
+        //         ],
+        //         "body" => [
+        //             [
+        //                 "key" => "0",
+        //                 "value_text" => 'Angga',
+        //                 "value" => "customer_name",
+        //             ]
+        //         ],
+        //         "buttons" => []
+        //     ]
+        // ];
 
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . $token,
-            'Content-Type' => 'application/json',
-        ])->post($url, $data);
+        // $response = Http::withHeaders([
+        //     'Authorization' => 'Bearer ' . $token,
+        //     'Content-Type' => 'application/json',
+        // ])->post($url, $data);
 
-        if ($response->successful()) {
-            $this->info("Broadcast berhasil dikirim");
-        } else {
-            $this->info("Gagal mengirim broadcast");
-        }
+        // if ($response->successful()) {
+        //     $this->info("Broadcast berhasil dikirim");
+        // } else {
+        //     $this->info("Gagal mengirim broadcast");
+        // }
     }
 }

@@ -145,45 +145,45 @@ class ProfileController extends Controller
         ));
     }
 
-    public function whatsapp() {
-        $url = 'https://service-chat.qontak.com/api/open/v1/broadcasts/whatsapp/direct';
-        $token = 'BMdThzuEsE5XX-KBFsUwuXnuQvZMRJmSJWWUpqDoWwk';
+    // public function whatsapp() {
+    //     $url = 'https://service-chat.qontak.com/api/open/v1/broadcasts/whatsapp/direct';
+    //     $token = 'BMdThzuEsE5XX-KBFsUwuXnuQvZMRJmSJWWUpqDoWwk';
 
-        $data = [
-            "to_name" => "Angga",
-            "to_number" => "6281290573256",
-            "message_template_id" => "5255dc53-a7b1-4a36-81ef-220d6cca808e",
-            "channel_integration_id" => "21c91c8d-169a-4a7f-9383-84fa268fd7e7",
-            "language" => [
-                "code" => "id",
-            ],
-            "parameters" => [
-                "header" => [
-                    "format" => "DOCUMENT",
-                    "params" => [],
-                ],
-                "body" => [],
-                "buttons" => []
-            ]
-        ];
+    //     $data = [
+    //         "to_name" => "Angga",
+    //         "to_number" => "6281290573256",
+    //         "message_template_id" => "5255dc53-a7b1-4a36-81ef-220d6cca808e",
+    //         "channel_integration_id" => "21c91c8d-169a-4a7f-9383-84fa268fd7e7",
+    //         "language" => [
+    //             "code" => "id",
+    //         ],
+    //         "parameters" => [
+    //             "header" => [
+    //                 "format" => "DOCUMENT",
+    //                 "params" => [],
+    //             ],
+    //             "body" => [],
+    //             "buttons" => []
+    //         ]
+    //     ];
 
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . $token,
-            'Content-Type' => 'application/json',
-        ])->post($url, $data);
+    //     $response = Http::withHeaders([
+    //         'Authorization' => 'Bearer ' . $token,
+    //         'Content-Type' => 'application/json',
+    //     ])->post($url, $data);
 
-        if ($response->successful()) {
-            return response()->json([
-                'message' => 'Broadcast berhasil dikirim',
-                'data' => $response->json(),
-            ]);
-        } else {
-            return response()->json([
-                'message' => 'Broadcast gagal dikirim',
-                'error' => $response->body(),
-            ], $response->status());
-        }
-    }
+    //     if ($response->successful()) {
+    //         return response()->json([
+    //             'message' => 'Broadcast berhasil dikirim',
+    //             'data' => $response->json(),
+    //         ]);
+    //     } else {
+    //         return response()->json([
+    //             'message' => 'Broadcast gagal dikirim',
+    //             'error' => $response->body(),
+    //         ], $response->status());
+    //     }
+    // }
 
     // public function getCouriers()
     // {
