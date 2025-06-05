@@ -7,23 +7,40 @@ use App\Models\Member;
 use App\Models\Province;
 use App\Mail\UserVerified;
 use App\Models\LoginHistory;
+use Illuminate\Http\Request;
 use App\Mail\EmailVerification;
 use Illuminate\Validation\Rule;
 use App\Mail\EmailResetPassword;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Session;
+use Laravel\Socialite\Facades\Socialite;
 
 class AuthenticationController extends Controller
 {
+    protected $request;
+
+    public function __construct(Request $request)
+    {
+        $this->request = $request;
+    }
+
     public function login()
     {
         if (Auth::guard('member')->check()) {
             $user = Auth::guard('member')->user();
 
             if ($user->email_verified_at !== null) {
+
+                // Cek phone number verification status
+                if ($user->status_phone_number_verification == 0) {
+                    return redirect()->route('confirm-phone-number', ['email' => $user->email, 'no_hp' => $user->no_hp]);
+                }
+
                 $ipAddress = $this->request->ip();
                 $userAgent = $this->request->header('User-Agent');
                 $sessionId = session()->getId();
@@ -42,7 +59,7 @@ class AuthenticationController extends Controller
                         'session_id' => $sessionId,
                     ]);
                 }
-                
+
                 return redirect()->intended('/');
             }
 
@@ -84,7 +101,13 @@ class AuthenticationController extends Controller
         }
 
         if ($authenticated) {
-            if ($user->email_verified_at !== null && $user->status_aktif == 1) {
+            if ($user->email_verified_at !== null) {
+
+                // Cek phone number verification status
+                if ($user->status_phone_number_verification == 0) {
+                    return redirect()->route('confirm-phone-number', ['email' => $user->email, 'no_hp' => $user->no_hp]);
+                }
+
                 Auth::guard('member')->login($user);
                 $this->request->session()->regenerate();
 
@@ -157,6 +180,10 @@ class AuthenticationController extends Controller
 
     public function registration()
     {
+        if (Auth::guard('member')->check()) {
+            return redirect('/');
+        }
+        
         $provinces = Province::get();
 
         return view('registrasi')->with([
@@ -164,31 +191,54 @@ class AuthenticationController extends Controller
         ]);
     }
 
-    public function register()
+    public function register(Request $request)
     {
-        $this->request->validate([
-            'nama' => ['required'],
+        $request->validate([
+            'google_id' => ['nullable'],
+            'nama' => ['required', 'array'],
+            'nama.0' => ['required', 'string', 'max:255'],
+            'nama.1' => ['required', 'string', 'max:255'],
             'email' => [
                 'required',
                 'email',
                 Rule::unique('m_peserta')->where(function ($query) {
-                    return $query->where('status_hapus', 0);
+                    return $query->where('status_aktif', 1);
                 })
             ],
-            // 'email' => ['required', 'email', 'unique:m_peserta,email'],
-            'password' => ['required'],
-            'alamat' => ['required'],
-            'no_hp' => ['required'],
+            'password' => ['required', 'min:8'],
+            'confirmpassword' => 'required|same:password',
+            'alamat' => ['required', 'string', 'max:255'],
+            'no_hp' => ['required', 'string', 'max:20'],
             'provinsi' => ['required'],
             'kota' => ['required'],
             'kecamatan' => ['required'],
             'kelurahan' => ['required'],
+            'kode_pos' => ['nullable', 'string', 'max:10'],
+        ], [
+            'nama.0.required' => 'Nama depan wajib diisi.',
+            'nama.1.required' => 'Nama belakang wajib diisi.',
+            'nama.0.max' => 'Nama depan tidak boleh lebih dari 255 karakter.',
+            'nama.1.max' => 'Nama belakang tidak boleh lebih dari 255 karakter.',
+            'email.required' => 'Email wajib diisi.',
+            'email.email' => 'Email tidak valid.',
+            'email.unique' => 'Email sudah terdaftar.',
+            'password.required' => 'Password wajib diisi.',
+            'password.min' => 'Password minimal 8 karakter.',
+            'password.confirmed' => 'Konfirmasi password tidak cocok.',
+            'confirmpassword.required' => 'Konfirmasi password wajib diisi.',
+            'confirmpassword.same' => 'Konfirmasi password tidak cocok dengan password.',
+            'alamat.required' => 'Alamat wajib diisi.',
+            'no_hp.required' => 'No. Handphone wajib diisi.',
+            'provinsi.required' => 'Provinsi wajib diisi.',
+            'kota.required' => 'Kota wajib diisi.',
+            'kecamatan.required' => 'Kecamatan wajib diisi.',
+            'kelurahan.required' => 'Kelurahan wajib diisi.',
         ]);
 
-        $name = $this->request->input('nama');
+        $name = $request->input('nama');
 
-        $data = $this->request->only([
-            'nama',
+        $data = $request->only([
+            'google_id',
             'email',
             'password',
             'alamat',
@@ -197,9 +247,8 @@ class AuthenticationController extends Controller
             'kota',
             'kecamatan',
             'kelurahan',
+            'kode_pos'
         ]);
-
-        $data['status_aktif'] = 0;
 
         $firstName = $name[0];
         $lastName = $name[1];
@@ -207,23 +256,271 @@ class AuthenticationController extends Controller
         $data['nama'] = "$firstName $lastName";
         $data['nama_depan'] = $firstName;
         $data['nama_belakang'] = $lastName;
+        $data['password'] = Hash::make($data['password']);
 
-        $createMember = Member::create($data);
+        $data['status_aktif'] = 0;
 
-        Mail::to($data['email'])->send(new EmailVerification($data['email']));
+        // Generate verification token and code
+        $verificationToken = Member::generateVerificationToken();
+        $verificationCode = Member::generateVerificationCode();
 
-        if ($createMember) {
+        $data['verification_token'] = $verificationToken;
+        $data['verification_code'] = $verificationCode;
+        $data['verification_code_expires_at'] = Carbon::now()->addMinutes(10); // Expire dalam 10 menit
+
+        $google_id = $data['google_id'];
+
+        // Coba cari user berdasarkan google_id
+        $member = Member::where('google_id', $google_id)->first();
+
+        try {
+            if ($member) {
+                // Jika user dengan google_id sudah ada, update datanya
+                $member->update($data);
+            } else {
+                // Jika user belum ada, buat user baru
+                $member = Member::create($data);
+            }
+
+            $this->sendVerificationCodeViaQontak($member, $verificationCode);
+
+            return redirect()->route('phone-number-verification', ['token' => $verificationToken]);
+
+        } catch (\Exception $e) {
             return redirect()->back()->with([
-                'success' => true,
-                'message' => 'Sukses Menambahkan Peserta',
-
-            ], 200);
-        } else {
-            return redirect()->back()->with([
-                'success' => false,
-                'message' => 'Gagal Menambahkan Peserta'
-            ], 500);
+                'error' => $e->getMessage()
+            ]);
         }
+    }
+
+    public function confirmPhoneNumber(Request $request)
+    {
+        $member = Member::where('email', $request->email)->where('no_hp', $request->no_hp)->where('status_aktif', 1)->where('status_phone_number_verification', 0)->first();
+
+        if (!$member) {
+            return back()->withErrors(['message' => 'User tidak ditemukan.']);
+        }
+
+        return view('confirm-phone-number', compact('member'));
+    }
+
+    public function postConfirmPhoneNumber(Request $request)
+    {
+        $request->validate([
+            'no_hp' => ['required', 'string', 'max:20'],
+        ]);
+
+        $member = Member::where('email', $request->email)->where('status_aktif', 1)->where('status_phone_number_verification', 0)->first(); // Cari member by email
+
+        if (!$member) {
+            return back()->withErrors(['message' => 'User tidak ditemukan.']);
+        }
+
+        // Update nomor HP
+        $member->no_hp = $request->no_hp;
+        $member->save();
+
+        // Generate kode verifikasi
+        $verificationCode = Member::generateVerificationCode();
+        $member->verification_code = $verificationCode;
+        $member->verification_code_expires_at = \Carbon\Carbon::now()->addMinutes(10);
+        $member->verification_token = Member::generateVerificationToken();  // Generate a new token
+        $member->save();
+
+        // Kirim kode verifikasi
+        $this->sendVerificationCodeViaQontak($member, $verificationCode);
+
+        return redirect()->route('phone-number-verification', ['token' => $member->verification_token]);
+    }
+
+    public function phoneNumberVerification($token)
+    {
+        $member = Member::where('verification_token', $token)->first();
+
+        if ($member->status_phone_number_verification == 1) {
+            Auth::guard('member')->login($member);
+            
+            return redirect('/')->with('success', 'Nomor telepon berhasil diverifikasi dan akun Anda aktif!');
+        }
+
+        if (!$member) {
+            abort(404, 'Token verifikasi tidak valid.');
+        }
+        return view('phone-number-verification', compact('member'));
+    }
+
+    public function postPhoneNumberVerification(Request $request, $token)
+    {
+        $request->validate([
+            'verification_code' => 'required|digits:6',
+        ], [
+            'verification_code.required' => 'Kode verifikasi wajib diisi.',
+            'verification_code.digits' => 'Kode verifikasi harus 6 digit.',
+        ]);
+
+        $member = Member::where('verification_token', $token)->first();
+
+        if (!$member) {
+            return redirect()->back()->withErrors(['message' => 'Token verifikasi tidak valid.']);
+        }
+
+        if ($request->verification_code !== $member->verification_code) {
+            return redirect()->back()->withErrors(['verification_code' => 'Kode verifikasi tidak cocok.']);
+        }
+
+        if (Carbon::now()->gt($member->verification_code_expires_at)) {
+            return redirect()->back()->withErrors(['verification_code' => 'Kode verifikasi sudah kadaluarsa.']);
+        }
+
+        $member->status_aktif = 1;
+        $member->status_phone_number_verification = 1;
+        $member->save();
+
+        Auth::guard('member')->login($member);
+
+        return redirect('/')->with('success', 'Nomor telepon berhasil diverifikasi dan akun Anda aktif!');
+    }
+
+    public function requestVerificationCode(Request $request, $token)
+    {
+        $member = Member::where('verification_token', $token)->first();
+
+        if (!$member) {
+            return response()->json(['message' => 'Token verifikasi tidak valid.'], 404);
+        }
+
+        // Periksa apakah kode verifikasi masih berlaku
+        if (Carbon::now()->lte($member->verification_code_expires_at)) {
+            // Jika masih berlaku, redirect ke halaman verifikasi nomor telepon
+            return response()->json(['message' => 'Kode verifikasi masih berlaku. Silakan periksa WhatsApp Anda.', 'redirect' => route('phone-number-verification', ['token' => $token])], 200);
+        }
+
+        // Generate kode verifikasi baru
+        $verificationCode = Member::generateVerificationCode();
+        $member->verification_code = $verificationCode;
+        $member->verification_code_expires_at = Carbon::now()->addMinutes(10);
+        $member->save();
+
+        // Kirim kode verifikasi baru via Qontak
+        $this->sendVerificationCodeViaQontak($member, $verificationCode);
+
+        return response()->json(['message' => 'Kode verifikasi baru telah dikirim.'], 200);
+
+    }
+
+    private function sendVerificationCodeViaQontak(Member $member, $verificationCode)
+    {
+        $url = 'https://service-chat.qontak.com/api/open/v1/broadcasts/whatsapp/direct';
+        $token = env('QONTAK_API_KEY');
+
+        $phoneNumber = $member->no_hp;
+        $phoneNumber = preg_replace('/\D/', '', $phoneNumber);
+        if (strpos($phoneNumber, '0') === 0) {
+            $phoneNumber = '62' . substr($phoneNumber, 1);
+        } else if(strpos($phoneNumber, '62') !== 0) {
+            $phoneNumber = '62' . $phoneNumber;
+        }
+
+        $data_qontak = [
+            "to_name" => $member->nama,
+            "to_number" => $phoneNumber,
+            "message_template_id" => "b122ad63-435a-4d73-aaf2-409d50e6bca5",
+            "channel_integration_id" => env('QONTAK_CHANNEL_INTEGRATION_ID'),
+            "language" => [
+                "code" => "id",
+            ],
+            "parameters" => [
+                "header" => [
+                    "format" => "DOCUMENT",
+                    "params" => [],
+                ],
+                "body" => [
+                    [
+                        "key" => "0",
+                        "value_text" => (string) $verificationCode,
+                        "value" => "code",
+                    ]
+                ],
+                "buttons" => [
+                    [
+                        "index" => "0",
+                        "type" => "url",
+                        "value" => (string) $verificationCode,
+                    ]
+                ]
+            ]
+        ];
+
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $token,
+            'Content-Type' => 'application/json',
+        ])->post($url, $data_qontak);
+
+        if ($response->failed()) {
+           return ['message' => "Gagal mengirim notifikasi WhatsApp: " . $response->body()];
+        } else {
+            return ['message' => "Berhasil mengirim notifikasi WhatsApp"];
+        }
+    }
+
+    public function redirect()
+    {
+        return Socialite::driver('google')->redirect();
+    }
+
+    public function callback()
+    {
+        try {
+            $userFromGoogle = Socialite::driver('google')->user();
+        } catch (\Exception $e) {
+            report($e);
+            return redirect('/login')->withErrors(['google' => 'Google login failed. Please try again.']);
+        }
+
+        $userToLogin = Member::where('google_id', $userFromGoogle->getId())->first();
+
+        if (!$userToLogin) {
+            $userToLogin = Member::where('email', $userFromGoogle->getEmail())
+                                ->where('status_aktif', 1)
+                                ->first();
+
+            if ($userToLogin) {
+                $userToLogin->google_id = $userFromGoogle->getId();
+                $userToLogin->save();
+            } else {
+                $fullName = $userFromGoogle->getName();
+                $nameParts = explode(' ', $fullName, 2);
+
+                return redirect()->route('registration', [
+                    'google_id' => $userFromGoogle->getId(),
+                    'firstName' => $nameParts[0],
+                    'lastName' => $nameParts[1] ?? '',
+                    'email' => $userFromGoogle->getEmail(),
+                ]);
+            }
+        }
+
+
+        // Tambahan Logika Verifikasi Telepon
+        if ($userToLogin->status_phone_number_verification == 0) {
+            if ($userToLogin->verification_code_expires_at && \Carbon\Carbon::now()->lte($userToLogin->verification_code_expires_at)) {
+                // Verification code belum expired, redirect ke halaman verifikasi
+                return redirect()->route('phone-number-verification', ['token' => $userToLogin->verification_token]);
+            } else {
+                // Verification code sudah expired, kirim kode baru dan redirect
+                $verificationCode = Member::generateVerificationCode();
+                $userToLogin->verification_code = $verificationCode;
+                $userToLogin->verification_code_expires_at = \Carbon\Carbon::now()->addMinutes(10);
+                $userToLogin->save();
+
+                $this->sendVerificationCodeViaQontak($userToLogin, $verificationCode); // Pastikan fungsi ini tersedia
+
+                return redirect()->route('phone-number-verification', ['token' => $userToLogin->verification_token]);
+            }
+        }
+
+        Auth::guard('member')->login($userToLogin);
+        return redirect('/');
     }
 
     public function adminLogin()
@@ -318,10 +615,7 @@ class AuthenticationController extends Controller
 
     public function reqreset()
     {
-
-        return view('reqreset')->with([
-            // 'provinces' => $provinces
-        ]);
+        return view('reqreset');
     }
 
     public function reqresetProsses()

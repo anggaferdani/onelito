@@ -7,6 +7,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Support\Str;
 
 class Member extends Authenticatable
 {
@@ -21,11 +22,15 @@ class Member extends Authenticatable
         'password',
     ];
 
-    /**
-     * Password need to be all time encrypted.
-     *
-     * @param string $password
-     */
+    public static function generateVerificationToken()
+    {
+        return Str::random(60);
+    }
+
+    public static function generateVerificationCode()
+    {
+        return mt_rand(100000, 999999); // Kode 6 digit
+    }
 
     public function setPasswordAttribute($password)
     {

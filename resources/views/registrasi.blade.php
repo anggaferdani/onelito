@@ -61,13 +61,17 @@
 
         <form method="POST" id="registration" action="{{ route('register') }}">
             @csrf
+            @if(request('google_id'))
+                <input type="hidden" value="{{ request('google_id') }}" name="google_id">
+            @endif
+            <div class="alert alert-danger mb-3">Pastikan nomor telepon yang Anda masukkan sudah benar. Kode verifikasi akan dikirimkan ke WhatsApp Anda.</div>
             <div class="row">
                 <div class="col-md-6">
                     <div class="row">
                         <div class="col-lg-6 mb-3">
                             <div class="relative">
-                                <input type="text" name="nama[]" id="namadepan" required
-                                    class="block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                                <input type="text" @if(request('google_id')) readonly @endif value="{{ request('firstName') }}" name="nama[]" id="namadepan" required
+                                    class="@if(request('google_id')) border-danger @endif bg-transparent block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                                     placeholder=" " />
                                 <label for="namadepan"
                                     class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-3 scale-75 top-1 z-10 origin-[0] bg-white dark:bg-gray-900 px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-1 peer-focus:scale-75 peer-focus:-translate-y-3 left-1">Nama
@@ -76,8 +80,8 @@
                         </div>
                         <div class="col-lg-6 mb-3">
                             <div class="relative">
-                                <input type="text" name="nama[]" id="namabelakang" required
-                                    class="block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                                <input type="text" name="nama[]" @if(request('google_id')) readonly @endif value="{{ request('lastName') }}" id="namabelakang" required
+                                    class="@if(request('google_id')) border-danger @endif bg-transparent block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                                     placeholder=" " />
                                 <label for="namabelakang"
                                     class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-3 scale-75 top-1 z-10 origin-[0] bg-white dark:bg-gray-900 px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-1 peer-focus:scale-75 peer-focus:-translate-y-3 left-1">Nama
@@ -86,8 +90,8 @@
                         </div>
                         <div class="mb-3">
                             <div class="relative">
-                                <input type="email" name="email" id="email" required
-                                    class="block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                                <input type="email" name="email" id="email" @if(request('google_id')) readonly @endif value="{{ request('email') }}" required
+                                    class="@if(request('google_id')) border-danger @endif bg-transparent block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                                     placeholder=" " />
                                 <label for="email"
                                     class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-3 scale-75 top-1 z-10 origin-[0] bg-white dark:bg-gray-900 px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-1 peer-focus:scale-75 peer-focus:-translate-y-3 left-1">Email</label>
@@ -95,7 +99,7 @@
                         </div>
                         <div class="col-lg-6 mb-3">
                             <div class="relative">
-                                <input type="text" name="password" id="password" required
+                                <input type="password" name="password" id="password" required
                                     class="block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                                     placeholder=" " />
                                 <label for="password"
@@ -105,7 +109,7 @@
                         </div>
                         <div class="col-lg-6 mb-3">
                             <div class="relative">
-                                <input type="text" name="confirmpassword" id="confirmpassword" required
+                                <input type="password" name="confirmpassword" id="confirmpassword" required
                                     class="block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                                     placeholder=" " />
                                 <label for="confirmpassword"
@@ -128,37 +132,17 @@
                     <div class="row">
                         <div class="col-lg-6 mb-3">
                             <div class="relative ">
-                                {{-- <input type="text" name="province" id="province"
-                            class="block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-                            placeholder=" " />
-                        <label for="province"
-                            class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-3 scale-75 top-1 z-10 origin-[0] bg-white dark:bg-gray-900 px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-1 peer-focus:scale-75 peer-focus:-translate-y-3 left-1">Provinsi</label>
-                                --}}
                                 <select name="provinsi" id="provinsi" required class="select2-setup form-control ">
                                     <option></option>
                                     @foreach ($provinces as $province)
                                         <option value="{{ $province->prov_id }}">{{ $province->prov_name }}</option>
                                     @endforeach
                                 </select>
-                                {{-- <select id="countries"
-                            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
-                            <option selected="">Provinsi</option>
-                            <option value="US">jawa barat</option>
-                            <option value="CA">jawa timur</option>
-                            <option value="FR">jawa tengah</option>
-                            <option value="DE">jakarta selatan</option>
-                        </select> --}}
                             </div>
                         </div>
                         <div class="col-lg-6 mb-3">
                             <div class="relative">
-                                {{-- <input type="text" name="city" id="city" required
-                            class="block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-                            placeholder=" " />
-                        <label for="city"
-                            class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-3 scale-75 top-1 z-10 origin-[0] bg-white dark:bg-gray-900 px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-1 peer-focus:scale-75 peer-focus:-translate-y-3 left-1">Kota
-                        </label> --}}
-                                <select name="kota" id="kota"
+                                <select name="kota" id="kota" required
                                     class="select2-setup form-control js-data-example-ajax">
                                     <option></option>
                                 </select>
@@ -166,12 +150,6 @@
                         </div>
                         <div class="col-lg-6 mb-3">
                             <div class="relative">
-                                {{-- <input type="text" name="kecamatan" id="kecamatan"
-                            class="block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-                            placeholder=" " />
-                        <label for="kecamatan"
-                            class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-3 scale-75 top-1 z-10 origin-[0] bg-white dark:bg-gray-900 px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-1 peer-focus:scale-75 peer-focus:-translate-y-3 left-1">Kecamatan
-                        </label> --}}
                                 <select name="kecamatan" id="kecamatan" required class="select2-setup form-control">
                                     <option></option>
                                 </select>
@@ -179,12 +157,6 @@
                         </div>
                         <div class="col-lg-6 mb-3">
                             <div class="relative">
-                                {{-- <input type="text" name="kelurahan" id="kelurahan"
-                            class="block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-                            placeholder=" " />
-                        <label for="kelurahan"
-                            class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-3 scale-75 top-1 z-10 origin-[0] bg-white dark:bg-gray-900 px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-1 peer-focus:scale-75 peer-focus:-translate-y-3 left-1">Kelurahan
-                        </label> --}}
                                 <select id="kelurahan" name="kelurahan" required class="select2-setup form-control">
                                     <option></option>
                                 </select>
@@ -214,6 +186,13 @@
             </div>
 
             <br>
+
+            @if (session('error'))
+                <div class="alert alert-danger">
+                    {{ session('error') }}
+                </div>
+            @endif
+            
             @if ($errors->any())
                 <div class="alert alert-danger">
                     <ul>
@@ -349,47 +328,9 @@
             ajaxChained('#kecamatan', '#kelurahan', 'subdistricts?dis_id=');
         });
 
-        $('#registration').submit(function(e) {
-            e.preventDefault();
-            let formData = new FormData(this);
-            let url = $(this).attr('action')
-
-            $.ajax({
-                type: 'POST',
-                data: formData,
-                contentType: false,
-                processData: false,
-                url: url,
-                beforeSend: function() {
-
-                },
-                complete: function() {
-
-                },
-                success: function(res) {
-                    $('#exampleModal').modal('show')
-                },
-                error(err) {
-                    $.each(err.responseJSON, function(prefix, val) {
-                        if (val === 'The email has already been taken.') {
-                            setTimeout(function() {
-                                location.reload();
-                            }, 2000);
-                            var element = document.getElementById('email')
-                            element.onchange = element.setCustomValidity(
-                                'The email has already been taken.');
-                            element.onblur = element.setCustomValidity(
-                                'The email has already been taken.');
-                            element.oninvalid = element.setCustomValidity(
-                                'The email has already been taken.');
-                            element.onsubmit = element.setCustomValidity(
-                                'The email has already been taken.');
-                        }
-                    })
-                }
-            })
-
-        })
+        //Form Validation
+        var password = document.getElementById("password"),
+            confirm_password = document.getElementById("confirmpassword");
 
         function validatePassword() {
             if (password.value != confirm_password.value) {
@@ -399,11 +340,14 @@
             }
         }
 
-        var password = document.getElementById("password"),
-            confirm_password = document.getElementById("confirmpassword");
-
         password.onchange = validatePassword;
         confirm_password.onkeyup = validatePassword;
+
+        @if(session('success'))
+            $(document).ready(function(){
+                $('#exampleModal').modal('show');
+            });
+        @endif
     </script>
 </body>
 

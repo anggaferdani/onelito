@@ -92,9 +92,16 @@ Route::get('/login', [AuthenticationController::class, 'loginPage'])->name('logi
 Route::get('/logout', [AuthenticationController::class, 'logout'])->name('logout');
 Route::get('/logout/device/{session_id}', [AuthenticationController::class, 'logoutFromDevice'])->name('logout.device');
 Route::get('/registrasi', [AuthenticationController::class, 'registration'])->name('registration');
+Route::post('/register', [AuthenticationController::class, 'register'])->name('register');
+Route::get('/confirm-phone-number', [AuthenticationController::class, 'confirmPhoneNumber'])->name('confirm-phone-number');
+Route::post('/post-confirm-phone-number', [AuthenticationController::class, 'postConfirmPhoneNumber'])->name('post-confirm-phone-number');
+Route::get('/phone-number-verification/{token}', [AuthenticationController::class, 'phoneNumberVerification'])->name('phone-number-verification');
+Route::post('/post-phone-number-verification/{token}', [AuthenticationController::class, 'postPhoneNumberVerification'])->name('post-phone-number-verification');
+Route::post('/request-verification-code/{token}', [AuthenticationController::class, 'requestVerificationCode'])->name('request-verification-code');
+Route::get('/google/redirect', ['App\Http\Controllers\AuthenticationController', 'redirect'])->name('redirect');
+Route::get('/google/callback', ['App\Http\Controllers\AuthenticationController', 'callback'])->name('callback');
 Route::get('/reqreset', [AuthenticationController::class, 'reqreset'])->name('reqreset');
 Route::post('/reqreset', [AuthenticationController::class, 'reqresetProsses'])->name('reqreset.prosses');
-Route::post('/register', [AuthenticationController::class, 'register'])->name('register');
 
 Route::get('/auction', [AuctionController::class, 'index'])->name('auction.index');
 Route::get('/auction-data', [AuctionController::class, 'getAuctionData']);
