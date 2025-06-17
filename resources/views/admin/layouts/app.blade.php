@@ -78,7 +78,7 @@
     <script>
         $(document).ready(function(){
             $('.summernote').summernote({
-                height: 250,
+                height: 300,
                 toolbar: [
                     ['style', ['style']],
                     ['font', ['bold', 'underline', 'clear']],

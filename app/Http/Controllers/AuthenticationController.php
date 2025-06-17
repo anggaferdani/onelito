@@ -5,20 +5,14 @@ namespace App\Http\Controllers;
 use Carbon\Carbon;
 use App\Models\Member;
 use App\Models\Province;
-use App\Mail\UserVerified;
-use App\Models\LoginHistory;
 use Illuminate\Http\Request;
-use App\Mail\EmailVerification;
 use Illuminate\Validation\Rule;
-use App\Mail\EmailResetPassword;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Session;
 use Laravel\Socialite\Facades\Socialite;
+use App\Models\LoginHistory;
 
 class AuthenticationController extends Controller
 {
@@ -34,43 +28,17 @@ class AuthenticationController extends Controller
         if (Auth::guard('member')->check()) {
             $user = Auth::guard('member')->user();
 
-            if ($user->email_verified_at !== null) {
-
-                // Cek phone number verification status
-                if ($user->status_phone_number_verification == 0) {
-                    return redirect()->route('confirm-phone-number', ['email' => $user->email, 'no_hp' => $user->no_hp]);
-                }
-
-                $ipAddress = $this->request->ip();
-                $userAgent = $this->request->header('User-Agent');
-                $sessionId = session()->getId();
-
-                $existingHistory = LoginHistory::where('peserta_id', $user->id_peserta)
-                    ->where('ip_address', $ipAddress)
-                    ->where('user_agent', $userAgent)
-                    ->where('session_id', $sessionId)
-                    ->first();
-
-                if (!$existingHistory) {
-                    LoginHistory::create([
-                        'peserta_id' => $user->id_peserta,
-                        'ip_address' => $ipAddress,
-                        'user_agent' => $userAgent,
-                        'session_id' => $sessionId,
-                    ]);
-                }
-
+            if ($user->status_phone_number_verification == 1) {
+                $this->recordLoginHistory($user);
                 return redirect()->intended('/');
             }
 
             Auth::guard('member')->logout();
-
             $this->request->session()->invalidate();
-
             $this->request->session()->regenerateToken();
 
             return redirect('login')->withErrors([
-                'email' => 'Segera verifikasi email anda.',
+                'email' => 'Segera verifikasi nomor telepon anda.',
             ]);
         }
 
@@ -79,11 +47,9 @@ class AuthenticationController extends Controller
             'password' => ['required'],
         ]);
 
-        // Modified section to handle duplicate emails and get the most recent one
         $email = $credentials['email'];
         $password = $credentials['password'];
 
-        // Get all users with this email, ordered by created_at descending (most recent first)
         $potentialUsers = Member::where('email', $email)
             ->orderBy('created_at', 'desc')
             ->get();
@@ -91,7 +57,6 @@ class AuthenticationController extends Controller
         $authenticated = false;
         $user = null;
 
-        // Try to authenticate with the most recent one first
         foreach ($potentialUsers as $potentialUser) {
             if (Hash::check($password, $potentialUser->password)) {
                 $user = $potentialUser;
@@ -101,39 +66,13 @@ class AuthenticationController extends Controller
         }
 
         if ($authenticated) {
-            if ($user->email_verified_at !== null) {
-
-                // Cek phone number verification status
-                if ($user->status_phone_number_verification == 0) {
-                    return redirect()->route('confirm-phone-number', ['email' => $user->email, 'no_hp' => $user->no_hp]);
-                }
-
+            if ($user->status_phone_number_verification == 1) {
                 Auth::guard('member')->login($user);
                 $this->request->session()->regenerate();
-
-                $ipAddress = $this->request->ip();
-                $userAgent = $this->request->header('User-Agent');
-                $sessionId = session()->getId();
-
-                $existingHistory = LoginHistory::where('peserta_id', $user->id_peserta)
-                    ->where('ip_address', $ipAddress)
-                    ->where('user_agent', $userAgent)
-                    ->where('session_id', $sessionId)
-                    ->first();
-
-                if (!$existingHistory) {
-                    LoginHistory::create([
-                        'peserta_id' => $user->id_peserta,
-                        'ip_address' => $ipAddress,
-                        'user_agent' => $userAgent,
-                        'session_id' => $sessionId,
-                    ]);
-                }
-
+                $this->recordLoginHistory($user);
                 return redirect()->intended('/');
             }
 
-            // If authenticated but not verified or not active
             if ($user->status_aktif == 0 && $user->status_hapus == 1) {
                 return back()->withErrors([
                     'email' => 'Email yang anda masukan tidak aktif.',
@@ -141,7 +80,7 @@ class AuthenticationController extends Controller
             }
 
             return redirect('login')->withErrors([
-                'email' => 'Segera verifikasi email anda',
+                'email' => 'Segera verifikasi nomor telepon anda.',
             ])->onlyInput('email');
         }
 
@@ -150,14 +89,33 @@ class AuthenticationController extends Controller
         ])->onlyInput('email');
     }
 
+    private function recordLoginHistory(Member $user): void
+    {
+        $ipAddress = $this->request->ip();
+        $userAgent = $this->request->header('User-Agent');
+        $sessionId = session()->getId();
+
+        $existingHistory = LoginHistory::where('peserta_id', $user->id_peserta)
+            ->where('ip_address', $ipAddress)
+            ->where('user_agent', $userAgent)
+            ->where('session_id', $sessionId)
+            ->first();
+
+        if (!$existingHistory) {
+            LoginHistory::create([
+                'peserta_id' => $user->id_peserta,
+                'ip_address' => $ipAddress,
+                'user_agent' => $userAgent,
+                'session_id' => $sessionId,
+            ]);
+        }
+    }
+
     public function logout()
     {
         Auth::guard('member')->logout();
-
         $this->request->session()->invalidate();
-
         $this->request->session()->regenerateToken();
-
         return redirect('/');
     }
 
@@ -260,25 +218,21 @@ class AuthenticationController extends Controller
 
         $data['status_aktif'] = 0;
 
-        // Generate verification token and code
         $verificationToken = Member::generateVerificationToken();
         $verificationCode = Member::generateVerificationCode();
 
         $data['verification_token'] = $verificationToken;
         $data['verification_code'] = $verificationCode;
-        $data['verification_code_expires_at'] = Carbon::now()->addMinutes(10); // Expire dalam 10 menit
+        $data['verification_code_expires_at'] = Carbon::now()->addMinutes(10);
 
         $google_id = $data['google_id'];
 
-        // Coba cari user berdasarkan google_id
         $member = Member::where('google_id', $google_id)->first();
 
         try {
             if ($member) {
-                // Jika user dengan google_id sudah ada, update datanya
                 $member->update($data);
             } else {
-                // Jika user belum ada, buat user baru
                 $member = Member::create($data);
             }
 
@@ -310,24 +264,21 @@ class AuthenticationController extends Controller
             'no_hp' => ['required', 'string', 'max:20'],
         ]);
 
-        $member = Member::where('email', $request->email)->where('status_aktif', 1)->where('status_phone_number_verification', 0)->first(); // Cari member by email
+        $member = Member::where('email', $request->email)->where('status_aktif', 1)->where('status_phone_number_verification', 0)->first();
 
         if (!$member) {
             return back()->withErrors(['message' => 'User tidak ditemukan.']);
         }
 
-        // Update nomor HP
         $member->no_hp = $request->no_hp;
         $member->save();
 
-        // Generate kode verifikasi
         $verificationCode = Member::generateVerificationCode();
         $member->verification_code = $verificationCode;
         $member->verification_code_expires_at = \Carbon\Carbon::now()->addMinutes(10);
-        $member->verification_token = Member::generateVerificationToken();  // Generate a new token
+        $member->verification_token = Member::generateVerificationToken();
         $member->save();
 
-        // Kirim kode verifikasi
         $this->sendVerificationCodeViaQontak($member, $verificationCode);
 
         return redirect()->route('phone-number-verification', ['token' => $member->verification_token]);
@@ -389,19 +340,15 @@ class AuthenticationController extends Controller
             return response()->json(['message' => 'Token verifikasi tidak valid.'], 404);
         }
 
-        // Periksa apakah kode verifikasi masih berlaku
         if (Carbon::now()->lte($member->verification_code_expires_at)) {
-            // Jika masih berlaku, redirect ke halaman verifikasi nomor telepon
             return response()->json(['message' => 'Kode verifikasi masih berlaku. Silakan periksa WhatsApp Anda.', 'redirect' => route('phone-number-verification', ['token' => $token])], 200);
         }
 
-        // Generate kode verifikasi baru
         $verificationCode = Member::generateVerificationCode();
         $member->verification_code = $verificationCode;
         $member->verification_code_expires_at = Carbon::now()->addMinutes(10);
         $member->save();
 
-        // Kirim kode verifikasi baru via Qontak
         $this->sendVerificationCodeViaQontak($member, $verificationCode);
 
         return response()->json(['message' => 'Kode verifikasi baru telah dikirim.'], 200);
@@ -501,19 +448,16 @@ class AuthenticationController extends Controller
         }
 
 
-        // Tambahan Logika Verifikasi Telepon
         if ($userToLogin->status_phone_number_verification == 0) {
             if ($userToLogin->verification_code_expires_at && \Carbon\Carbon::now()->lte($userToLogin->verification_code_expires_at)) {
-                // Verification code belum expired, redirect ke halaman verifikasi
                 return redirect()->route('phone-number-verification', ['token' => $userToLogin->verification_token]);
             } else {
-                // Verification code sudah expired, kirim kode baru dan redirect
                 $verificationCode = Member::generateVerificationCode();
                 $userToLogin->verification_code = $verificationCode;
                 $userToLogin->verification_code_expires_at = \Carbon\Carbon::now()->addMinutes(10);
                 $userToLogin->save();
 
-                $this->sendVerificationCodeViaQontak($userToLogin, $verificationCode); // Pastikan fungsi ini tersedia
+                $this->sendVerificationCodeViaQontak($userToLogin, $verificationCode);
 
                 return redirect()->route('phone-number-verification', ['token' => $userToLogin->verification_token]);
             }
@@ -563,43 +507,6 @@ class AuthenticationController extends Controller
         ]);
     }
 
-    public function emailVerification()
-    {
-        $token = $this->request->click;
-
-        try {
-            $data = Crypt::decrypt($token);
-            if ($data) {
-                $user = Member::where('email', $data['email'])
-                    ->where('id_peserta', $data['id'])->first();
-
-                if (!$user) {
-                    return response()->json(['message' => 'User Not Found']);
-                }
-
-                if ($user->email_verified_at !== null) {
-                    return redirect('login')->with([
-                        'message' => 'Your Email Already Verified',
-                    ]);
-                }
-
-                $user->email_verified_at = Carbon::now();
-                $user->status_aktif = 1;
-                $user->save();
-
-                Mail::to('onelito.koi@gmail.com')->send(new UserVerified($user));
-
-                session()->flash('message', 'Your Email Successfully Verified',);
-
-                return redirect('login')->with([
-                    'message' => 'Your Email Successfully Verified',
-                ]);
-            }
-        } catch (\Throwable $th) {
-            throw $th;
-        }
-    }
-
     public function changePassword()
     {
         $this->request->validate([
@@ -632,62 +539,8 @@ class AuthenticationController extends Controller
             return back()->withErrors("Email belum terdaftar");
         }
 
-        Mail::to($email)->send(new EmailResetPassword($email));
+        // Mail::to($email)->send(new EmailResetPassword($email));
 
         return back()->with("success", "Email reset password dikirim");
-    }
-
-    public function emailChangePassword()
-    {
-        $token = $this->request->click;
-
-        try {
-            $data = Crypt::decrypt($token);
-            if ($data) {
-                $user = Member::where('email', $data['email'])
-                    ->where('id_peserta', $data['id'])->first();
-
-                if (!$user) {
-                    return redirect('login')
-                        ->with(['message' => 'User Not Found']);
-                }
-
-                // $user->email_verified_at = Carbon::now();
-                // $user->save();
-
-                // session()->flash('message','Your Email Successfully Verified',);
-
-                return view('reqreset_change_password')->with([
-                    // 'provinces' => $provinces
-                ]);
-            }
-        } catch (\Throwable $th) {
-            throw $th;
-        }
-    }
-
-    public function emailChangePasswordProsess()
-    {
-        $token = $this->request->token;
-
-        try {
-            $data = Crypt::decrypt($token);
-            if ($data) {
-                $user = Member::where('email', $data['email'])
-                    ->where('id_peserta', $data['id'])->first();
-
-                if (!$user) {
-                    return redirect()->back()
-                        ->with(['message' => 'User Not Found']);
-                }
-
-                $user->password = $this->request->password;
-                $user->save();
-
-                return redirect('login')->with("password", "Password berhasil diubah, silahkan login menggunakan password baru");
-            }
-        } catch (\Throwable $th) {
-            throw $th;
-        }
     }
 }
