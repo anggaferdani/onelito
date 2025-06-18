@@ -236,6 +236,7 @@ Route::group(['prefix' => 'admin', 'middleware' => 'auth:admin'], function () {
         Route::get('pesanan/detail/{no_order}', [PesananController::class, 'detail'])->name('pesanan.detail');
         Route::get('pesanan/kirim/{no_order}', [OrderController::class, 'kirim'])->name('pesanan.kirim');
         Route::get('pesanan/process/{no_order}', [OrderController::class, 'process'])->name('pesanan.process');
+        Route::get('pesanan/done/{no_order}', [OrderController::class, 'done'])->name('pesanan.done');
         Route::get('/order/invoice/{no_order}', [OrderController::class, 'orderInvoice'])->name('order.invoice');
         Route::get('/order/resi/{no_order}', [OrderController::class, 'orderResi'])->name('order.resi');
         Route::post('order/cancel/{no_order}', [OrderController::class, 'cancelByAdmin'])->name('order.cancel');

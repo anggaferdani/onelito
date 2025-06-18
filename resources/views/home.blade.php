@@ -296,7 +296,7 @@
             </div>
             <div class="col-lg-2 col-12 mt-4 col-md-6" style="display: flex; justify-content: center">
                 <div class="">
-                    <a href="https://api.whatsapp.com/send?phone=62811972857&text=Halo%20saya%20ingin%20bertanya%20mengenai%20*Onelito%20Koi*"
+                    <a href="https://api.whatsapp.com/send?phone=6282124425038&text=Halo%20saya%20ingin%20bertanya%20mengenai%20*Onelito%20Koi*"
                         target="_blank"><img src="{{ url('img/wa.png') }}" alt="wa"></a>
                 </div>
             </div>

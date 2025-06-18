@@ -310,7 +310,7 @@
                                                     height="170"></a>
                                             <div class="container px-2">
                                                 <div class="cb-judul">
-                                                    <p>{!! Illuminate\Support\Str::limit("$product->merek_produk $product->nama_produk", 35) !!}</p>
+                                                    <p>{!! Illuminate\Support\Str::limit("$product->nama_produk", 35) !!}</p>
                                                 </div>
                                                 <p><b>Rp. {{ number_format($product->harga, 0, '.', '.') }}</b></p>
                                             </div>
