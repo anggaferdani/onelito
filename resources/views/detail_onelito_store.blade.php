@@ -17,7 +17,7 @@
             <div class="mb-2"><img src="{{ url($imgUrl) }}" alt="" class="img-fluid"></div>
         </div>
         <div class="col-md-6">
-          <div class="fs-5 fw-bold mb-2">{{ "$product->merek_produk $product->nama_produk" }}</div>
+          <div class="fs-5 fw-bold mb-2">{{ "$product->merek_produk | $product->nama_produk" }}</div>
           <div class="fs-5 fw-bold mb-2">Rp. {{ number_format($product->harga, 0, '.', '.') }}</div>
           <div class="text-success fw-bold mb-2">Detail</div>
           <div>{!! $product->deskripsi !!}</div>

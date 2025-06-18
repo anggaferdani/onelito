@@ -75,6 +75,7 @@
         <hr>
         <div class="mb-3 fw-bold">Info Pengiriman</div>
         <table style="width: 100%;">
+          @if($order->opsi_pengiriman == 'otomatis')
           <tr>
             <td class="align-top" style="width: 20%;">No Resi</td>
             <td class="align-top">{{ $order->waybill_id }}</td>
@@ -83,6 +84,7 @@
             <td class="align-top" style="width: 20%;">Kurir</td>
             <td class="align-top">{{ $order->courier_name }}</td>
           </tr>
+          @endif
           <tr>
             <td class="align-top" style="width: 20%;">Alamat</td>
             <td class="align-top">
@@ -104,10 +106,12 @@
             <td class="align-top" style="width: 40%;">Total Harga Barang</td>
             <td class="align-top">{{ 'Rp. ' . number_format($order->total_harga_barang, 0, '.', '.') }}</td>
           </tr>
+          @if($order->opsi_pengiriman == 'otomatis')
           <tr>
             <td class="align-top" style="width: 40%;">Total Ongkos Kirim</td>
             <td class="align-top">{{ 'Rp. ' . number_format($order->courier_price, 0, '.', '.') }}</td>
           </tr>
+          @endif
           <tr>
             <td class="align-top" style="width: 40%;">Total Belanja</td>
             <td class="align-top">{{ 'Rp. ' . number_format($order->jumlah_total, 0, '.', '.') }}</td>

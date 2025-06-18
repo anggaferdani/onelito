@@ -105,10 +105,12 @@
               <td class="small text-end">Total Harga Barang</td>
               <td class="small text-end">{{ 'Rp. ' . number_format($order->total_harga_barang, 0, '.', '.') }}</td>
             </tr>
+            @if($order->opsi_pengiriman == 'otomatis')
             <tr>
               <td class="small text-end">Total Ongkos Kirim</td>
               <td class="small text-end">{{ 'Rp. ' . number_format($order->courier_price, 0, '.', '.') }}</td>
             </tr>
+            @endif
             <tr>
               <td class="small text-end">Total Belanja</td>
               <td class="small text-end">{{ 'Rp. ' . number_format($order->jumlah_total, 0, '.', '.') }}</td>

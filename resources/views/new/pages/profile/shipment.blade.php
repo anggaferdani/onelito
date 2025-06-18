@@ -65,48 +65,56 @@
           <div class="text-center">Kosong</div>
           @endforelse
         </div>
-        <div class="fw-bold fs-5 mb-2">Pengiriman dan pembayaran</div>
-        <div class="alert alert-danger">Untuk pembelian ikan, ongkos kirim yang tertera adalah untuk pengiriman invoice. Sedangkan ongkos kirim untuk pengiriman ikan akan diinformasikan kembali oleh admin.
+        <div class="fw-bold fs-5 mb-2">Opsi Pengiriman</div>
+        <div class="mb-3">
+          <select class="form-select" id="opsiPengiriman" name="opsi_pengiriman" required>
+            <option value="" disabled selected>Pilih opsi pengiriman</option>
+            <option value="otomatis">Otomatis (by system)</option>
+            <option value="manual">Manual (dihubungi admin)</option>
+          </select>
         </div>
-        <div class="card">
-          <div class="card-body">
-            @foreach($alamats as $alamat)
-              @if($auth->pilih_alamat == $alamat->id)
-                <div class="d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#pilihAlamat">
-                  <div class="col-11">
-                    <div class="d-flex gap-2 align-items-center text-truncate">
-                      @if($auth->alamat_utama == $alamat->id)
-                        <div class="badge bg-secondary">Utama</div>
-                      @endif
-                      <div class="fw-bold">{{ $alamat->label }}</div>
-                      <div>{{ $alamat->nama }}</div>
-                      <div>{{ $alamat->no_hp }}</div>
+        <div class="alert alert-danger">Untuk pembelian ikan, ongkos kirim yang tertera adalah untuk pengiriman invoice. Sedangkan ongkos kirim untuk pengiriman ikan akan diinformasikan kembali oleh admin.</div>
+        <div id="pengirimanOtomatis">
+          <div class="card">
+            <div class="card-body">
+              @foreach($alamats as $alamat)
+                @if($auth->pilih_alamat == $alamat->id)
+                  <div class="d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#pilihAlamat">
+                    <div class="col-11">
+                      <div class="d-flex gap-2 align-items-center text-truncate">
+                        @if($auth->alamat_utama == $alamat->id)
+                          <div class="badge bg-secondary">Utama</div>
+                        @endif
+                        <div class="fw-bold">{{ $alamat->label }}</div>
+                        <div>{{ $alamat->nama }}</div>
+                        <div>{{ $alamat->no_hp }}</div>
+                      </div>
+                      <div class="text-truncate">{{ $alamat->alamat_lengkap }}</div>
                     </div>
-                    <div class="text-truncate">{{ $alamat->alamat_lengkap }}</div>
+                    <div class="col-1 text-center"><i class="fa-solid fa-angle-right"></i></div>
                   </div>
-                  <div class="col-1 text-center"><i class="fa-solid fa-angle-right"></i></div>
+                @endif
+              @endforeach
+            </div>
+            <hr class="m-0">
+            <div class="card-body">
+              <div class="row g-2">
+                <div class="col">
+                  <label class="form-label fw-bold">Pengiriman</label>
+                  <select class="select2" name="pengiriman" id="pengiriman" required style="width: 100%;">
+                      <option value="" selected disabled>Pilih Pengiriman</option>
+                      <option value="instant">Instant</option>
+                      <option value="same_day">Same Day</option>
+                      <option value="next_day">Next Day</option>
+                      <option value="reguler">Reguler</option>
+                  </select>
                 </div>
-              @endif
-            @endforeach
-          </div>
-          <hr class="m-0">
-          <div class="card-body">
-            <div class="row g-2">
-              <div class="col">
-                <label class="form-label fw-bold">Pengiriman</label>
-                <select class="select2" name="pengiriman" id="pengiriman" required style="width: 100%;">
-                    <option value="" selected disabled>Pilih Pengiriman</option>
-                    <option value="instant">Instant</option>
-                    <option value="same_day">Same Day</option>
-                    <option value="next_day">Next Day</option>
-                    <option value="reguler">Reguler</option>
-                </select>
-              </div>
-              <div class="col">
-                <label class="form-label fw-bold">Kurir</label>
-                <select class="kurir" name="kurir" id="kurir" required style="width: 100%;" disabled>
-                  <option value="" selected disabled>Pilih Kurir</option>
-                </select>
+                <div class="col">
+                  <label class="form-label fw-bold">Kurir</label>
+                  <select class="kurir" name="kurir" id="kurir" required style="width: 100%;" disabled>
+                    <option value="" selected disabled>Pilih Kurir</option>
+                  </select>
+                </div>
               </div>
             </div>
           </div>
@@ -242,6 +250,75 @@
     const sisaCoinElement = $('#sisaCoin');
     let totalHarga = parseInt(totalHargaElement.text().replace(/[^\d]/g, ''), 10);
 
+    function updateButtonState() {
+        const opsiPengiriman = $('#opsiPengiriman').val();
+        const kurir = $('#kurir').val();
+
+        // 1. Jika opsi pengiriman belum dipilih sama sekali, disable tombol
+        if (!opsiPengiriman) {
+            $('#buttonBayar').prop('disabled', true);
+            return;
+        }
+
+        // 2. Jika opsi adalah "otomatis", tombol hanya aktif jika kurir sudah dipilih
+        if (opsiPengiriman === 'otomatis') {
+            if (kurir === null || kurir === '') {
+                $('#buttonBayar').prop('disabled', true);
+            } else {
+                $('#buttonBayar').prop('disabled', false);
+            }
+        } 
+        // 3. Jika opsi adalah "manual", tombol langsung aktif
+        else if (opsiPengiriman === 'manual') {
+            $('#buttonBayar').prop('disabled', false);
+        }
+    }
+
+    // Panggil fungsi ini saat halaman dimuat untuk men-disable tombol di awal
+    updateButtonState();
+
+    // --- END: KODE BARU ---
+
+
+    // Sembunyikan div pengiriman otomatis saat halaman dimuat
+    $('#pengirimanOtomatis').hide();
+    
+    // Nonaktifkan input di dalamnya agar tidak 'required' saat tersembunyi
+    $('#pengirimanOtomatis').find('select').prop('disabled', true);
+
+    // Tambahkan event listener ke dropdown opsi pengiriman
+    $('#opsiPengiriman').on('change', function() {
+        var selectedOption = $(this).val();
+
+        if (selectedOption === 'otomatis') {
+            // Tampilkan div dengan efek slide down
+            $('#pengirimanOtomatis').slideDown();
+            // Aktifkan kembali select di dalamnya dan buat mereka 'required'
+            $('#pengiriman, #kurir').prop('disabled', false).prop('required', true);
+        } else if (selectedOption === 'manual') {
+            // Sembunyikan div dengan efek slide up
+            $('#pengirimanOtomatis').slideUp();
+            // Nonaktifkan select di dalamnya dan hapus atribut 'required'
+            $('#pengiriman, #kurir').prop('disabled', true).prop('required', false);
+
+            // Reset biaya pengiriman dan total jika sebelumnya sudah dipilih
+            $('#totalOngkosKirim').text('0');
+            $('input[name="ongkos_kirim"]').val('');
+            var totalHargaBarang = parseInt($('input[name="total_harga_barang"]').val(), 10);
+            $('#jumlahTotal').text(new Intl.NumberFormat('id-ID').format(totalHargaBarang));
+            $('#totalTagihan').text(new Intl.NumberFormat('id-ID').format(totalHargaBarang));
+            $('input[name="jumlah_total"]').val(totalHargaBarang);
+            $('input[name="total_tagihan"]').val(totalHargaBarang);
+
+            // Reset juga penggunaan coin
+            $('#coin').prop('checked', false).trigger('change');
+            $('#coin').prop('disabled', true);
+        }
+
+        // Panggil fungsi untuk update status tombol setiap kali opsi pengiriman berubah
+        updateButtonState();
+    });
+
     kurirSelect.on('change', function() {
         if (kurirSelect.val() !== null && kurirSelect.val() !== '') {
             coinCheckbox.prop('disabled', false);
@@ -321,10 +398,10 @@
     }
 
     $('#kurir').on('change', function() {
-        checkKurirSelection();
+        updateButtonState();
     });
 
-    checkKurirSelection();
+    updateButtonState();
   });
 
   var couriers = @json($couriers);

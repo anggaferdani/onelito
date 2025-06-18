@@ -27,6 +27,8 @@
           <div class="text-danger">Sedang Diproses</div>
         @elseif($order->status_order == 'delivered')
           <div class="text-danger">Sedang Dalam Pengiriman</div>
+        @elseif($order->status_order == 'done' && $order->opsi_pengiriman == 'manual')
+          <div><span class="text-danger">Selesai</span></div>
         @elseif($order->status_order == 'done' && $order->done == 0)
           <div><span class="text-success">Pesanan telah sampai ditujuan</span> | <span class="text-danger">Konfirmasi Pesanan</span></div>
         @elseif($order->status_order == 'done' && $order->done == 1)
@@ -121,13 +123,16 @@
           @elseif($order->status_order == 'delivered')
             <a href="https://wa.me/0811972857" target="_blank" class="btn btn-outline-success mb-1"><i class="fa-brands fa-whatsapp"></i> Hubungi Penjual</a>
             <button class="btn btn-outline-success mb-1" data-bs-toggle="modal" data-bs-target="#lainnya{{ $order->id_order }}">Detail Transaksi</button>
-            <button class="btn btn-outline-success mb-1" data-bs-toggle="modal" data-bs-target="#lacak-pengiriman{{ $order->id_order }}">Lacak Pengiriman</button>
-            {{-- @if($order->tracking_url )<a href="{{ $order->tracking_url }}" class="btn btn-outline-success mb-1" target="_blank">Lacak Pengiriman</a> @endif --}}
+            @if($order->opsi_pengiriman == 'otomatis')
+              <button class="btn btn-outline-success mb-1" data-bs-toggle="modal" data-bs-target="#lacak-pengiriman{{ $order->id_order }}">Lacak Pengiriman</button>
+            @endif
           @elseif($order->status_order == 'done')
             <a href="https://wa.me/0811972857" target="_blank" class="btn btn-outline-success mb-1"><i class="fa-brands fa-whatsapp"></i> Hubungi Penjual</a>
             <button class="btn btn-outline-success mb-1" data-bs-toggle="modal" data-bs-target="#lainnya{{ $order->id_order }}">Detail Transaksi</button>
             @if($order->status_order == 'done' && $order->done == 0)
-              <button class="btn btn-outline-success mb-1" data-bs-toggle="modal" data-bs-target="#lacak-pengiriman{{ $order->id_order }}">Lacak Pengiriman</button>
+              @if($order->opsi_pengiriman == 'otomatis')
+                <button class="btn btn-outline-success mb-1" data-bs-toggle="modal" data-bs-target="#lacak-pengiriman{{ $order->id_order }}">Lacak Pengiriman</button>
+              @endif
               <button class="btn btn-success mb-1" data-bs-toggle="modal" data-bs-target="#selesaikan-pesanan{{ $order->id_order }}">Selesaikan Pesanan</button>
             @endif
           @endif
