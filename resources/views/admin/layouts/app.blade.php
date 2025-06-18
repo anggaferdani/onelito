@@ -7,6 +7,7 @@
         name="viewport">
     <meta name="biteship-api-key" content="{{ env('BITESHIP_API_KEY') }}">
     <meta name="csrf-token" content="{{ csrf_token() }}" />
+    <x-head.tinymce-config/>
     <link rel="stylesheet" href="{{ asset('library/new/dataTables.bootstrap5.min.css') }}">
     <title>@yield('title')</title>
 
@@ -74,32 +75,6 @@
     <script src="{{ asset('js/stisla.js') }}"></script>
     <script src="{{ asset('library/new/jquery.dataTables.min.js') }} "></script>
     <script src="{{ asset('library/new/dataTables.bootstrap5.min.js') }} "></script>
-
-    <script>
-        $(document).ready(function(){
-            $('.summernote').summernote({
-                height: 300,
-                toolbar: [
-                    ['style', ['style']],
-                    ['font', ['bold', 'underline', 'clear']],
-                    ['fontname', ['fontname']],
-                    ['fontsize', ['fontsize']],
-                    ['color', ['color']],
-                    ['para', ['ul', 'ol', 'paragraph', 'height']],
-                    ['table', ['table']],
-                    ['insert', ['link', 'picture', 'video']],
-                    ['view', ['fullscreen', 'codeview', 'help']],
-                ],
-                fontSizes: ['8', '9', '10', '11', '12', '14', '18', '24', '36', '48' , '64', '82', '150'],
-                lineHeights: ['0.1', '0.3', '0.5', '0.7', '0.9', '1.0', '1.2', '1.4', '1.6', '1.8', '2.0', '2.4', '3.0'],
-                callbacks: {
-                    onInit: function() {
-                        $(this).summernote('lineHeight', '1');
-                    }
-                }
-            });
-        });
-    </script>
 
     @stack('scripts')
 
