@@ -2,7 +2,6 @@
 @section('title', 'Barang Store')
 @push('style')
     <link rel="stylesheet" href="{{ asset('library/select2/dist/css/select2.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.css') }}">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap4.min.css">
 
 @endpush
@@ -66,7 +65,6 @@
 @push('scripts')
     <script src="{{ asset('library/jquery-ui-dist/jquery-ui.min.js') }}"></script>
     <script src="{{ asset('library/sweetalert/dist/sweetalert.min.js') }}"></script>
-    <script src="{{ asset('library/summernote/dist/summernote-bs4.js') }}"></script>
     <script src="{{ asset('library/select2/dist/js/select2.full.min.js') }}"></script>
     <script src="{{ asset('/js/price-separator.min.js') }}"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
@@ -134,7 +132,7 @@
                         "targets": 5, // Index of the 'Weight' column (Weight column index)
                         "render": function (data, type, row) {
                             if (type === 'display') {
-                                return '<input type="number" class="form-control edit-weight" data-id="' + row.id_produk + '" value="' + data + '">';
+                                return '<input type="number" class="form-control edit-weight" style="min-width: 150px !important;" data-id="' + row.id_produk + '" value="' + data + '">';
                             }
                             return data;
                         }
@@ -143,7 +141,7 @@
                         "targets": 6, // Index of the 'Stock' column
                         "render": function (data, type, row) {
                             if (type === 'display') {
-                                return '<input type="number" class="form-control edit-stock" data-id="' + row.id_produk + '" value="' + data + '">';
+                                return '<input type="number" class="form-control edit-stock" style="min-width: 150px !important;" data-id="' + row.id_produk + '" value="' + data + '">';
                             }
                             return data;
                         }
@@ -292,7 +290,7 @@
                         thousandsSeparator: '.'
                     });
 
-                    $('#edit_deskripsi').summernote('code', res.deskripsi)
+                    tinymce.get('edit_deskripsi').setContent(res.deskripsi);
 
                     $('#edit_foto2').attr('src', ``)
                     if (res.photo) {

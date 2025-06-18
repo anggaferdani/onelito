@@ -68,7 +68,7 @@
             </div>
             <div class="form-group">
                 <label for="edit_deskripsi">Deskripsi</label>
-                <textarea  type="text" id="edit_deskripsi" class="form-control summernote" name="edit_deskripsi" placeholder=""></textarea>
+                <textarea  type="text" id="edit_deskripsi" class="form-control tinymce" name="edit_deskripsi" placeholder=""></textarea>
             </div>
             <div class="form-group">
                 <label for="foto">Foto</label>

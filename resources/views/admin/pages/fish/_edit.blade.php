@@ -78,7 +78,7 @@
             </div>
             <div class="form-group">
                 <label for="edit_note">Deskripsi</label>
-                <textarea id="edit_note" name="edit_note" class="form-control summernote" placeholder=""></textarea>
+                <textarea id="edit_note" name="edit_note" class="form-control tinymce" placeholder=""></textarea>
             </div>
             <div class="form-group">
                 <label for="edit_link_video">Link Video</label>

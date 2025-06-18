@@ -32,6 +32,7 @@
                                   <th>Tanggal</th>
                                   <th>Nama Penerima</th>
                                   <th>Total Tagihan</th>
+                                  <th>Opsi Pengiriman</th>
                                   <th>Status</th>
                                   <th>Action</th>
                                 </tr>
@@ -132,6 +133,7 @@ $(document).ready(function() {
             {data: 'tanggal', name: 'tanggal'},
             {data: 'destination_contact_name', name: 'destination_contact_name'},
             {data: 'total_tagihan', name: 'total_tagihan'},
+            {data: 'opsi_pengiriman', name: 'opsi_pengiriman'},
             {data: 'status', name: 'status'},
             {data: 'action', name: 'action', orderable: false, searchable: false},
         ]

@@ -23,7 +23,7 @@
             </div>
             <div class="form-group">
                 <label for="rules_events">Rules</label>
-                <textarea id="rules_events" name="rules_event" class="form-control summernote" placeholder="" required></textarea>
+                <textarea id="rules_events" name="rules_event" class="form-control tinymce" placeholder="" required></textarea>
                 <!-- <input  type="text" id="rules_events" class="form-control" name="rules_events" placeholder="" required> -->
             </div>
             <div class="form-group">

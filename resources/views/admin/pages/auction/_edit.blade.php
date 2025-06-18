@@ -24,7 +24,7 @@
             </div>
             <div class="form-group">
                 <label for="edit_rules_event">Rules</label>
-                <textarea id="edit_rules_event" name="edit_rules_event" class="form-control summernote" placeholder="" required></textarea>
+                <textarea id="edit_rules_event" name="edit_rules_event" class="form-control tinymce" placeholder="" required></textarea>
                 <!-- <input  type="text" id="rules_events" class="form-control" name="rules_events" placeholder="" required> -->
             </div>
             <div class="form-group">

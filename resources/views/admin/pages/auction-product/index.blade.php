@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="{{ asset('library/datatables.net-bs4/css/dataTables.bootstrap4.min.css') }}">
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
-    <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.css') }}">
     <link rel="stylesheet" href="{{ asset('library/select2/dist/css/select2.min.css') }}">
 @endpush
 
@@ -77,7 +76,6 @@
 
     <!-- Page Specific JS File -->
     <script src="{{ asset('library/sweetalert/dist/sweetalert.min.js') }}"></script>
-    <script src="{{ asset('library/summernote/dist/summernote-bs4.js') }}"></script>
     <script src="{{ asset('library/select2/dist/js/select2.full.min.js') }}"></script>
 
     <!-- bootsrap datepicker -->
@@ -244,7 +242,7 @@
                         centsLimit: 0,
                         thousandsSeparator: '.'
                     });
-                    $('#edit_note').summernote('code', res.note)
+                    tinymce.get('edit_note').setContent(res.note);
                     $('#edit_link_video').val(res.link_video)
                     $('#edit_extra_time').val(res.extra_time)
 

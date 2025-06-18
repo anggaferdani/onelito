@@ -11,10 +11,7 @@
     <link rel="stylesheet"
         href="assets/modules/datatables/Select-1.2.4/css/select.bootstrap4.min.css"> --}}
 
-    <link rel="stylesheet"
-        href="{{ asset('library/datatables/media/css/jquery.dataTables.min.css') }}">
-    <link rel="stylesheet"
-        href="{{ asset('library/datatables.net-bs4/css/dataTables.bootstrap4.min.css') }}">
+    
 @endpush
 
 @section('main')
@@ -74,13 +71,9 @@
     <!-- JS Libraies -->
     {{-- <script src="assets/modules/datatables/DataTables-1.10.16/js/dataTables.bootstrap4.min.js"></script>
     <script src="assets/modules/datatables/Select-1.2.4/js/dataTables.select.min.js"></script> --}}
-    <script src="{{ asset('library/datatables/media/js/jquery.dataTables.min.js') }}"></script>
-    <!-- <script src="{{ asset('library/datatables.net-bs4/css/dataTables.bootstrap4.min.js') }}"></script> -->
     {{-- <script src="{{ asset() }}"></script> --}}
     <script src="{{ asset('library/jquery-ui-dist/jquery-ui.min.js') }}"></script>
 
-    <script src="https://demo.getstisla.com/assets/modules/datatables/DataTables-1.10.16/js/dataTables.bootstrap4.min.js"></script>
-    <script src="https://demo.getstisla.com/assets/modules/datatables/Select-1.2.4/js/dataTables.select.min.js"></script>
     <!-- Page Specific JS File -->
     <script src="{{ asset('library/sweetalert/dist/sweetalert.min.js') }}"></script>
 

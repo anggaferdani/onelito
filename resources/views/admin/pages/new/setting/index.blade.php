@@ -1,7 +1,6 @@
 @extends('admin.layouts.app')
 @section('title', 'Setting')
 @push('style')
-<link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.css') }}">
 @endpush
 @section('main')
 <div class="main-content">
@@ -86,7 +85,7 @@
           </div>
           <div class="form-group">
             <label for="">Description <span class="text-danger">*</span></label>
-            <textarea class="form-control summernote" name="description" rows="5" style="height: auto;">{{ $setting->description }}</textarea>
+            <textarea class="form-control tinymce" name="description" rows="5" style="height: auto;">{{ $setting->description }}</textarea>
             @error('title')<div class="text-danger">{{ $message }}</div>@enderror
           </div>
         </div>
@@ -101,7 +100,6 @@
 @endforeach
 @endsection
 @push('scripts')
-<script src="{{ asset('library/summernote/dist/summernote-bs4.js') }}"></script>
 <script>
   document.addEventListener("DOMContentLoaded", function() {
       document.getElementById('search').addEventListener('input', function() {
@@ -130,20 +128,6 @@
   
     $('.select3').select2({
       tags: true
-    });
-
-    $('.summernote').summernote({
-      height: 250,
-      toolbar: [
-        ['style', ['style']],
-        ['font', ['bold', 'underline', 'clear']],
-        ['fontname', ['fontname']],
-        ['color', ['color']],
-        ['para', ['ul', 'ol', 'paragraph', 'height']],
-        ['table', ['table']],
-        ['insert', ['link', 'picture', 'video']],
-        ['view', ['fullscreen', 'codeview', 'help']],
-      ],
     });
   });
 

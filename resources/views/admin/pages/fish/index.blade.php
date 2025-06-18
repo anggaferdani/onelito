@@ -3,9 +3,8 @@
 @section('title', 'Fish')
 
 @push('style')
-    <!-- CSS Libraries -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
-    <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.css') }}">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap4.min.css">
 @endpush
 
 @section('main')
@@ -68,13 +67,14 @@
     <!-- JS Libraies -->
     <script src="{{ asset('library/jquery-ui-dist/jquery-ui.min.js') }}"></script>
     <script src="{{ asset('library/sweetalert/dist/sweetalert.min.js') }}"></script>
-    <script src="{{ asset('library/summernote/dist/summernote-bs4.js') }}"></script>
 
     <!-- bootsrap datepicker -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
     <script src="{{ asset('/js/price-separator.min.js') }}"></script>
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap4.min.js"></script>
 
     <script>
         $(document).ready(function() {
@@ -340,7 +340,7 @@
                             centsLimit: 0,
                             thousandsSeparator: '.'
                         });
-                        $('#edit_note').summernote('code', res.note)
+                        tinymce.get('edit_note').setContent(res.note);
                         $('#edit_link_video').val(res.link_video)
 
                         $('#edit_foto2').attr('src', ``)

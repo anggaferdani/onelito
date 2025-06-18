@@ -16,9 +16,9 @@
                     <div class="card">
                       <div class="card-footer d-flex justify-content-between">
                         <div>
-                          <a href="{{ route('admin.pesanan.index') }}" class="btn btn-secondary">Back</a>
                         </div>
                         <div>
+                          <a href="{{ route('admin.pesanan.index') }}" class="btn btn-secondary"><i class="fa-solid fa-arrow-left"></i> Kembali</a>
                           @if($order->status_order == 'pending')
                           @elseif($order->status_order == 'paid')
                             <a 
@@ -41,9 +41,13 @@
                               Kirim Pesanan
                             </a>
                           @else
-                          <a href="javascript:void(0)" class="btn btn-info" data-toggle="modal" data-target="#lacak-pengiriman{{ $order->id_order }}"><i class="fa-solid fa-truck"></i> Lacak Pengiriman</a>
+                            @if($order->opsi_pengiriman == 'otomatis')
+                            <a href="javascript:void(0)" class="btn btn-info" data-toggle="modal" data-target="#lacak-pengiriman{{ $order->id_order }}"><i class="fa-solid fa-truck"></i> Lacak Pengiriman</a>
+                            @endif
                           @endif
+                          @if($order->opsi_pengiriman == 'otomatis')
                           <a href="{{ route('admin.order.resi', $order->no_order) }}" class="btn btn-primary" target="_blank">Cetak RESI</a>
+                          @endif
                           <a href="{{ route('admin.order.invoice', $order->no_order) }}" class="btn btn-success" target="_blank">Cetak Invoice</a>
                         </div>
                       </div>
@@ -71,6 +75,16 @@
                                     <span class="badge badge-danger">Dibatalkan Admin dengan konfirmasi</span>
                                   @elseif($order->status_order == 'cancel' && $order->dibatalkan_pembeli == 1)
                                     <span class="badge badge-danger">Dibatalkan Pembeli</span>
+                                  @endif
+                                </td>
+                              </tr>
+                              <tr>
+                                <td>Opsi Pengiriman</td>
+                                <td>
+                                  @if($order->opsi_pengiriman == 'otomatis')
+                                    <span class="badge badge-primary">Otomatis (by system)</span>
+                                  @elseif($order->opsi_pengiriman == 'manual')
+                                    <span class="badge badge-danger">Manual (dihubungi admin)</span>
                                   @endif
                                 </td>
                               </tr>
@@ -121,7 +135,15 @@
                               </tr>
                               <tr>
                                 <td>Destination Contact Phone</td>
-                                <td>{{ $order->destination_contact_phone }}</td>
+                                <td>
+                                  <div class="d-flex align-items-center">
+                                    <div class="text-success mr-1" id="phoneNumber">{{ $order->destination_contact_phone }}</div>
+                                    <div>
+                                      <button class="border" id="copyPhoneNumber"><i class="fa-solid fa-copy"></i></button>
+                                      <button class="border" id="chatPhoneNumber"><i class="fa-solid fa-comments"></i></button>
+                                    </div>
+                                  </div>
+                                </td>
                               </tr>
                               <tr>
                                 <td>Destination Contact Email</td>
@@ -141,12 +163,13 @@
                               </tr>
                               <tr>
                                 <td>Destination Coordinate Latitude</td>
-                                <td>{{ $order->destination_contact_name }}</td>
+                                <td>{{ $order->destination_coordinate_latitude }}</td>
                               </tr>
                               <tr>
                                 <td>Destination Coordinate Longitude</td>
-                                <td>{{ $order->destination_contact_name }}</td>
+                                <td>{{ $order->destination_coordinate_longitude }}</td>
                               </tr>
+                              @if($order->opsi_pengiriman == 'otomatis')
                               <tr>
                                 <td>No Resi</td>
                                 <td>{{ $order->waybill_id }}</td>
@@ -163,6 +186,7 @@
                                 <td>Courier Price</td>
                                 <td>{{ 'Rp. ' . number_format($order->courier_price, 0, '.', '.') }}</td>
                               </tr>
+                              @endif
                               <tr>
                                 <td>Barang</td>
                                 <td class="p-0">
@@ -264,7 +288,32 @@
 <link rel="stylesheet" href="{{ asset('library/select2/dist/css/select2.min.css') }}">
 <script src="{{ asset('library/select2/dist/js/select2.full.min.js') }}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/11.7.5/sweetalert2.all.js" integrity="sha512-AINSNy+d2WG9ts1uJvi8LZS42S8DT52ceWey5shLQ9ArCmIFVi84nXNrvWyJ6bJ+qIb1MnXR46+A4ic/AUcizQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const copyBtn = document.getElementById('copyPhoneNumber');
+        const chatBtn = document.getElementById('chatPhoneNumber');
+        const phoneNumberEl = document.getElementById('phoneNumber');
 
+        copyBtn.addEventListener('click', function () {
+            const phoneNumber = phoneNumberEl.innerText.trim();
+            navigator.clipboard.writeText(phoneNumber).then(() => {
+                alert('Nomor berhasil disalin: ' + phoneNumber);
+            }).catch(err => {
+                console.error('Gagal menyalin teks: ', err);
+            });
+        });
+
+        chatBtn.addEventListener('click', function () {
+            let phoneNumber = phoneNumberEl.innerText.trim();
+            phoneNumber = phoneNumber.replace(/\D/g, '');
+            if (phoneNumber.startsWith('0')) {
+                phoneNumber = '62' + phoneNumber.substring(1);
+            }
+            const waLink = `https://wa.me/${phoneNumber}`;
+            window.open(waLink, '_blank');
+        });
+    });
+</script>
 <script>
   $(document).ready(function() {
     $('#lacak-pengiriman{{ $order->id_order }}').on('show.bs.modal', function () {
