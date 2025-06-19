@@ -79,7 +79,7 @@ class AuthenticationController extends Controller
                 ])->onlyInput('email');
             }
 
-            return redirect('login')->withErrors([
+            return redirect()->route('confirm-phone-number', ['email' => $user->email, 'no_hp' => $user->no_hp])->withErrors([
                 'email' => 'Segera verifikasi nomor telepon anda.',
             ])->onlyInput('email');
         }
@@ -152,7 +152,7 @@ class AuthenticationController extends Controller
     public function register(Request $request)
     {
         $request->validate([
-            'google_id' => ['nullable'],
+            'google_id' => ['nullable', 'string'],
             'nama' => ['required', 'array'],
             'nama.0' => ['required', 'string', 'max:255'],
             'nama.1' => ['required', 'string', 'max:255'],
@@ -225,16 +225,20 @@ class AuthenticationController extends Controller
         $data['verification_code'] = $verificationCode;
         $data['verification_code_expires_at'] = Carbon::now()->addMinutes(10);
 
-        $google_id = $data['google_id'];
-
-        $member = Member::where('google_id', $google_id)->first();
+        $google_id = $data['google_id'] ?? null;
 
         try {
-            if ($member) {
-                $member->update($data);
+            if ($google_id) {
+                $member = Member::where('google_id', $google_id)->first();
+                if ($member) {
+                    $member->update($data);
+                } else {
+                    $member = Member::create($data);
+                }
             } else {
                 $member = Member::create($data);
             }
+
 
             $this->sendVerificationCodeViaQontak($member, $verificationCode);
 
