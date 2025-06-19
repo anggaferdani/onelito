@@ -35,9 +35,9 @@ class AppServiceProvider extends ServiceProvider
     {
         if (config('env') !== 'local') {
             $url->forceScheme('http');
-        } else {
-            $url->forceScheme('https');
         }
+
+        $url->forceScheme('https');
 
         $this->bootMorph();
 
