@@ -453,7 +453,9 @@ class AuthenticationController extends Controller
                 return redirect()->route('phone-number-verification', ['token' => $userToLogin->verification_token]);
             } else {
                 $verificationCode = Member::generateVerificationCode();
+                $verificationToken = Member::generateVerificationToken();
                 $userToLogin->verification_code = $verificationCode;
+                $userToLogin->verification_token = $verificationToken;
                 $userToLogin->verification_code_expires_at = \Carbon\Carbon::now()->addMinutes(10);
                 $userToLogin->save();
 

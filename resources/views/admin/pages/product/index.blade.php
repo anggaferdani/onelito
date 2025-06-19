@@ -132,7 +132,7 @@
                         "targets": 5, // Index of the 'Weight' column (Weight column index)
                         "render": function (data, type, row) {
                             if (type === 'display') {
-                                return '<input type="number" class="form-control edit-weight" style="min-width: 150px !important;" data-id="' + row.id_produk + '" value="' + data + '">';
+                                return '<input type="number" class="form-control edit-weight" style="min-width: 70px !important;" data-id="' + row.id_produk + '" value="' + data + '">';
                             }
                             return data;
                         }
@@ -141,7 +141,7 @@
                         "targets": 6, // Index of the 'Stock' column
                         "render": function (data, type, row) {
                             if (type === 'display') {
-                                return '<input type="number" class="form-control edit-stock" style="min-width: 150px !important;" data-id="' + row.id_produk + '" value="' + data + '">';
+                                return '<input type="number" class="form-control edit-stock" style="min-width: 70px !important;" data-id="' + row.id_produk + '" value="' + data + '">';
                             }
                             return data;
                         }
