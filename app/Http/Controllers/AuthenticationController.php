@@ -166,7 +166,9 @@ class AuthenticationController extends Controller
             'password' => ['required', 'min:8'],
             'confirmpassword' => 'required|same:password',
             'alamat' => ['required', 'string', 'max:255'],
-            'no_hp' => ['required', 'string', 'max:20'],
+            'no_hp' => ['required', 'string', 'max:20', Rule::unique('m_peserta')->where(function ($query) {
+                    return $query->where('status_aktif', 1);
+                })],
             'provinsi' => ['required'],
             'kota' => ['required'],
             'kecamatan' => ['required'],
@@ -187,6 +189,7 @@ class AuthenticationController extends Controller
             'confirmpassword.same' => 'Konfirmasi password tidak cocok dengan password.',
             'alamat.required' => 'Alamat wajib diisi.',
             'no_hp.required' => 'No. Handphone wajib diisi.',
+            'no_hp.unique' => 'No. Handphone sudah terdaftar.',
             'provinsi.required' => 'Provinsi wajib diisi.',
             'kota.required' => 'Kota wajib diisi.',
             'kecamatan.required' => 'Kecamatan wajib diisi.',

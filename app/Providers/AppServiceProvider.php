@@ -13,6 +13,7 @@ use Illuminate\Routing\UrlGenerator;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
 use App\Console\Commands\SendEventReminder;
+use Illuminate\Support\Facades\App;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -33,11 +34,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(UrlGenerator $url)
     {
-        if (config('env') !== 'local') {
+        if (App::environment('local')) {
             $url->forceScheme('http');
+        } else {
+            $url->forceScheme('https');
         }
-
-        $url->forceScheme('https');
 
         $this->bootMorph();
 

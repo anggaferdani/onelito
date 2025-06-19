@@ -84,7 +84,7 @@
                                   @if($order->opsi_pengiriman == 'otomatis')
                                     <span class="badge badge-primary">Otomatis (by system)</span>
                                   @elseif($order->opsi_pengiriman == 'manual')
-                                    <span class="badge badge-danger">Manual (dihubungi admin)</span>
+                                    <span class="badge badge-danger">Ambil ditempat</span>
                                   @endif
                                 </td>
                               </tr>

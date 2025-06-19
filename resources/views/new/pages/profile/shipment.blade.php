@@ -70,7 +70,7 @@
           <select class="form-select" id="opsiPengiriman" name="opsi_pengiriman" required>
             <option value="" disabled selected>Pilih opsi pengiriman</option>
             <option value="otomatis">Otomatis (by system)</option>
-            <option value="manual">Manual (dihubungi admin)</option>
+            <option value="manual">Ambil ditempat</option>
           </select>
         </div>
         <div class="alert alert-danger">Untuk pembelian ikan, ongkos kirim yang tertera adalah untuk pengiriman invoice. Sedangkan ongkos kirim untuk pengiriman ikan akan diinformasikan kembali oleh admin.</div>
