@@ -67,12 +67,12 @@ class PesananController extends Controller
                     if($row->status_order == 'pending') {
                         $actionBtn .= ' <button class="btn btn-sm text-nowrap btn-danger" data-toggle="modal" data-target="#batalkan-pesanan' . $row->id_order . '">Batal Pesanan</button>';
                     } elseif($row->status_order == 'paid') {
-                        $actionBtn .= ' <a href="' . route('admin.pesanan.process', $row->no_order) . '" class="btn btn-sm text-nowrap btn-warning delete2" data-title="Proses Pesanan" data-text="Apakah Anda yakin ingin memproses pesanan ini?" data-confirm-button="Ya, proses sekarang" data-confirm-button-class="btn btn-sm text-nowrap btn-warning">Proses Pesanan</a>';
+                        $actionBtn .= ' <a href="' . route('admin.pesanan.process', $row->no_order) . '" class="btn btn-sm text-nowrap btn-warning delete2" data-title="Proses Pesanan" data-text="Apakah Anda yakin ingin memproses pesanan ini?" data-confirm-button="Ya, proses sekarang" data-confirm-button-class="btn text-nowrap btn-warning">Proses Pesanan</a>';
                     } elseif($row->status_order == 'process') {
                         if ($row->opsi_pengiriman == 'otomatis') {
-                            $actionBtn .= ' <a href="' . route('admin.pesanan.kirim', $row->no_order) . '" class="btn btn-sm text-nowrap btn-primary delete2" data-title="Kirim Pesanan" data-text="Apakah Anda yakin ingin mengirim pesanan ini?" data-confirm-button="Ya, kirim sekarang" data-confirm-button-class="btn btn-sm text-nowrap btn-primary">Kirim Pesanan</a>';
+                            $actionBtn .= ' <a href="' . route('admin.pesanan.kirim', $row->no_order) . '" class="btn btn-sm text-nowrap btn-primary delete2" data-title="Kirim Pesanan" data-text="Apakah Anda yakin ingin mengirim pesanan ini?" data-confirm-button="Ya, kirim sekarang" data-confirm-button-class="btn text-nowrap btn-primary">Kirim Pesanan</a>';
                         } elseif ($row->opsi_pengiriman == 'manual') {
-                            $actionBtn .= ' <a href="' . route('admin.pesanan.done', $row->no_order) . '" class="btn btn-sm text-nowrap btn-warning delete2" data-title="Selesaikan Pesanan" data-text="Apakah Anda yakin ingin mengirim pesanan ini?" data-confirm-button="Ya, Selesaikan sekarang" data-confirm-button-class="btn btn-sm text-nowrap btn-primary">Selesaikan Pesanan</a>';
+                            $actionBtn .= ' <a href="' . route('admin.pesanan.done', $row->no_order) . '" class="btn btn-sm text-nowrap btn-warning delete2" data-title="Selesaikan Pesanan" data-text="Apakah Anda yakin ingin mengirim pesanan ini?" data-confirm-button="Ya, Selesaikan sekarang" data-confirm-button-class="btn text-nowrap btn-primary">Selesaikan Pesanan</a>';
                         }
                     } else {
                         if ($row->opsi_pengiriman == 'otomatis') {
