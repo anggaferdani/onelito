@@ -261,7 +261,9 @@
 
         $('#formEdit').submit(function(e) {
             e.preventDefault();
+            tinymce.triggerSave();
             let formData = new FormData(this);
+            formData.append('_method', 'PATCH');
 
             formData.append('kategori_event', formData.get('edit_kategori_event'));
             formData.append('deskripsi_event', formData.get('edit_deskripsi_event'));
@@ -270,7 +272,6 @@
             formData.append('tgl_akhir', formData.get('edit_tgl_akhir'));
             formData.append('banner', formData.get('edit_banner'));
             formData.append('total_hadiah', formData.get('edit_total_hadiah'));
-            formData.append('_method', 'PATCH');
 
             formData.delete('edit_kategori_event');
             formData.delete('edit_deskripsi_event');
@@ -300,7 +301,7 @@
                         $('#modalEdit').modal('hide');
 
                         $('#formDataEdit').trigger('reset');
-                        $('#example').DataTable().ajax.reload();
+                        $('#table-1').DataTable().ajax.reload();
 
                         swal(res.message.title, res.message.content, res.message.type);
                     }

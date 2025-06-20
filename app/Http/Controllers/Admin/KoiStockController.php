@@ -54,10 +54,10 @@ class KoiStockController extends Controller
                 ';
                 })
                 ->addColumn('stock_input', function ($data) {  // Add a column for stock input field
-                    return '<input type="number" class="form-control edit-stock" style="min-width: 150px !important;" data-id="' . $data->id_koi_stock . '" value="' . $data->stock . '">';
+                    return '<input type="number" class="form-control edit-stock" style="min-width: 80px !important;" data-id="' . $data->id_koi_stock . '" value="' . $data->stock . '">';
                 })
                 ->addColumn('weight_input', function ($data) {  // Add a column for weight input field
-                    return '<input type="number" class="form-control edit-weight" style="min-width: 150px !important;" data-id="' . $data->id_koi_stock . '" value="' . $data->weight . '">';
+                    return '<input type="number" class="form-control edit-weight" style="min-width: 80px !important;" data-id="' . $data->id_koi_stock . '" value="' . $data->weight . '">';
                 })
                 ->rawColumns(['action', 'note', 'foto_ikan', 'stock_input', 'weight_input'])
                 ->make(true);

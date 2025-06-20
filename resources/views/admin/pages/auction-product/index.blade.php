@@ -261,7 +261,9 @@
 
         $('#formEdit').submit(function(e) {
             e.preventDefault();
+            tinymce.triggerSave();
             let formData = new FormData(this);
+            formData.append('_method', 'PATCH');
 
             formData.append('no_ikan', formData.get('edit_no_ikan'));
             formData.append('variety', formData.get('edit_variety'));
@@ -277,7 +279,6 @@
             formData.append('link_video', formData.get('edit_link_video'));
             formData.append('path_foto', formData.get('edit_foto'));
             formData.append('extra_time', formData.get('edit_extra_time'));
-            formData.append('_method', 'PATCH');
 
             formData.delete('edit_no_ikan');
             formData.delete('edit_variety');

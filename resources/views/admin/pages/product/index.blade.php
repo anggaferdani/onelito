@@ -132,7 +132,7 @@
                         "targets": 5, // Index of the 'Weight' column (Weight column index)
                         "render": function (data, type, row) {
                             if (type === 'display') {
-                                return '<input type="number" class="form-control edit-weight" style="min-width: 150px !important;" data-id="' + row.id_produk + '" value="' + data + '">';
+                                return '<input type="number" class="form-control edit-weight" style="min-width: 80px !important;" data-id="' + row.id_produk + '" value="' + data + '">';
                             }
                             return data;
                         }
@@ -141,7 +141,7 @@
                         "targets": 6, // Index of the 'Stock' column
                         "render": function (data, type, row) {
                             if (type === 'display') {
-                                return '<input type="number" class="form-control edit-stock" style="min-width: 150px !important;" data-id="' + row.id_produk + '" value="' + data + '">';
+                                return '<input type="number" class="form-control edit-stock" style="min-width: 80px !important;" data-id="' + row.id_produk + '" value="' + data + '">';
                             }
                             return data;
                         }
@@ -308,7 +308,9 @@
 
         $('#formEdit').submit(function(e) {
             e.preventDefault();
+            tinymce.triggerSave();
             let formData = new FormData(this);
+            formData.append('_method', 'PATCH');
 
             formData.append('id_kategori_produk', formData.get('edit_id_kategori_produk'));
             formData.append('merek_produk', formData.get('edit_merek_produk'));
@@ -323,7 +325,6 @@
             formData.append('point', formData.get('edit_point'));
             formData.append('deskripsi', formData.get('edit_deskripsi'));
             formData.append('path_foto', formData.get('edit_foto'));
-            formData.append('_method', 'PATCH');
 
             formData.delete('edit_id_kategori_produk');
             formData.delete('edit_merek_produk');
