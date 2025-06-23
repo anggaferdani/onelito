@@ -22,9 +22,9 @@
                 <input  type="text" id="deskripsi_event" class="form-control" name="deskripsi_event" placeholder="">
             </div>
             <div class="form-group">
-                <label for="rules_events">Rules</label>
-                <textarea id="rules_events" name="rules_event" class="form-control tinymce" placeholder="" required></textarea>
-                <!-- <input  type="text" id="rules_events" class="form-control" name="rules_events" placeholder="" required> -->
+                <label for="rules_event">Rules</label>
+                <textarea id="rules_event" name="rules_event" class="form-control tinymce" placeholder=""></textarea>
+                <!-- <input  type="text" id="rules_event" class="form-control" name="rules_event" placeholder="" required> -->
             </div>
             <div class="form-group">
                 <label for="tgl_mulai">Tgl. Mulai</label>
