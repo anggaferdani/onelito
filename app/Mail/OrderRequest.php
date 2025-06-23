@@ -15,21 +15,11 @@ class OrderRequest extends Mailable
 
     public $order;
 
-    /**
-     * Create a new message instance.
-     *
-     * @return void
-     */
     public function __construct($order)
     {
         $this->order = $order;
     }
 
-    /**
-     * Build the message.
-     *
-     * @return $this
-     */
     public function build()
     {
         $noOrder = $this->order->no_order;

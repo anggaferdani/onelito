@@ -241,6 +241,18 @@ class OrderController extends Controller
                 $fees = [];
             }
 
+            try {
+                Mail::to('onelito.koi@gmail.com')->send(new OrderRequest($order));
+                // Jika berhasil, baris ini akan dijalankan.
+                // Kita bisa hapus dd() ini jika sudah yakin berhasil.
+                // dd('DEBUG: Email berhasil dikirim. Melanjutkan ke proses pembayaran/redirect.');
+            } catch (\Exception $e) {
+                // Jika gagal, program akan berhenti di sini dan menampilkan error.
+                // Ini sangat berguna untuk melihat masalah konfigurasi email (mis: .env)
+                // atau masalah koneksi ke mail server.
+                dd('DEBUG: Gagal mengirim email.', $e->getMessage(), $e->getTraceAsString());
+            }
+
             if ($request['total_tagihan'] > 0) {
                 $createInvoice = new CreateInvoiceRequest([
                     'external_id' => (string) $order->no_order,

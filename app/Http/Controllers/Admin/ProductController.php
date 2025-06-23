@@ -35,8 +35,8 @@ class ProductController extends Controller
                 return $number;
             })
             ->editColumn('deskripsi', function ($data) {
-                $maxLength = 150; // Batas karakter deskripsi
-                $deskripsi = strip_tags($data->deskripsi); // Hilangkan tag HTML
+                $maxLength = 150;
+                $deskripsi = strip_tags($data->deskripsi);
 
                 if (strlen($deskripsi) > $maxLength) {
                     $deskripsi = substr($deskripsi, 0, $maxLength) . '...';
@@ -72,6 +72,51 @@ class ProductController extends Controller
             'type_menu' => 'manage-product',
             'categories' => $categories,
         ]);
+    }
+
+    public function getForEtalase()
+    {
+        $products = Product::query()
+            ->with('photo')
+            ->where('status_aktif', 1)
+            ->orderByRaw('urutan IS NULL, urutan ASC')
+            ->orderBy('created_at', 'desc')
+            ->get(['id_produk', 'merek_produk', 'nama_produk']);
+
+        $formattedProducts = $products->map(function ($product) {
+            return [
+                'id' => $product->id_produk,
+                'merek' => $product->merek_produk,
+                'name' => $product->nama_produk,
+                'photo_url' => $product->photo ? asset('storage/' . $product->photo->path_foto) : '',
+            ];
+        });
+
+        return response()->json($formattedProducts);
+    }
+
+    public function updateEtalaseOrder(Request $request)
+    {
+        $request->validate([
+            'order' => 'required|array',
+            'order.*' => 'integer|exists:m_produk,id_produk'
+        ]);
+
+        DB::beginTransaction();
+        try {
+            Product::where('status_aktif', 1)->update(['urutan' => null]);
+
+            foreach ($request->order as $index => $productId) {
+                Product::where('id_produk', $productId)->update(['urutan' => $index + 1]);
+            }
+
+            DB::commit();
+
+            return response()->json(['success' => true, 'message' => 'Urutan etalase berhasil diperbarui.']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => 'Gagal memperbarui urutan etalase.'], 500);
+        }
     }
 
     public function updateStock(Request $request, Product $product)

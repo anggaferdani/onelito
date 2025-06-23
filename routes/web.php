@@ -242,6 +242,9 @@ Route::group(['prefix' => 'admin', 'middleware' => 'auth:admin'], function () {
         Route::post('order/cancel/{no_order}', [OrderController::class, 'cancelByAdmin'])->name('order.cancel');
     });
 
+    Route::get('/products/get-for-etalase', [App\Http\Controllers\Admin\ProductController::class, 'getForEtalase'])->name('admin.products.getForEtalase');
+    Route::post('/products/update-etalase-order', [App\Http\Controllers\Admin\ProductController::class, 'updateEtalaseOrder'])->name('admin.products.updateEtalaseOrder');
+
     Route::get('/dashboard', [Admin\DashboardController::class, 'index'])->name('admin.dashboard.index');
     Route::get('/charts/sum-product-sold', [Admin\DashboardController::class, 'productSoldChart']);
     Route::get('/charts/sum-nominal-product-sold', [Admin\DashboardController::class, 'productSoldNominalChart']);

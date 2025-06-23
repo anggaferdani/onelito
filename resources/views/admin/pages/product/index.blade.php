@@ -3,7 +3,69 @@
 @push('style')
     <link rel="stylesheet" href="{{ asset('library/select2/dist/css/select2.min.css') }}">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap4.min.css">
-
+    <link rel="stylesheet" href="{{ asset('library/jquery-ui-dist/jquery-ui.min.css') }}">
+    <style>
+        #sortable-etalase {
+            display: flex;
+            flex-wrap: wrap;
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+        #sortable-etalase li {
+            flex: 0 0 20%;
+            max-width: 20%;
+            padding: 5px;
+        }
+        @media (max-width: 992px) {
+            #sortable-etalase li {
+                flex: 0 0 33.33%;
+                max-width: 33.33%;
+            }
+        }
+        @media (max-width: 768px) {
+            #sortable-etalase li {
+                flex: 0 0 50%;
+                max-width: 50%;
+            }
+        }
+        .etalase-item {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+            background-color: #f9f9f9;
+            cursor: move;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border-radius: 4px;
+        }
+        .etalase-item img {
+            width: 100%;
+            height: 120px;
+            object-fit: contain;
+            margin-bottom: 10px;
+        }
+        .etalase-item p {
+            margin: 0;
+            font-size: 12px;
+            line-height: 1.3;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            min-height: 31.2px;
+        }
+        .ui-state-highlight {
+            border: 2px dashed #007bff;
+            background: #eaf3ff;
+            visibility: visible !important;
+            height: auto;
+            min-height: 180px;
+        }
+    </style>
 @endpush
 @section('main')
     <div class="main-content">
@@ -21,10 +83,8 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-body">
-                            <button class="btn btn-primary mb-3"
-                            data-toggle="modal"
-                            data-target="#modalCreate"
-                            ><i class="fa fa-plus"></i> Tambah Barang Store</button>
+                            <button class="btn btn-primary mb-3" data-toggle="modal" data-target="#modalCreate"><i class="fa fa-plus"></i> Tambah Barang Store</button>
+                            <button class="btn btn-info mb-3" data-toggle="modal" data-target="#modalAturEtalaseBarang"><i class="fa fa-rotate"></i> Atur Etalase Barang</button>
 
                                 <div class="table-responsive">
                                     <table class="table-striped table"
@@ -60,6 +120,26 @@
         @include('admin.pages.product._create')
         @include('admin.pages.product._show')
         @include('admin.pages.product._edit')
+
+        <div class="modal fade" id="modalAturEtalaseBarang" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" data-backdrop="static">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document"> {{-- Gunakan modal-xl untuk ruang lebih luas --}}
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Atur Etalase Barang</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                    </div>
+                    <div class="modal-body" id="modalAturEtalaseBarangBody">
+                        {{-- Konten dinamis akan dimuat di sini oleh JavaScript --}}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                        <button type="button" id="btn-save-etalase" class="btn btn-primary">Simpan Urutan</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 @endsection
 @push('scripts')
@@ -129,7 +209,7 @@
                 ],
                 "columnDefs": [
                     {
-                        "targets": 5, // Index of the 'Weight' column (Weight column index)
+                        "targets": 5,
                         "render": function (data, type, row) {
                             if (type === 'display') {
                                 return '<input type="number" class="form-control edit-weight" style="min-width: 80px !important;" data-id="' + row.id_produk + '" value="' + data + '">';
@@ -138,7 +218,7 @@
                         }
                     },
                     {
-                        "targets": 6, // Index of the 'Stock' column
+                        "targets": 6,
                         "render": function (data, type, row) {
                             if (type === 'display') {
                                 return '<input type="number" class="form-control edit-stock" style="min-width: 80px !important;" data-id="' + row.id_produk + '" value="' + data + '">';
@@ -153,8 +233,6 @@
                 let productId = $(this).data('id');
                 let newStock = $(this).val();
                 let $input = $(this);
-                //let table = $('#table-1').DataTable(); // Sudah diinisialisasi di atas
-                //let currentPage = table.page(); // Tidak perlu disimpan lagi
 
                 $.ajax({
                     url: '/admin/products/' + productId + '/update-stock',
@@ -166,10 +244,9 @@
                     success: function(response) {
                         if (response.success) {
                             swal('Success', 'Stock updated successfully', 'success');
-                            // Update the cell data directly
                             let cell = table.cell($input.closest('td'));
-                            cell.data(response.data); // Update the data source
-                            $input.val(response.data);    // Update input value
+                            cell.data(response.data);
+                            $input.val(response.data);
                             cell.invalidate();
                         } else {
                             swal('Error', response.message, 'error');
@@ -187,8 +264,6 @@
                 let productId = $(this).data('id');
                 let newWeight = $(this).val();
                 let $input = $(this);
-                //let table = $('#table-1').DataTable(); // Sudah diinisialisasi di atas
-                //let currentPage = table.page(); // Tidak perlu disimpan lagi
 
                 $.ajax({
                     url: '/admin/products/' + productId + '/update-weight',
@@ -200,10 +275,9 @@
                     success: function(response) {
                         if (response.success) {
                             swal('Success', 'Weight updated successfully', 'success');
-                             // Update the cell data directly
                              let cell = table.cell($input.closest('td'));
-                             cell.data(response.data); // Update the data source
-                             $input.val(response.data);    // Update input value
+                             cell.data(response.data);
+                             $input.val(response.data);
                              cell.invalidate();
 
                         } else {
@@ -213,6 +287,83 @@
                     error: function(xhr, status, error) {
                         console.error(xhr.responseText);
                         swal('Error', 'Failed to update weight', 'error');
+                    }
+                });
+            });
+
+            $('button[data-target="#modalAturEtalaseBarang"]').on('click', function() {
+                const modalBody = $('#modalAturEtalaseBarangBody');
+                modalBody.html('<div class="text-center p-5"><div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div><p class="mt-2">Memuat produk...</p></div>');
+
+                $.ajax({
+                    url: '{{ route("admin.products.getForEtalase") }}',
+                    type: 'GET',
+                    success: function(products) {
+                        if (products.length === 0) {
+                            modalBody.html('<p class="text-center">Tidak ada produk aktif untuk diatur.</p>');
+                            return;
+                        }
+
+                        let listHtml = '<ul id="sortable-etalase">';
+                        products.forEach(function(product) {
+                            listHtml += `
+                                <li class="ui-state-default" data-id="${product.id}">
+                                    <div class="etalase-item">
+                                        <img src="${product.photo_url}" alt="${product.name}">
+                                        <p title="${product.name}">${product.merek} - ${product.name}</p>
+                                    </div>
+                                </li>
+                            `;
+                        });
+                        listHtml += '</ul>';
+
+                        modalBody.html(listHtml);
+
+                        $("#sortable-etalase").sortable({
+                            placeholder: "ui-state-highlight",
+                            forcePlaceholderSize: true,
+                            tolerance: "pointer"
+                        });
+                        $("#sortable-etalase").disableSelection();
+                    },
+                    error: function() {
+                        modalBody.html('<p class="text-center text-danger">Gagal memuat data produk. Silakan coba lagi.</p>');
+                    }
+                });
+            });
+
+            $('#btn-save-etalase').on('click', function() {
+                const button = $(this);
+                const orderedIds = $("#sortable-etalase").sortable("toArray", { attribute: "data-id" });
+
+                if (orderedIds.length === 0) {
+                    $('#modalAturEtalaseBarang').modal('hide');
+                    return;
+                }
+
+                $.ajax({
+                    url: '{{ route("admin.products.updateEtalaseOrder") }}',
+                    type: 'POST',
+                    data: {
+                        order: orderedIds
+                    },
+                    beforeSend: function() {
+                        button.addClass('btn-progress').prop('disabled', true);
+                    },
+                    complete: function() {
+                        button.removeClass('btn-progress').prop('disabled', false);
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            $('#modalAturEtalaseBarang').modal('hide');
+                            swal('Berhasil!', response.message, 'success');
+                            $('#table-1').DataTable().ajax.reload(null, false);
+                        } else {
+                            swal('Gagal!', response.message, 'error');
+                        }
+                    },
+                    error: function() {
+                        swal('Error!', 'Terjadi kesalahan pada server. Tidak dapat menyimpan urutan.', 'error');
                     }
                 });
             });

@@ -39,7 +39,8 @@ class StoreController extends Controller
             ->when($search !== null, function ($query) use ($search) {
                 $query->whereRaw('CONCAT(merek_produk, " ", nama_produk) LIKE ?', ["%$search%"]);
             })
-            ->orderBy('created_at', 'desc')
+            ->orderByRaw('m_produk.urutan IS NULL, m_produk.urutan ASC')
+            ->orderBy('m_produk.created_at', 'desc')
             ->paginate($this->perPage());
 
 
