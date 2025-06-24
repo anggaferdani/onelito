@@ -368,11 +368,9 @@ class AuthenticationController extends Controller
         $token = env('QONTAK_API_KEY');
 
         $phoneNumber = $member->no_hp;
-        $phoneNumber = preg_replace('/\D/', '', $phoneNumber);
-        if (strpos($phoneNumber, '0') === 0) {
+        $phoneNumber = preg_replace('/[^0-9]/', '', $phoneNumber);
+        if (preg_match('/^0/', $phoneNumber)) {
             $phoneNumber = '62' . substr($phoneNumber, 1);
-        } else if(strpos($phoneNumber, '62') !== 0) {
-            $phoneNumber = '62' . $phoneNumber;
         }
 
         $data_qontak = [

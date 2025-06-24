@@ -60,12 +60,10 @@ class SendEventController extends Controller
 
     //             foreach ($users as $user) {
     //                 $phoneNumber = $user->no_hp;
-    //                 $phoneNumber = preg_replace('/\D/', '', $phoneNumber);
-    //                 if (strpos($phoneNumber, '0') === 0) {
-    //                     $phoneNumber = '62' . substr($phoneNumber, 1);
-    //                 } else if (strpos($phoneNumber, '62') !== 0) {
-    //                     $phoneNumber = '62' . $phoneNumber;
-    //                 }
+                        // $phoneNumber = preg_replace('/[^0-9]/', '', $phoneNumber);
+                        // if (preg_match('/^0/', $phoneNumber)) {
+                        //     $phoneNumber = '62' . substr($phoneNumber, 1);
+                        // }
 
     //                 $data = [
     //                     "to_name" => $user->nama,
@@ -145,13 +143,11 @@ class SendEventController extends Controller
     //     $url = 'https://service-chat.qontak.com/api/open/v1/broadcasts/whatsapp/direct';
     //     $token = env('QONTAK_API_KEY');
 
-    //     $phoneNumber = "081290573256";
-    //     $phoneNumber = preg_replace('/\D/', '', $phoneNumber);
-    //     if (strpos($phoneNumber, '0') === 0) {
-    //         $phoneNumber = '62' . substr($phoneNumber, 1);
-    //     } else if(strpos($phoneNumber, '62') !== 0){
-    //             $phoneNumber = '62' . $phoneNumber;
-    //     }
+    // $phoneNumber = $member->no_hp;
+    // $phoneNumber = preg_replace('/[^0-9]/', '', $phoneNumber);
+    // if (preg_match('/^0/', $phoneNumber)) {
+    //     $phoneNumber = '62' . substr($phoneNumber, 1);
+    // }
 
     //     $data = [
     //         "to_name" => 'Angga',
