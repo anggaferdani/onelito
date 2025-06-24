@@ -312,11 +312,10 @@
                 success: function(res) {
                     if (res.success == true) {
 
-                        location.reload();
                         $('#modalEdit').modal('hide');
 
                         $('#formDataEdit').trigger('reset');
-                        $('#example').DataTable().ajax.reload();
+                        $('#table-1').DataTable().ajax.reload(null, false);
 
                         swal(res.message.title, res.message.content, res.message.type);
                     }
@@ -354,7 +353,6 @@
                                         icon: 'success',
                                     });
 
-                                    location.reload();
                                 }
                             },
                             error: function(err) {

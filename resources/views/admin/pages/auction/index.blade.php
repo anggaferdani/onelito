@@ -301,7 +301,7 @@
                         $('#modalEdit').modal('hide');
 
                         $('#formDataEdit').trigger('reset');
-                        $('#table-1').DataTable().ajax.reload();
+                        $('#table-1').DataTable().ajax.reload(null, false);
 
                         swal(res.message.title, res.message.content, res.message.type);
                     }
