@@ -462,7 +462,7 @@
                   items.push({
                       'name': cart.cartable.merek_produk + ', ' + cart.cartable.nama_produk,
                       'description': '',
-                      'category': '',
+                      'category': 'others',
                       'value': cart.cartable.harga,
                       'quantity': cart.jumlah,
                       'height': cart.cartable.height,
@@ -474,13 +474,13 @@
                   items.push({
                       'name': cart.cartable.variety + ', ' + cart.cartable.breeder + ', ' + cart.cartable.bloodline + ', ' + cart.cartable.size,
                       'description': '',
-                      'category': '',
-                      'value': cart.cartable.harga,
+                      'category': 'others',
+                      'value': cart.cartable.harga_ikan,
                       'quantity': 1,
-                      'height': 3,
-                      'length': 10,
-                      'weight': 10,
-                      'width': 10,
+                      'height': 0,
+                      'length': 30,
+                      'weight': 0,
+                      'width': 20,
                   });
               }
           });
@@ -515,20 +515,37 @@
               success: function(response) {
                   console.log(response);
                   $('#kurir').prop('disabled', false);
+                  const pengirimanConfig = {
+                      'reguler': [
+                          { service_type: 'standard', type: 'reg' },
+                          { service_type: 'standard' },
+                      ],
+                      'next_day': [
+                          { service_type: 'overnight' },
+                      ],
+                      'same_day': [
+                          { service_type: 'same_day', type: 'same_day' },
+                      ],
+                      'instant': [
+                          { service_type: 'same_day', type: 'instant' },
+                      ]
+                  };
+
                   var filteredPricing = response.pricing.filter(function(price) {
-                      switch (pengiriman) {
-                          case 'reguler':
-                              return price.service_type === 'standard';
-                          case 'next_day':
-                              return price.service_type === 'overnight';
-                          case 'same_day':
-                              return price.service_type === 'same_day' && price.type === 'same_day';
-                          case 'instant':
-                              return price.service_type === 'same_day' && price.type === 'instant';
-                          default:
-                              return false;
-                      }
+                  const rules = pengirimanConfig[pengiriman];
+
+                  if (!rules) {
+                      return false;
+                  }
+
+                  return rules.some(function(rule) {
+                      const serviceMatch = rule.service_type === price.service_type;
+
+                      const typeMatch = !rule.type || rule.type === price.type;
+
+                      return serviceMatch && typeMatch;
                   });
+              });
 
                   if (filteredPricing.length === 0) {
                       var noCouriersMessage = [{
