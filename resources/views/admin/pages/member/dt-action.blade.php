@@ -32,7 +32,7 @@ title="Edit">
     $url = config('app.url') . "/ls/click?click=$crypt";
 @endphp
 
-<button class="btn btn-sm btn-primary mb-2"
+{{-- <button class="btn btn-sm btn-primary mb-2"
     id="btn-send-email"
     data-url="{{ url('/send-email/'. $model->email) }}"
     data-id="{{ $model->id_peserta }}"
@@ -43,7 +43,7 @@ title="Edit">
     <i class="fa fa-envelope"></i>
 </button>
 
-{{-- <button class="btn btn-sm btn-primary mb-2"
+<button class="btn btn-sm btn-primary mb-2"
     id="btn-copy-url-verif"
     data-url="{{ url('/send-email/'. $model->email) }}"
     data-id="{{ $model->id_peserta }}"

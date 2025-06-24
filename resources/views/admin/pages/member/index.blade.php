@@ -85,6 +85,7 @@
                                                 <th>No. hp</th>
                                                 <th>Alamat</th>
                                                 <th>Provinsi</th>
+                                                <th>Phone Number Verified</th>
                                                 <th>Status Aktif</th>
                                                 <!-- <th>Kelurahan</th> -->
                                                 <th>Kota</th>
@@ -298,6 +299,7 @@
                     { data : 'no_hp'},
                     { data : 'alamat' , orderable : false,searchable :false},
                     { data : 'province.prov_name', orderable : false,searchable :false},
+                    { data : 'status_phone_number_verification', orderable: false, searchable :false},
                     { data : 'status_aktif', orderable: false, searchable :false},
                     // { data : 'kecamatan' , orderable : false,searchable :false},
                     // { data : 'kelurahan' , orderable : false,searchable :false},
