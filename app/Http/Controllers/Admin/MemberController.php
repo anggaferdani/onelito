@@ -84,13 +84,6 @@ class MemberController extends Controller
 
                 return $data->subdistrict->subdis_name;
             })
-            ->editColumn('email_verified_at', function ($data) {
-                if ($data->email_verified_at !== null) {
-                    return "Sudah verifikasi";
-                }
-
-                return "Belum verifikasi";
-            })
             ->editColumn('status_aktif', function ($data) {
                 if ($data->status_aktif === 1) {
                     return "Aktif";

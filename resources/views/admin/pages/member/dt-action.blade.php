@@ -43,7 +43,7 @@ title="Edit">
     <i class="fa fa-envelope"></i>
 </button>
 
-<button class="btn btn-sm btn-primary mb-2"
+{{-- <button class="btn btn-sm btn-primary mb-2"
     id="btn-copy-url-verif"
     data-url="{{ url('/send-email/'. $model->email) }}"
     data-id="{{ $model->id_peserta }}"
@@ -53,7 +53,7 @@ title="Edit">
     title="Copy url Email Verification">
 
     <i class="fa fa-clipboard"></i>
-</button>
+</button> --}}
 @endif
 
 <button class="btn btn-sm btn-danger mb-2"
