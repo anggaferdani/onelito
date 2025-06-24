@@ -85,10 +85,12 @@
                                                 <th>No. hp</th>
                                                 <th>Alamat</th>
                                                 <th>Provinsi</th>
+                                                <th>Kota</th>
                                                 <th>Phone Number Verified</th>
+                                                <th>Code OTP</th>
+                                                <th>Code OTP Expired</th>
                                                 <th>Status Aktif</th>
                                                 <!-- <th>Kelurahan</th> -->
-                                                <th>Kota</th>
                                                 <th>Action</th>
                                             </tr>
                                         </thead>
@@ -299,11 +301,13 @@
                     { data : 'no_hp'},
                     { data : 'alamat' , orderable : false,searchable :false},
                     { data : 'province.prov_name', orderable : false,searchable :false},
+                    { data : 'city.city_name' , orderable : false,searchable :false},
                     { data : 'status_phone_number_verification', orderable: false, searchable :false},
+                    { data : 'verification_code', orderable: false, searchable :false},
+                    { data : 'verification_code_expires_at', orderable: false, searchable :false},
                     { data : 'status_aktif', orderable: false, searchable :false},
                     // { data : 'kecamatan' , orderable : false,searchable :false},
                     // { data : 'kelurahan' , orderable : false,searchable :false},
-                    { data : 'city.city_name' , orderable : false,searchable :false},
                     { data : 'action' , orderable : false,searchable :false},
                 ]
             });
@@ -549,12 +553,12 @@
             });
         });
 
-        $(document).on('click','button#btn-send-email',function() {
+        $(document).on('click','button#btn-send-otp',function() {
                 var id = $(this).data('id');
                 var url = $(this).data('url');
                 swal({
-                    title: 'Email',
-                    text: 'Kirim ulang email verifikasi',
+                    title: 'Verifikasi OTP WhatsApp',
+                    text: 'Kirim ulang OTP via WhatsApp',
                     icon: 'info',
                     buttons: true,
                     dangerMode: false,
@@ -570,7 +574,7 @@
                             },
                             success:function(response){
                                 if(response.success){
-                                    swal('Email verifikasi telah dikirim', {
+                                    swal('OTP verifikasi telah dikirim via WhatsApp', {
                                         icon: 'success',
                                     });
 

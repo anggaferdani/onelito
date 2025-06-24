@@ -88,6 +88,7 @@ Route::get('/ls/click', [AuthenticationController::class, 'emailVerification'])-
 Route::get('/ls/reset', [AuthenticationController::class, 'emailChangePassword'])->name('email.change_password');
 Route::post('/ls/reset', [AuthenticationController::class, 'emailChangePasswordProsess'])->name('email.change_password.prosess');
 
+Route::get('/request-verification-otp/{token}', [AuthenticationController::class, 'requestVerificationCode'])->name('request-verification-otp');
 Route::get('/login', [AuthenticationController::class, 'loginPage'])->name('login');
 Route::get('/logout', [AuthenticationController::class, 'logout'])->name('logout');
 Route::get('/logout/device/{session_id}', [AuthenticationController::class, 'logoutFromDevice'])->name('logout.device');
