@@ -106,6 +106,10 @@ Route::post('/reqreset', [AuthenticationController::class, 'reqresetProsses'])->
 
 Route::get('/auction', [AuctionController::class, 'index'])->name('auction.index');
 Route::get('/auction-data', [AuctionController::class, 'getAuctionData']);
+Route::get('/auction/{idIkan}', [AuctionController::class, 'bid'])->name('auction.bid');
+Route::get('/auction/{idIkan}/detail', [AuctionController::class, 'detail'])->name('auction.detail');
+Route::POST('/auction/{idIkan}', [AuctionController::class, 'bidProcess'])->name('auction.bid_process');
+Route::get('/auction-bid-now/{idIkan}', [AuctionController::class, 'bidNow'])->name('auction.bid_now');
 
 Route::get('/koi_stok', [KoiStockController::class, 'index'])->name('koi_stock.index');
 Route::get('/koi_stok/{id}', [KoiStockController::class, 'show'])->name('koi_stock.show');
@@ -118,9 +122,6 @@ Route::get('/detail_koichampion', [ChampionFishController::class, 'index'])->nam
 Route::get('/cities', [ServiceController::class, 'cities'])->name('home.cities');
 Route::get('/districts', [ServiceController::class, 'districts'])->name('home.districts');
 Route::get('/subdistricts', [ServiceController::class, 'subdistricts'])->name('home.subdistricts');
-
-Route::get('/auction/{idIkan}', [AuctionController::class, 'bid'])->name('auction.bid');
-Route::get('/auction/{idIkan}/detail', [AuctionController::class, 'detail'])->name('auction.detail');
 
 Route::get('/news', [NewsController::class, 'news'])->name('news');
 Route::get('/news/{slug}', [NewsController::class, 'detail'])->name('news.detail');
@@ -169,7 +170,6 @@ Route::group(['middleware' => 'auth:member'], function () {
     Route::resource('/carts', CartController::class);
     Route::POST('/carts-order', [CartController::class, 'order']);
     Route::GET('/carts-order/{id}/pdf', [CartController::class, 'pdf']);
-    Route::get('/auction-bid-now/{idIkan}', [AuctionController::class, 'bidNow'])->name('auction.bid_now');
     Route::get('/profil', [ProfileController::class, 'index'])->name('profile.index');
     Route::get('/shoppingcart', [ProfileController::class, 'shopcart'])->name('profile.shopcart');
     Route::get('/storecart', [ProfileController::class, 'storecart'])->name('profile.storecart');
@@ -177,7 +177,6 @@ Route::group(['middleware' => 'auth:member'], function () {
     Route::get('/purchase', [ProfileController::class, 'purchase'])->name('profile.purchase');
     Route::get('/ganti_password', [ProfileController::class, 'viewChangePassword'])->name('profile.view_change_password');
     Route::get('/update_profile', [ProfileController::class, 'viewUpdateProfile'])->name('profile.view_update_profile');
-    Route::POST('/auction/{idIkan}', [AuctionController::class, 'bidProcess'])->name('auction.bid_process');
     Route::get('/order-now', [StoreController::class, 'orderNow'])->name('store.order_now');
     Route::get('/check-order-now', [StoreController::class, 'checkOrderNow'])->name('store.check_order_now');
     Route::DELETE('/order-now/{idProduct}', [StoreController::class, 'removeOrderNowItem'])->name('store.order_now.remove_item');

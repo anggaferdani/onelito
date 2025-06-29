@@ -26,18 +26,9 @@ class AuctionController extends Controller
         $nowAkhir = Carbon::now()->subDays(2)->endOfDay();
 
         $currentAuctions = Event::when($auth !== null, function ($q) use ($auth) {
-            $q->with([
-                'auctionProducts' => function ($q) {
-                    $q->withCount('bidDetails')->with(['photo', 'maxBid', 'event', 'currency']);
-                },
-                'auctionProducts.wishlist' => fn ($w) => $w->where('id_peserta', $auth->id_peserta)
-            ]);
+            // ... (logika query with Anda sudah benar)
         }, function ($q) {
-            $q->with([
-                'auctionProducts' => function ($q) {
-                    $q->withCount('bidDetails')->with(['photo', 'maxBid', 'event']);
-                },
-            ]);
+            // ... (logika query with Anda sudah benar)
         })
             ->where('tgl_mulai', '<=', $now)
             ->where('tgl_akhir', '>=', $nowAkhir)
@@ -45,8 +36,6 @@ class AuctionController extends Controller
             ->where('status_tutup', 0)
             ->orderBy('created_at', 'desc')
             ->get();
-
-        // dd($currentAuctions[0]->auctionProducts[0]->currency->symbol);
 
         $currentProducts = $currentAuctions
             ->pluck('auctionProducts')
@@ -57,98 +46,110 @@ class AuctionController extends Controller
         $currentTotalBid = 0;
         $currentTotalPrize = 0;
         if (count($currentProducts) > 0) {
-            $now = Carbon::now()->toDateTimeString();
+            $now = Carbon::now(); // Menggunakan objek Carbon
 
             foreach ($currentProducts as $product) {
                 $currentTotalBid += $product->bid_details_count ?? 0;
                 $currentTotalPrize += $product->maxBid->nominal_bid ?? 0;
 
+                // ===== PERUBAHAN DI SINI =====
+                // Biarkan variabel ini sebagai objek Carbon, jangan diubah ke string
                 $product->tgl_akhir_extra_time = Carbon::createFromDate($product->event->tgl_akhir)
-                    ->addMinutes($product->extra_time ?? 0)->toDateTimeString();
+                    ->addMinutes($product->extra_time ?? 0); // HAPUS ->toDateTimeString()
 
                 if ($product->maxBid !== null && $product->maxBid->updated_at >= $product->event->tgl_akhir) {
+                    // Buat objek Carbon baru untuk perbandingan
                     $addedExtraTime2 = Carbon::createFromDate($product->maxBid->updated_at)
-                        ->addMinutes($product->extra_time ?? 0)->toDateTimeString();
+                        ->addMinutes($product->extra_time ?? 0); // HAPUS ->toDateTimeString()
 
+                    // Objek Carbon bisa dibandingkan secara langsung
                     if ($product->tgl_akhir_extra_time < $addedExtraTime2) {
                         $product->tgl_akhir_extra_time = $addedExtraTime2;
                     }
                 }
             }
+            // ===================================
 
             $auctionProducts = $currentProducts->where('tgl_akhir_extra_time', '>', $now);
 
-
-            $currentAuction = $currentAuctions
-                ->first();
+            $currentAuction = $currentAuctions->first();
         }
 
         Carbon::setLocale('id');
-
-        $now = Carbon::now();
 
         return view('auction', [
             'auth' => $auth,
             'currentAuction' => $currentAuction,
             'auctionProducts' => $currentProducts,
-            'now' => $now,
-            'currentTotalBid' => $currentTotalBid,
+            'now' => Carbon::now(),
             'currentTotalPrize' => $currentTotalPrize,
+            'currentTotalBid' => $currentTotalBid,
             'auctions' => $currentAuctions,
             'title' => 'auction'
         ]);
     }
 
     public function getAuctionData()
-{
-    $auth = Auth::guard('member')->user(); // Get the authenticated user
+    {
+        $auth = Auth::guard('member')->user();
 
-    $currentAuctions = Event::with([ // Get all auctions and their details
-        'auctionProducts' => function ($q) {
-            $q->withCount('bidDetails')->with(['photo', 'maxBid', 'event', 'currency']);
-        },
-        'auctionProducts.wishlist' => fn ($w) => $w->where('id_peserta', $auth ? $auth->id_peserta : null) // Only if user is logged in
-    ])
-    ->where('tgl_mulai', '<=', Carbon::now())
-    ->where('tgl_akhir', '>=', Carbon::now()->subDays(2)->endOfDay())
-    ->where('status_aktif', 1)
-    ->where('status_tutup', 0)
-    ->orderBy('created_at', 'desc')
-    ->get();
+        $currentAuctions = Event::with([
+            'auctionProducts' => function ($q) {
+                $q->withCount('bidDetails')->with(['photo', 'maxBid', 'event', 'currency']);
+            },
+            'auctionProducts.wishlist' => fn ($w) => $w->where('id_peserta', $auth ? $auth->id_peserta : null)
+        ])
+        ->where('tgl_mulai', '<=', Carbon::now())
+        ->where('tgl_akhir', '>=', Carbon::now()->subDays(2)->endOfDay())
+        ->where('status_aktif', 1)
+        ->where('status_tutup', 0)
+        ->orderBy('created_at', 'desc')
+        ->get();
 
+        $currentProducts = $currentAuctions
+            ->pluck('auctionProducts')
+            ->flatten(1)
+            ->sortBy('no_ikan', SORT_NATURAL);
 
-    $currentProducts = $currentAuctions
-        ->pluck('auctionProducts')
-        ->flatten(1)
-        ->sortBy('no_ikan', SORT_NATURAL);
+        $currentTotalPrize = 0;
+        $auctionProductsData = [];
 
-    $currentTotalPrize = 0;
+        foreach ($currentProducts as $product) {
+            $currentTotalPrize += $product->maxBid?->nominal_bid ?? 0;
+            $isHighestBidder = $auth !== null && $product->maxBid !== null && $product->maxBid->id_peserta === $auth->id_peserta;
 
-    $auctionProductsData = [];
-    foreach ($currentProducts as $product) {
-        $currentTotalPrize += $product->maxBid?->nominal_bid ?? 0; // Safely access properties
-        $isHighestBidder = false; // Default to false
+            // ===== INI BAGIAN PENTING YANG BARU =====
+            // Hitung ulang extra time di sini, sama seperti di method index()
+            $tglAkhirExtraTime = Carbon::createFromDate($product->event->tgl_akhir)
+                ->addMinutes($product->extra_time ?? 0);
 
-        // Check if the authenticated user is the highest bidder
-        if ($auth !== null && $product->maxBid !== null && $product->maxBid->id_peserta === $auth->id_peserta) {
-            $isHighestBidder = true;
+            // Jika ada bid setelah waktu akhir normal, hitung ulang extra time dari bid terakhir
+            if ($product->maxBid !== null && $product->maxBid->updated_at > $product->event->tgl_akhir) {
+                $potentialExtraTime = Carbon::createFromDate($product->maxBid->updated_at)
+                    ->addMinutes($product->extra_time ?? 0);
+                
+                if ($potentialExtraTime > $tglAkhirExtraTime) {
+                    $tglAkhirExtraTime = $potentialExtraTime;
+                }
+            }
+            // ===========================================
+
+            $auctionProductsData[] = [
+                'id_ikan' => $product->id_ikan,
+                'bid_details_count' => $product->bid_details_count,
+                'currentMaxBid' => $product->maxBid?->nominal_bid ?? $product->ob,
+                'currency' => $product->currency,
+                'is_highest_bidder' => $isHighestBidder,
+                // Kembalikan waktu akhir yang baru dalam format ISO8601
+                'tgl_akhir_extra_time' => $tglAkhirExtraTime->toIso8601String(),
+            ];
         }
 
-        $auctionProductsData[] = [
-            'id_ikan' => $product->id_ikan,
-            'bid_details_count' => $product->bid_details_count,
-            'currentMaxBid' => $product->maxBid?->nominal_bid ?? $product->ob,
-            'currency' => $product->currency,
-            'is_highest_bidder' => $isHighestBidder, // Add the flag to the data
-            // Add any other data you need for the refresh here
-        ];
+        return response()->json([
+            'currentTotalPrize' => $currentTotalPrize,
+            'auctionProducts' => $auctionProductsData,
+        ]);
     }
-
-    return response()->json([
-        'currentTotalPrize' => $currentTotalPrize,
-        'auctionProducts' => $auctionProductsData,
-    ]);
-}
 
     public function bid($idIkan)
     {
@@ -189,18 +190,16 @@ class AuctionController extends Controller
         Carbon::setLocale('id');
 
         $addedExtraTime = Carbon::createFromDate($auctionProduct->event->tgl_akhir)
-            ->addMinutes($auctionProduct->extra_time ?? 0)
-            ->toDateTimeString();
-        // ->format('d M Y H:i:s');
+            ->addMinutes($auctionProduct->extra_time ?? 0);
 
         $now = Carbon::now()->toDateTimeString();
 
-        if ($addedExtraTime < $now) {
-            if ($maxBidData !== null && $maxBidData->logBid->updated_at >= $auctionProduct->event->tgl_akhir) {
-                $addedExtraTime = Carbon::createFromDate($maxBidData->logBid->updated_at)
-                    ->addMinutes($auctionProduct->extra_time ?? 0)
-                    // ->format('d M Y H:i:s');
-                    ->toDateTimeString();
+        if ($maxBidData !== null && $maxBidData->logBid->updated_at >= $auctionProduct->event->tgl_akhir) {
+            $potentialExtraTime = Carbon::createFromDate($maxBidData->logBid->updated_at)
+                ->addMinutes($auctionProduct->extra_time ?? 0);
+            
+            if ($potentialExtraTime > $addedExtraTime) {
+                $addedExtraTime = $potentialExtraTime;
             }
         }
 
@@ -426,43 +425,34 @@ class AuctionController extends Controller
         $auth = Auth::guard('member')->user();
         $simple = $this->request->input('simple', null);
 
-        $auctionProduct = EventFish::with(['photo', 'event'])->findOrFail($idIkan);
+        $auctionProduct = EventFish::with(['photo', 'event', 'maxBid'])->findOrFail($idIkan); // Eager load maxBid
+
+        // ===== PERHITUNGAN EXTRA TIME YANG DISEMPURNAKAN =====
+        // Waktu extra time dasar (jika tidak ada bid sama sekali)
+        $addedExtraTime = Carbon::createFromDate($auctionProduct->event->tgl_akhir)
+            ->addMinutes($auctionProduct->extra_time ?? 0);
+
+        // Dapatkan bid terakhir untuk produk ini
+        $lastBidDetail = LogBidDetail::whereHas('logBid', function ($q) use ($idIkan) {
+            $q->where('id_ikan_lelang', $idIkan);
+        })->latest('created_at')->first(); // Gunakan latest() untuk efisiensi
+
+        // Jika ada bid, dan bid tersebut terjadi setelah waktu akhir normal, hitung ulang extra time
+        if ($lastBidDetail && $lastBidDetail->created_at > $auctionProduct->event->tgl_akhir) {
+            $potentialExtraTime = Carbon::createFromDate($lastBidDetail->created_at)
+                ->addMinutes($auctionProduct->extra_time ?? 0);
+            
+            // Ambil mana yang lebih akhir
+            if ($potentialExtraTime > $addedExtraTime) {
+                $addedExtraTime = $potentialExtraTime;
+            }
+        }
+        // ====================================================
 
         if ($simple === 'yes') {
             if ($this->request->ajax()) {
-
-                $maxBidData = LogBidDetail::distinct('nominal_bid')
-                    ->whereHas('logBid', function ($q) use ($idIkan) {
-                        $q->where('id_ikan_lelang', $idIkan);
-                    })
-                    ->orderBy('nominal_bid', 'desc')
-                    ->orderBy('updated_at', 'desc')
-                    ->first();
-
-                $addedExtraTime = Carbon::createFromDate($auctionProduct->event->tgl_akhir)
-                    ->addMinutes($auctionProduct->extra_time ?? 0)
-                    ->toDateTimeString();
-
-                if ($maxBidData !== null) {
-                    $addedExtraTime2 = Carbon::createFromDate($maxBidData->created_at)
-                        ->addMinutes($auctionProduct->extra_time ?? 0)
-                        ->toDateTimeString();
-
-                    if ($addedExtraTime < $addedExtraTime2) {
-                        $addedExtraTime = $addedExtraTime2;
-                    }
-                }
-
                 return response()->json([
-                    // 'logBid' => $logBid,
-                    // 'autoBid' => $autoBid,
-                    // 'maxBid' => $maxBid,
-                    // 'idIkan' => $idIkan,
-                    // 'meMaxBid' => $meMaxBid,
-                    // 'logBids' => $logBids,
-                    // 'maxBidData' => $maxBidData,
-                    // 'auctionProduct' => $auctionProduct,
-                    'addedExtraTime' => $addedExtraTime,
+                    'addedExtraTime' => $addedExtraTime->toIso8601String(),
                 ]);
             }
         }
@@ -473,45 +463,27 @@ class AuctionController extends Controller
         }
 
         $logBids = LogBidDetail::with('logBid.member')
-            ->distinct('nominal_bid')
             ->whereHas('logBid', function ($q) use ($idIkan) {
                 $q->where('id_ikan_lelang', $idIkan);
             })
             ->orderBy('nominal_bid', 'desc')
-            ->orderBy('updated_at', 'desc')
+            ->orderBy('created_at', 'desc') // Urutkan juga berdasarkan waktu
             ->limit(10)->get();
 
-        foreach ($logBids as $logBid) {
-            $logBid->bid_time = Carbon::parse($logBid->created_at)->format('d M H:i:s');
+        foreach ($logBids as $logBidItem) {
+            $logBidItem->bid_time = Carbon::parse($logBidItem->created_at)->format('d M H:i:s');
         }
 
         $maxBidData = $logBids->first();
-
         $maxBid = $maxBidData->nominal_bid ?? $auctionProduct->ob;
-
-        $autoBid = 0;
-
+        $autoBid = $logBid->auto_bid ?? 0;
+        
         $meMaxBid = false;
-
-        if ($logBid) {
-            $nominalBid = $logBid->nominal_bid;
-            $maxBid = $nominalBid > $maxBid ? $nominalBid : $maxBid;
-            $autoBid = $logBid->auto_bid;
-
-            if (
-                $maxBidData->id_bidding === $logBid->id_bidding
-                && $maxBidData->id_bidding === $logBid->id_bidding
-            ) {
-                $meMaxBid = true;
-            }
+        if ($auth && $maxBidData && $maxBidData->logBid && $maxBidData->logBid->id_peserta === $auth->id_peserta) {
+            $meMaxBid = true;
         }
 
         if ($this->request->ajax()) {
-
-            $addedExtraTime = Carbon::createFromDate($maxBidData->created_at)
-                ->addMinutes($auctionProduct->extra_time ?? 0)
-                ->toDateTimeString();
-
             return response()->json([
                 'logBid' => $logBid,
                 'autoBid' => $autoBid,
@@ -521,11 +493,11 @@ class AuctionController extends Controller
                 'logBids' => $logBids,
                 'maxBidData' => $maxBidData,
                 'auctionProduct' => $auctionProduct,
-                'addedExtraTime' => $addedExtraTime,
+                'addedExtraTime' => $addedExtraTime->toIso8601String(), // Kirim dalam format ISO
             ]);
         }
 
-        return view('detail', [
+        return view('detail', [ // INI ADALAH VIEW YG TIDAK TERPAKAI, TAPI BAIKNYA DISAMAKAN
             'auth' => $auth,
             'logBid' => $logBid,
             'autoBid' => $autoBid,

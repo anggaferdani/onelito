@@ -238,6 +238,7 @@
     <script src="{{ asset('/library/lodash/lodash.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/gasparesganga-jquery-loading-overlay@2.1.7/dist/loadingoverlay.min.js"></script>
     <script type="text/javascript">
+        // Setup CSRF token untuk semua request AJAX
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -246,377 +247,210 @@
     </script>
 
     <script type="text/javascript">
+        // --- START: Variable Setup ---
+        // Variabel ini diinisialisasi oleh data dari controller saat halaman dimuat
         let currentMaxBid = @json($maxBid);
-        let nominalBid = @json($logBid);
-        let autoBid = @json($autoBid);
         let idIkan = @json($idIkan);
         let auctionProduct = @json($auctionProduct);
         let currency = auctionProduct.currency.symbol;
-        let statusGetMaxBid = false;
-        let statusAutoBid = false;
         let meMaxBid = false;
-        let currentTime = "{{ $now }}";
-        let addedExtraTime = "{{ $addedExtraTime }}";
-        let currentEndTime = auctionProduct.event.tgl_akhir;
-        let lastUpdateBid = @json($maxBidData)
 
-        this.bidding = _.debounce(this.bidding, 1000);
+        // Inisialisasi waktu menggunakan moment.js dari data ISO 8601 yang dikirim controller
+        let regularEndTime = moment(@json($auctionProduct->event->tgl_akhir));
+        let extraEndTime = moment(@json($addedExtraTime)); // Nilai awal dari controller
+        
+        let isExtraTimeActive = false;
+        let timerInterval; // Definisikan interval di scope luar agar bisa diakses/dibersihkan dari mana saja
+        // --- END: Variable Setup ---
 
+
+        // --- START: Helper & UI Functions ---
+        // SweetAlert2 instance dengan style Bootstrap
         const swalWithBootstrapButtons = Swal.mixin({
             customClass: {
                 confirmButton: 'btn btn-success',
                 cancelButton: 'btn btn-danger'
             },
             buttonsStyling: false
-        })
+        });
 
+        // Fungsi konfirmasi sebelum melakukan bid
         function clickyakin() {
             var nominal = $('#nominal_bid').val();
+            if (!nominal || parseInt($('#nominal_bid').unmask()) <= 0) {
+                Swal.fire('Error', 'Nominal bid tidak boleh kosong.', 'error');
+                return;
+            }
 
             swalWithBootstrapButtons.fire({
-                title: `Apakah anda benar ingin
-                Bidding ${currency} ${nominal} ?`,
-                text: ``,
+                title: `Apakah anda yakin ingin Bidding ${currency} ${nominal} ?`,
+                text: `Pastikan nominal Anda sudah benar.`,
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Ya',
-                cancelButtonText: 'Tidak',
+                confirmButtonText: 'Ya, Lakukan Bid!',
+                cancelButtonText: 'Batal',
                 reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) {
-                    $("#buttonNormalBidSubmit").click();
-
-                } else if (
-                    /* Read more about handling dismissals below */
-                    result.dismiss === Swal.DismissReason.cancel
-                ) {
+                    $("#buttonNormalBidSubmit").click(); // Memicu submit form secara tersembunyi
+                } else if (result.dismiss === Swal.DismissReason.cancel) {
                     swalWithBootstrapButtons.fire(
-                        'Batal',
-                        'Bid anda dibatalkan',
+                        'Dibatalkan',
+                        'Bidding Anda telah dibatalkan.',
                         'error'
-                    )
-
-                    $('#nominal_bid').val('')
+                    );
                 }
-            })
+            });
         }
 
-
+        // Fungsi untuk format angka dengan pemisah ribuan
         function thousandSeparator(x) {
-            var reverse = x.toString().split('').reverse().join(''),
-                ribuan = reverse.match(/\d{1,3}/g);
-            ribuan = ribuan.join('.').split('').reverse().join('');
-
-            return ribuan
+            if (x === null || x === undefined) return '0';
+            return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
         }
 
-        // if ($('#nominal_bid').length !== 0) {
+        // Inisialisasi format harga pada input nominal
         $('#nominal_bid').priceFormat({
             prefix: '',
             centsLimit: 0,
             thousandsSeparator: '.'
         });
-        // }
+        // --- END: Helper & UI Functions ---
 
-        // if ($('#auto_bid').length !== 0) {
-        $('#auto_bid').priceFormat({
-            prefix: '',
-            centsLimit: 0,
-            thousandsSeparator: '.'
-        });
-        // }
 
-        // function normalBidFormSubmit(e) {
+        // --- START: Core Bidding Logic ---
+        // Handler untuk submit form bidding
         $('#normalBidForm').submit(function(e) {
-            e.preventDefault();
+            e.preventDefault(); // Mencegah form submit biasa
             $.LoadingOverlay("show");
             let formData = new FormData(this);
-            let url = $(this).attr('action')
-            let kb = parseInt(auctionProduct.kb);
-
+            let url = $(this).attr('action');
             var inputNominalBid = parseInt($('#nominal_bid').unmask());
 
-            // if (inputNominalBid <= currentMaxBid) {
-            //     $('.alert.bid').html(`Nominal bid tidak boleh dibawah harga saat ini`);
-
-            //     $('.alert.bid').addClass('show');
-
-            //     setTimeout(function() {
-            //         $('.alert.bid').removeClass('show')
-            //     }, 2000);
-
-            //     return true;
-            // }
-
-            formData.set('nominal_bid', inputNominalBid)
-            formData.append('nominal_bid_detail', inputNominalBid)
-
+            formData.set('nominal_bid', inputNominalBid);
+            formData.append('nominal_bid_detail', inputNominalBid); // Sesuai logika controller Anda
+            
             bidding(formData, url);
-        })
+        });
 
-        function cancelAutoBid() {
-            statusAutoBid = false;
-            document.getElementById("nominal_bid").disabled = false;
-            document.getElementById("auto_bid").disabled = false;
-            $('#buttonCancelAutoBid').attr('hidden', 'hidden');
-            $('#buttonNormalBid').removeAttr('hidden');
-            $('#buttonAutoBid').html(`AUTO BID`)
-        }
-
-        $('#autoBidForm').submit(function(e) {
-            document.getElementById("nominal_bid").disabled = true;
-            document.getElementById("auto_bid").disabled = true;
-            e.preventDefault();
-            let formData = new FormData(this);
-            let url = $(this).attr('action')
-            let kb = parseInt(auctionProduct.kb);
-            let inputNominalBid = parseInt($('#nominal_bid').unmask());
-            let nextNominalBid = (kb + inputNominalBid);
-            statusAutoBid = true;
-            autoBid = parseInt($('#auto_bid').unmask());
-            formData.append('nominal_bid', nextNominalBid)
-            formData.append('auto_bid', autoBid)
-        })
-
+        // Fungsi AJAX untuk mengirim data bid ke server
         async function bidding(formData, url) {
-            formData.append('_token', '{{ csrf_token() }}')
+            formData.append('_token', '{{ csrf_token() }}'); // Pastikan token selalu ada
             $.ajax({
                 type: 'POST',
                 data: formData,
                 contentType: false,
                 processData: false,
                 url: url,
-                beforeSend: function() {
-
-                },
                 complete: function() {
-                    // console.log({statusAutoBid, autoBid, nominalBid})
                     $.LoadingOverlay("hide");
-                    
-                    if (statusAutoBid === false) {
-                        return false;
-                    }
-
-                    let kb = parseInt(auctionProduct.kb);
-
-                    let inputNominalBid = parseInt($('#nominal_bid').unmask());
-
-                    let nextNominalBid = (kb + inputNominalBid);
-
-                    formData.set('nominal_bid', nextNominalBid)
-
                 },
                 success: function(res) {
-                    $('#nominal_bid').val('')
-                    nominalBid = formData.get('nominal_bid');
-                    swalWithBootstrapButtons.fire(
-                        'Berhasil',
-                        'Bid sukses',
-                        'success'
-                    )
-                    // autoBid = parseInt($('#auto_bid').val());
-
-                    // if (nominalBid > currentMaxBid) {
-                    //     statusAutoBid = false;
-                    // }
+                    $('#nominal_bid').val(''); // Kosongkan input setelah berhasil
+                    swalWithBootstrapButtons.fire('Berhasil!', 'Bidding Anda telah diterima.', 'success');
+                    // Panggil refresh data SEGERA setelah bid berhasil untuk update instan
+                    autoDetailBid();
                 },
-                error(err) {
-                    statusAutoBid = false;
-                    document.getElementById("nominal_bid").disabled = false;
-                    document.getElementById("auto_bid").disabled = false;
-                    $('.alert.bid').html(err.responseJSON.message);
-
-                    $('.alert.bid').addClass('show');
-
-                    setTimeout(function() {
-                        $('.alert.bid').removeClass('show')
-                    }, 2000);
+                error: function(err) {
+                    // Tampilkan pesan error dari server
+                    const message = err.responseJSON?.message || 'Terjadi kesalahan, coba lagi.';
+                    $('.alert.bid').html(message).addClass('show');
+                    setTimeout(() => $('.alert.bid').removeClass('show'), 3000);
                 }
-            })
+            });
         }
+        // --- END: Core Bidding Logic ---
 
+
+        // --- START: Polling for Bid & Time Updates ---
+        // Fungsi ini berjalan periodik untuk sinkronisasi dengan server
         function autoDetailBid() {
-            urlGet = `/auction/${idIkan}/detail`;
+            let urlGet = `/auction/${idIkan}/detail`;
 
-            $.ajax({
-                type: 'GET',
-                contentType: false,
-                processData: false,
-                url: urlGet,
-                beforeSend: function() {
+            $.get(urlGet, function(res) {
+                // 1. Update data harga dan status bidder
+                meMaxBid = res.meMaxBid;
+                currentMaxBid = parseInt(res.maxBid);
+                $('#currentPrice').text(thousandSeparator(res.maxBid));
 
-                },
-                complete: function() {
-                    // console.log({currentMaxBid, autoBid, nominalBid, meMaxBid})
-                    setTimeout(() => {
-                        autoDetailBid()
-                    }, 2000);
-
-                    let formData = new FormData(document.getElementById("autoBidForm"));
-
-                    let url = $('#autoBidForm').attr('action')
-                    let kb = parseInt(auctionProduct.kb);
-
-                    let nextNominalBid = (kb + currentMaxBid);
-
-                    autoBid = parseInt($('#auto_bid').unmask());
-
-                    if (nextNominalBid > autoBid) {
-                        cancelAutoBid()
-                        return false;
-                    }
-
-                    // console.log({statusAutoBid, autoBid, nominalBid})
-                    if (meMaxBid === true) {
-                        console.log('meMaxBid')
-                        // statusAutoBid = false;
-                        document.getElementById("nominal_bid").disabled = false;
-                        document.getElementById("auto_bid").disabled = false;
-                        return false;
-                    }
-
-                    if (statusAutoBid === false) {
-                        console.log('statusAutoBid')
-                        document.getElementById("nominal_bid").disabled = false;
-                        document.getElementById("auto_bid").disabled = false;
-                        return false;
-                    }
-
-                    var autoBid = parseInt($('#auto_bid').unmask());
-
-                    formData.append('auto_bid', autoBid)
-                    formData.set('nominal_bid', nextNominalBid)
-
-                    bidding(formData, url);
-                },
-
-                success: function(res) {
-                    meMaxBid = res.meMaxBid;
-                    var historyBidHtml = 'Belum ada data bidding';
-
-                    if (res.maxBid !== null) {
-                        currentMaxBid = parseInt(res.maxBid)
-                    }
-
-                    if (res.logBid !== null) {
-                        nominalBid = parseInt(res.logBid.nominal_bid)
-                    }
-
-                    if (res.logBids !== null) {
-                        historyBidHtml =
-                            `<table class="table table-dark table-hover"><thead><tr><th scope="col" class="text-danger">Nama</th><th scope="col" class="text-danger">Nominal Bidding</th><th scope="col" class="text-danger">Waktu</th></tr></thead><tbody>`
-
-                        $.each(res.logBids, function(index, value) {
-                            var name = value.log_bid.member.nama
-                            name = name.replace(/(.{2})(.+)(.{1})/g, function(match, start, middle,
-                                end) {
-                                return start + "*".repeat(middle.length) + end;
-                            });
-
-                            var nominal = thousandSeparator(value.nominal_bid)
-
-                            historyBidHtml += `
-                            <tr>
-                                <td>${name}</td>
-                                <td>${currency} ${nominal}</td>
-                                <td>${value.bid_time}</td>
-                            </tr>
-                           `
-                        });
-                        historyBidHtml += `</tbody></table>`
-                    }
-
-                    $('#exampleModal .modal-body').html(historyBidHtml);
-
-                    var currentPriceHtml = $('#currentPrice').html();
-                    var formatedMaxBid = thousandSeparator(res.maxBid)
-                    $('#currentPrice').html(`${formatedMaxBid}`);
-
-                    if (currentPriceHtml !== `${formatedMaxBid}`) {
-                        addedExtraTime = res.addedExtraTime;
-                        document.getElementById("currentPrice").style.display = 'none'
-                        $('#currentPrice').slideDown();
-                    }
-                },
-                error(err) {
-
+                // 2. Update tabel riwayat bidding
+                var historyBidHtml = 'Belum ada data bidding.';
+                if (res.logBids && res.logBids.length > 0) {
+                    historyBidHtml = `<table class="table table-dark table-hover"><thead><tr><th scope="col" class="text-danger">Nama</th><th scope="col" class="text-danger">Nominal Bidding</th><th scope="col" class="text-danger">Waktu</th></tr></thead><tbody>`;
+                    $.each(res.logBids, function(index, value) {
+                        var name = value.log_bid.member.nama.replace(/(.{2})(.+)(.{1})/g, (match, start, middle, end) => start + "*".repeat(middle.length) + end);
+                        var nominal = thousandSeparator(value.nominal_bid);
+                        historyBidHtml += `<tr><td>${name}</td><td>${currency} ${nominal}</td><td>${value.bid_time}</td></tr>`;
+                    });
+                    historyBidHtml += `</tbody></table>`;
                 }
-            })
-        }
+                $('#exampleModal .modal-body').html(historyBidHtml);
 
+                // 3. Periksa dan perbarui `extraEndTime` jika ada perpanjangan
+                const newExtraTime = moment(res.addedExtraTime);
+                if (newExtraTime.isAfter(extraEndTime)) {
+                    console.log("Waktu lelang diperpanjang!");
+                    extraEndTime = newExtraTime;
+                    // Jika timer sudah mati, hidupkan kembali dengan memulai ulang intervalnya
+                    if (!timerInterval) {
+                        startTimer();
+                    }
+                }
+            }).fail(function(err) {
+                console.error("Gagal mengambil detail lelang:", err);
+            });
+        }
+        // --- END: Polling for Bid & Time Updates ---
+
+
+        // --- START: Countdown Timer Logic ---
         function startTimer() {
-            var endTime = new Date(currentEndTime.replace(' ', 'T'));
-            var x = setInterval(function() {
-                getCurrentNow();
-                var now = new Date(currentTime.replace(' ', 'T'));
-                var duration = endTime - now;
-                var days = Math.floor(duration / (1000 * 60 * 60 * 24));
-                var hours = Math.floor((duration % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                hours = hours + (days * 24);
-                var minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60));
-                var seconds = Math.floor((duration % (1000 * 60)) / 1000);
-                const hourString = `${hours < 10 ? '0' : ''}${hours}`;
-                const minuteString = `${minutes < 10 ? '0' : ''}${minutes}`;
-                const secondString = `${seconds < 10 ? '0' : ''}${seconds}`;
-                const timerString = `${hourString} : ${minuteString} : ${secondString}`;
-                $('.countdown-label').html(timerString);
-                if (duration < 0) {
+            // Hentikan interval lama jika ada, untuk menghindari duplikasi timer
+            if (timerInterval) clearInterval(timerInterval);
+
+            timerInterval = setInterval(function() {
+                let now = moment();
+                
+                // Cek dulu apakah sudah masuk mode extra time
+                if (!isExtraTimeActive && moment.duration(regularEndTime.diff(now)) <= 0) {
+                    isExtraTimeActive = true;
+                    $('#countdown-extra').removeClass('d-none'); // Tampilkan label "Extra Time"
+                }
+
+                // Tentukan waktu target berdasarkan mode saat ini
+                let targetTime = isExtraTimeActive ? extraEndTime : regularEndTime;
+                let duration = moment.duration(targetTime.diff(now));
+                
+                if (duration <= 0) {
+                    // Semua waktu (normal dan extra) telah habis
                     $('.countdown-label').html(`00 : 00 : 00`);
+                    $("#nominal_bid, #buttonNormalBid").prop('disabled', true);
+                    clearInterval(timerInterval); // Hentikan timer
+                    timerInterval = null; // Tandai bahwa timer sudah mati
+                } else {
+                    // Jika timer berjalan, pastikan tombol bid aktif
+                    $("#nominal_bid, #buttonNormalBid").prop('disabled', false); 
+                    
+                    const hours = Math.floor(duration.asHours());
+                    const minutes = duration.minutes();
+                    const seconds = duration.seconds();
 
-                    clearInterval(x);
-                    startExtraTimer();
+                    const timerString = `${String(hours).padStart(2, '0')} : ${String(minutes).padStart(2, '0')} : ${String(seconds).padStart(2, '0')}`;
+                    $('.countdown-label').html(timerString);
                 }
-            }, 1000);
+            }, 1000); // Jalankan setiap detik
         }
+        // --- END: Countdown Timer Logic ---
 
-        function startExtraTimer() {
-            var currTime = moment()
-            var x = setInterval(function() {
-                getCurrentNow();
-                var endTime = new Date(addedExtraTime.replace(' ', 'T'));
-                var now = new Date(currentTime.replace(' ', 'T'));
-                var duration = endTime - now;
-                var hours = Math.floor((duration % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                var minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60));
-                var seconds = Math.floor((duration % (1000 * 60)) / 1000);
 
-                const hourString = `${hours < 10 ? '0' : ''}${hours}`;
-                const minuteString = `${minutes < 10 ? '0' : ''}${minutes}`;
-                const secondString = `${seconds < 10 ? '0' : ''}${seconds}`;
-                const timerString = `${hourString} : ${minuteString} : ${secondString}`;
-                $('.countdown-label').html(timerString);
-                $('#countdown-extra').removeClass('d-none');
-                if (duration < 0) {
-                    $('.countdown-label').html(`00 : 00 : 00`);
-
-                    document.getElementById("nominal_bid").disabled = true;
-                    document.getElementById("auto_bid").disabled = true;
-                    document.getElementById("buttonAutoBid").disabled = true;
-                    document.getElementById("buttonNormalBid").disabled = true;
-                    clearInterval(x);
-                }
-            }, 1000);
-        }
-
-        function getCurrentNow() {
-            $.ajax({
-                type: 'GET',
-                contentType: false,
-                processData: false,
-                url: '/now',
-                beforeSend: function() {
-
-                },
-                success: function(res) {
-                    currentTime = res;
-                },
-                error(err) {
-
-                }
-            })
-        }
-
-        startTimer();
-        autoDetailBid();
+        // --- START: Page Initialization ---
+        // Semua dimulai dari sini saat dokumen siap
+        $(document).ready(function() {
+            startTimer(); // Mulai hitung mundur pertama kali
+            
+            // Atur interval untuk polling data dari server setiap 3 detik
+            setInterval(autoDetailBid, 3000);
+        });
+        // --- END: Page Initialization ---
     </script>
 @endpush

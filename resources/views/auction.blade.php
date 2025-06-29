@@ -185,9 +185,9 @@
                                     <div class="col-6 p-0 pe-lg-1">
                                         <p class="m-0" id="countdown-title-{{ $auctionProduct->id_ikan }}"
                                             style="text-align: end;font-size:80%">Remaining Time</p>
-                                        <p class="m-0 countdown-label" id="{{ $auctionProduct->id_ikan }}"
-                                            data-endtime="{{ $auctionProduct->event->tgl_akhir }}"
-                                            data-end-extratime="{{ $auctionProduct->tgl_akhir_extra_time }}"
+                                        <p class="m-0 countdown-label" id="timer-{{ $auctionProduct->id_ikan }}"
+                                            data-endtime="{{ $auctionProduct->event->tgl_akhir->toIso8601String() }}"
+                                            data-end-extratime="{{ $auctionProduct->tgl_akhir_extra_time->toIso8601String() }}"
                                             style="text-align: end;color :red;font-size:75%;">00:00:00</p>
                                     </div>
                                     <div class="col-12 p-2 px-lg-2">
@@ -238,48 +238,48 @@
             }
         });
 
-        let currentTime = moment(); // Use moment.js for current time
-        let timerLabels = document.getElementsByClassName('countdown-label');
-        let addedExtraTimeGroups = {}; // Use an object to store extra times
+        const timers = {};
 
         // Function to format currency
         function formatCurrency(amount) {
-            return new Intl.NumberFormat('id-ID', {
-                style: 'decimal',
-                currency: 'IDR', // Change to your currency if needed
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0
-            }).format(amount);
+            return new Intl.NumberFormat('id-ID').format(amount);
         }
 
         // --- START : Real-time Data Updates ---
         // Refreshes real-time data (Current Bid, Number of Bids, Highest Bidder Indicator)
         function refreshAuctionData() {
             $.ajax({
-                url: '/auction-data', // Replace with your actual route
+                url: '/auction-data',
                 type: 'GET',
                 dataType: 'json',
                 success: function(data) {
-                    // Update Current Total Bid
                     $('#current-total-prize').text(formatCurrency(data.currentTotalPrize));
 
-                    // Update individual product data
                     data.auctionProducts.forEach(product => {
-                        // Update "Harga saat ini"
+                        // Update harga, jumlah bid, dan status highest bidder (ini sudah ada)
                         $('#current-price-' + product.id_ikan).text(product.currency.symbol + ' ' + formatCurrency(product.currentMaxBid));
-
-                        // Update "Number of bids"
                         $('#bid-count-' + product.id_ikan).text(product.bid_details_count);
-
-                        // Update Highest Bidder Indicator
+                        
                         const highestBidContainer = $('#highest-bid-container-' + product.id_ikan);
                         if (highestBidContainer) {
-                            if (product.is_highest_bidder) {
-                                highestBidContainer.show(); // Show if the user is the highest bidder
-                            } else {
-                                highestBidContainer.hide(); // Hide if the user is not the highest bidder
+                            highestBidContainer.toggle(product.is_highest_bidder); // Cara lebih singkat
+                        }
+
+                        // ===== PERUBAHAN DI SINI =====
+                        // Perbarui state timer dengan extra time yang baru dari server
+                        const timerId = `timer-${product.id_ikan}`;
+                        if (timers[timerId]) {
+                            const newExtraTime = moment(product.tgl_akhir_extra_time);
+                            // Jika waktu baru dari server lebih akhir, update state-nya
+                            if (newExtraTime.isAfter(timers[timerId].extraTime)) {
+                                timers[timerId].extraTime = newExtraTime;
+                                // Jika timer sudah ditandai selesai, hidupkan lagi
+                                if (timers[timerId].finished) {
+                                    timers[timerId].finished = false;
+                                }
                             }
                         }
+                        // ==============================
                     });
                 },
                 error: function(error) {
@@ -289,148 +289,84 @@
         }
 
         // Refresh data every 3 seconds (adjust interval as needed)
-        setInterval(refreshAuctionData, 3000);
+        function updateAllTimers() {
+            // Find all elements with a 'data-endtime' attribute that haven't been processed
+            $('.countdown-label[data-endtime]').each(function() {
+                const timerElement = $(this);
+                const id = timerElement.attr('id');
 
-        // --- END : Real-time Data Updates ---
-
-
-
-        // --- START :  Countdown Timers  ---
-
-        // Function to initialize all timers
-        function initializeTimers() {
-            Array.from(timerLabels).forEach(timerLabel => { // Use Array.from to work with HTMLCollection
-                const id = timerLabel.id;
-                const currentEndTime = timerLabel.dataset.endtime;
-                const addedExtraTime = timerLabel.dataset.endExtratime;
-
-                if (currentEndTime) { // Ensure the end time is valid
-                    startTimer(id, addedExtraTime, currentEndTime);
-                }
-            });
-        }
-
-        // Function to start or update a single timer
-        function startTimer(id, addedExtraTime, currentEndTime) {
-            // Clear any existing interval for this timer to prevent multiple timers running.
-            clearInterval(window[`timerInterval_${id}`]);
-
-            let endTime = moment(currentEndTime.replace(' ', 'T')); // Use moment.js
-            if (!endTime.isValid()) {
-                console.error(`Invalid end time for ID ${id}: ${currentEndTime}`);
-                return; // Exit if the end time is invalid
-            }
-
-
-            // Function to update the timer display
-            function updateTimer() {
-                let now = moment(); // Get the current time using moment.js
-                let duration = moment.duration(endTime.diff(now));
-                let days = duration.days();
-                let hours = duration.hours();
-                let minutes = duration.minutes();
-                let seconds = duration.seconds();
-
-                // Handle negative durations (time already passed)
-                if (duration <= 0) {
-                    document.getElementById(id).textContent = "00:00:00";
-                    clearInterval(window[`timerInterval_${id}`]); // Clear the interval
-
-                    if (addedExtraTime && !addedExtraTimeGroups[id]) {  // Only run once per extra time added
-                        addedExtraTimeGroups[id] = true; // Prevent multiple calls
-                        startExtraTimer(id, addedExtraTime);  // Start extra timer
-                    }
-
-                    return; // Exit the function
-                }
-
-                const hourString = String(hours + (days * 24)).padStart(2, '0'); // Include days in hours
-                const minuteString = String(minutes).padStart(2, '0');
-                const secondString = String(seconds).padStart(2, '0');
-                document.getElementById(id).textContent = `${hourString}:${minuteString}:${secondString}`;
-            }
-
-            // Initial call to set the timer immediately
-            updateTimer();
-
-            // Set interval to update the timer every second
-            window[`timerInterval_${id}`] = setInterval(updateTimer, 1000);
-        }
-
-        function startExtraTimer(id, addedExtraTime) {
-            // Stop the extra timer if addedExtraTime is not valid
-            if (!addedExtraTime) {
-                console.warn(`No extra time provided for ID ${id}`);
-                return;
-            }
-
-            let endTime = moment(addedExtraTime.replace(' ', 'T'));
-
-            if (!endTime.isValid()) {
-                console.error(`Invalid extra end time for ID ${id}: ${addedExtraTime}`);
-                return;
-            }
-
-            // Call autoDetailBid after 10 seconds
-            setTimeout(() => {
-                autoDetailBid(id);
-            }, 10000);
-
-
-            // Function to update the timer display
-            function updateExtraTimer() {
-                let now = moment(); // Get the current time using moment.js
-                let duration = moment.duration(endTime.diff(now));
-
-                let hours = duration.hours();
-                let minutes = duration.minutes();
-                let seconds = duration.seconds();
-
-                if (duration <= 0) {
-                    document.getElementById(id).textContent = "00:00:00";
-                    clearInterval(window[`extraTimerInterval_${id}`]);
+                // If timer is already finished, skip it
+                if (timers[id] && timers[id].finished) {
                     return;
                 }
+                
+                // Initialize timer state if it doesn't exist
+                if (!timers[id]) {
+                    timers[id] = {
+                        endTime: moment(timerElement.data('endtime')), // Parse ISO 8601 string
+                        extraTime: moment(timerElement.data('end-extratime')), // Parse ISO 8601 string
+                        isExtra: false,
+                        finished: false
+                    };
+                }
 
-                const hourString = String(hours).padStart(2, '0');
-                const minuteString = String(minutes).padStart(2, '0');
-                const secondString = String(seconds).padStart(2, '0');
-                document.getElementById(id).textContent = `${hourString}:${minuteString}:${secondString}`;
-            }
+                let now = moment();
+                let targetTime = timers[id].isExtra ? timers[id].extraTime : timers[id].endTime;
+                
+                let duration = moment.duration(targetTime.diff(now));
 
-            updateExtraTimer();
-
-            window[`extraTimerInterval_${id}`] = setInterval(updateExtraTimer, 1000);
-        }
-
-        // --- END :  Countdown Timers  ---
-
-
-
-        // --- START :  Asynchronous Operations (Auto Bid, Wishlist) ---
-
-        async function autoDetailBid(idIkan) {
-            const urlGet = `/auction/${idIkan}/detail?simple=yes`;
-
-            try {
-                const response = await fetch(urlGet);
-                const res = await response.json();
-
-                if (res.addedExtraTime) {
-                    // Convert addedExtraTime string to a Date object for comparison
-                    const addedExtraTime = moment(res.addedExtraTime.replace(' ', 'T'));
-                    const now = moment();
-                    if (addedExtraTime.isAfter(now)) { // Use moment.js comparison
-                        // Re-initialize the timer with the updated end time.
-                        const timerLabel = document.getElementById(idIkan);
-                        if (timerLabel) {
-                            timerLabel.dataset.endExtratime = res.addedExtraTime; // Update the attribute
-                            startTimer(idIkan, res.addedExtraTime, timerLabel.dataset.endtime);
+                if (duration <= 0) {
+                    // Main time is up, check for extra time
+                    if (!timers[id].isExtra) {
+                        timers[id].isExtra = true;
+                        // Re-evaluate against extra time
+                        duration = moment.duration(timers[id].extraTime.diff(now));
+                        
+                        // If there's a real need for extra time, poll for updates.
+                        if (duration > 0) {
+                           autoDetailBid(timerElement.attr('id').replace('timer-', ''));
                         }
                     }
                 }
+                
+                if (duration <= 0) {
+                    // Both main and extra time are up
+                    timerElement.text("00:00:00");
+                    timers[id].finished = true; // Mark as finished
+                    // Optionally disable bid buttons
+                    let productId = id.replace('timer-', '');
+                    $('#btn-bid-' + productId).addClass('disabled').css('pointer-events', 'none');
+                } else {
+                    const days = Math.floor(duration.asDays());
+                    const hours = duration.hours() + (days * 24);
+                    const minutes = duration.minutes();
+                    const seconds = duration.seconds();
 
-                refreshAuctionData(); // Refresh data after potential bid update
+                    const timerString =
+                        `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                    timerElement.text(timerString);
+                }
+            });
+        }
+        // --- END : Countdown Timers ---
+
+
+        // --- START : Asynchronous Operations ---
+        async function autoDetailBid(idIkan) {
+            // This function now primarily updates the extra time if it changes
+            const urlGet = `/auction/${idIkan}/detail?simple=yes`;
+            try {
+                const response = await $.get(urlGet);
+                const timerId = `timer-${idIkan}`;
+                
+                if (response.addedExtraTime && timers[timerId]) {
+                    const newExtraTime = moment(response.addedExtraTime);
+                    // If the new extra time from server is later than what we have, update it
+                    if (newExtraTime.isAfter(timers[timerId].extraTime)) {
+                        timers[timerId].extraTime = newExtraTime;
+                        timers[timerId].finished = false; // Un-finish the timer if it was marked done
+                    }
+                }
             } catch (error) {
                 console.error("Error in autoDetailBid:", error);
             }
@@ -487,7 +423,14 @@
         // --- START : Page Initialization ---
 
         // Initialize the timers when the page loads.
-        initializeTimers();
+        $(document).ready(function() {
+            // Initial data load
+            refreshAuctionData(); 
+            // Update timers every second
+            setInterval(updateAllTimers, 1000); 
+            // Refresh bids/prices every 3 seconds
+            setInterval(refreshAuctionData, 3000); 
+        });
 
         // --- END : Page Initialization ---
     </script>

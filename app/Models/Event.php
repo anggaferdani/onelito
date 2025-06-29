@@ -18,6 +18,11 @@ class Event extends Model
     public const EVENT = 'Event';
     public const REGULAR = 'Regular';
 
+    protected $casts = [
+        'tgl_mulai' => 'datetime',
+        'tgl_akhir' => 'datetime',
+    ];
+
     public function auctionProducts()
     {
         return $this->hasMany(EventFish::class, 'id_event')->where('status_aktif', 1);
