@@ -179,7 +179,7 @@ class EventController extends Controller
             }
 
             $responseData = $auction->toArray();
-            
+
             $responseData['tgl_mulai_wib'] = $auction->tgl_mulai_wib;
             $responseData['tgl_akhir_wib'] = $auction->tgl_akhir_wib;
             
@@ -214,7 +214,7 @@ class EventController extends Controller
                         // Remove the date check here.  This is the important change.
                         // $q->where('tgl_akhir', '<', $now);  // REMOVED
                     })
-                    ->with(['bids.member', 'maxBid', 'event'])
+                    ->with(['bids.member', 'maxBid', 'event', 'maxBid.member'])
                     ->where('status_aktif', 1)
                     ->get();
 
@@ -232,8 +232,8 @@ class EventController extends Controller
                 foreach ($auctionProducts as $cProduct) {
                     // Log::info("Processing product ID: " . $cProduct->id_ikan);
 
-                    if ($cProduct->maxBid === null) {
-                        // Log::info("Product ID: " . $cProduct->id_ikan . " has no max bid, skipping.");
+                    if ($cProduct->maxBid === null || $cProduct->maxBid->member === null) {
+                        Log::warning("Skipping product ID: {$cProduct->id_ikan} because it has no max bid or the winning member data is missing.");
                         continue;
                     }
 
@@ -262,7 +262,6 @@ class EventController extends Controller
 
                     // Check if participant has already been notified
                     if (in_array($winner->id_peserta, $notifiedParticipants)) {
-                        // Log::info("Participant ID: " . $winner->id_peserta . " already notified, skipping.");
                         continue;
                     }
 

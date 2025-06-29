@@ -25,7 +25,7 @@ class LogBid extends Model
 
     public function member()
     {
-        return $this->belongsTo(Member::class, 'id_peserta');
+        return $this->belongsTo(Member::class, 'id_peserta', 'id_peserta');
     }
 
     public function winner()
