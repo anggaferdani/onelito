@@ -467,11 +467,13 @@ class AuctionController extends Controller
                 $q->where('id_ikan_lelang', $idIkan);
             })
             ->orderBy('nominal_bid', 'desc')
-            ->orderBy('created_at', 'desc') // Urutkan juga berdasarkan waktu
+            ->orderBy('created_at', 'desc') 
             ->limit(10)->get();
 
         foreach ($logBids as $logBidItem) {
-            $logBidItem->bid_time = Carbon::parse($logBidItem->created_at)->format('d M H:i:s');
+            $logBidItem->bid_time = Carbon::parse($logBidItem->created_at)
+                                        ->setTimezone('Asia/Jakarta')
+                                        ->format('d M H:i:s');
         }
 
         $maxBidData = $logBids->first();
