@@ -31,6 +31,14 @@ class EventController extends Controller
 
             return DataTables::of($auctions)
             ->addIndexColumn()
+            ->editColumn('tgl_mulai', function ($data) {
+                // Gunakan accessor di sini juga
+                return $data->tgl_mulai_wib;
+            })
+            ->editColumn('tgl_akhir', function ($data) {
+                // Gunakan accessor di sini juga
+                return $data->tgl_akhir_wib;
+            })
             ->editColumn('banner', function ($data) {
                 $path = $data->banner ?? false;
 
@@ -109,6 +117,18 @@ class EventController extends Controller
                 // Log untuk debugging jika perlu
             }
 
+            if (!empty($data['tgl_mulai'])) {
+                // Gunakan Carbon::parse yang lebih fleksibel daripada createFromFormat
+                // Dia bisa mengenali berbagai format tanggal umum secara otomatis
+                $data['tgl_mulai'] = Carbon::parse($data['tgl_mulai'], 'Asia/Jakarta')->setTimezone('UTC');
+            }
+            if (!empty($data['tgl_akhir'])) {
+                $data['tgl_akhir'] = Carbon::parse($data['tgl_akhir'], 'Asia/Jakarta')->setTimezone('UTC');
+            } else {
+                // Jika tgl_akhir kosong, pastikan nilainya di-set ke null agar tidak error
+                $data['tgl_akhir'] = null;
+            }
+
             $data['create_by'] = Auth::guard('admin')->id();
             $data['update_by'] = Auth::guard('admin')->id();
             $data['total_hadiah'] = (int) str_replace('.', '', $data['total_hadiah']);
@@ -154,11 +174,16 @@ class EventController extends Controller
         $auction = Event::with('auctionProducts.photo')->findOrFail($id);
 
         if($auction){
-            // Konversi rules_event ke UTF-8 yang valid
             if ($auction->rules_event) {
                 $auction->rules_event = mb_convert_encoding($auction->rules_event, 'UTF-8', mb_detect_encoding($auction->rules_event));
             }
-            return response()->json($auction);
+
+            $responseData = $auction->toArray();
+            
+            $responseData['tgl_mulai_wib'] = $auction->tgl_mulai_wib;
+            $responseData['tgl_akhir_wib'] = $auction->tgl_akhir_wib;
+            
+            return response()->json($responseData);
         }
 
         return response()->json([
@@ -294,6 +319,15 @@ class EventController extends Controller
                 $encoding = mb_detect_encoding($data['rules_event'], ['UTF-8', 'ASCII', 'ISO-8859-1']);
                 $data['rules_event'] = mb_convert_encoding($data['rules_event'], 'UTF-8', $encoding);
                 $data['rules_event'] = preg_replace('/[\x00-\x1F\x7F]/u', '', $data['rules_event']);
+            }
+
+            if (!empty($data['tgl_mulai'])) {
+                $data['tgl_mulai'] = Carbon::parse($data['tgl_mulai'], 'Asia/Jakarta')->setTimezone('UTC');
+            }
+            if (!empty($data['tgl_akhir'])) {
+                $data['tgl_akhir'] = Carbon::parse($data['tgl_akhir'], 'Asia/Jakarta')->setTimezone('UTC');
+            } else {
+                $data['tgl_akhir'] = null;
             }
 
             $data['total_hadiah'] = (int) str_replace('.', '', $data['total_hadiah']);

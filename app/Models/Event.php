@@ -23,6 +23,27 @@ class Event extends Model
         'tgl_akhir' => 'datetime',
     ];
 
+    public function getTglMulaiWibAttribute(): ?string
+    {
+        if (!$this->tgl_mulai) {
+            return null;
+        }
+        // $this->tgl_mulai adalah objek Carbon karena casting aktif
+        // Kita hanya perlu mengubah timezone dan formatnya.
+        return $this->tgl_mulai->setTimezone('Asia/Jakarta')->format('Y-m-d H:i');
+    }
+
+    /**
+     * Get the tgl_akhir for admin panel in WIB format.
+     */
+    public function getTglAkhirWibAttribute(): ?string
+    {
+        if (!$this->tgl_akhir) {
+            return null;
+        }
+        return $this->tgl_akhir->setTimezone('Asia/Jakarta')->format('Y-m-d H:i');
+    }
+
     public function auctionProducts()
     {
         return $this->hasMany(EventFish::class, 'id_event')->where('status_aktif', 1);

@@ -106,6 +106,19 @@
         });
     </script>
     <script>
+    $(document).ready(function() {
+        $(".datetimepicker").daterangepicker({
+            locale: {
+              format: 'YYYY-MM-DD HH:mm:ss'
+            },
+            singleDatePicker: true,
+            timePicker: true,
+            timePicker24Hour: true,
+            timePickerSeconds: true
+        });
+    });
+    </script>
+    <script>
         $(document).ready(function() {
 
             $('#total_hadiah').priceFormat({
@@ -228,8 +241,17 @@
                     `)
                     tinymce.get('edit_rules_event').setContent(res.rules_event);
                     $('#edit_deskripsi_event').val(res.deskripsi_event)
-                    $('#edit_tgl_mulai').val(res.tgl_mulai)
-                    $('#edit_tgl_akhir').val(res.tgl_akhir)
+                    if(res.tgl_mulai_wib) {
+                        $('#edit_tgl_mulai').val(res.tgl_mulai_wib);
+                    } else {
+                        $('#edit_tgl_mulai').val('');
+                    }
+                    
+                    if(res.tgl_akhir_wib) {
+                        $('#edit_tgl_akhir').val(res.tgl_akhir_wib);
+                    } else {
+                        $('#edit_tgl_akhir').val('');
+                    }
                     $('#edit_banner2').attr('src', ``)
 
                     if (res.kategori_event === 'Regular') {
