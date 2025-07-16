@@ -90,9 +90,6 @@
     </script>
     <script>
         $(document).ready(function() {
-            $('#edit_sex').select2({ width: '100%' });
-            $('#edit_currency_id').select2({ width: '100%' });
-            
             $('#ob').priceFormat({
                 prefix: '',
                 centsLimit: 0,
@@ -224,7 +221,11 @@
                     $('#edit_variety').val(res.variety)
                     $('#edit_breeder').val(res.breeder)
                     $('#edit_bloodline').val(res.bloodline)
-                    $('#edit_sex').val(res.sex).trigger('change');
+                    $('#edit_sex').html(`
+                        <option value="Male" ${((res.sex === 'Male') ? 'selected' : '')}>Male</option>
+                        <option value="Female" ${((res.sex === 'Female') ? 'selected' : '')}>Female</option>
+                        <option value="Unknown" ${((res.sex === 'Unknown') ? 'selected' : '')}>Unknown</option>
+                    `)
                     $('#edit_dob').val(res.dob)
                     $('#edit_size').val(res.size)
                     $('#edit_currency_id').val(res.currency.id)
@@ -248,7 +249,7 @@
                     $('#edit_foto2').attr('src', ``)
 
                     if (res.photo.path_foto) {
-                        $('#edit_foto2').attr('src', res.photo?.path_foto ? `/storage/${res.photo.path_foto}` : '');
+                        $('#edit_foto2').attr('src', `/storage/${res.photo.path_foto}`)
                     }
                 },
                 error: function(error) {
@@ -257,14 +258,6 @@
 
             })
         })
-
-        $('#modalEdit').on('hidden.bs.modal', function () {
-            $('#formEdit')[0].reset();
-            tinymce.get('edit_note').setContent('');
-            $('#edit_sex').val('').trigger('change');
-            $('#edit_currency_id').val('').trigger('change');
-            $('#edit_foto2').attr('src', '');
-        });
 
         $('#formEdit').submit(function(e) {
             e.preventDefault();
