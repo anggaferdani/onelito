@@ -546,7 +546,7 @@ class AuthenticationController extends Controller
             return back()->withErrors("Email belum terdaftar");
         }
 
-        // Mail::to($email)->send(new EmailResetPassword($email));
+        Mail::to($email)->send(new EmailResetPassword($email));
 
         return back()->with("success", "Email reset password dikirim");
     }
