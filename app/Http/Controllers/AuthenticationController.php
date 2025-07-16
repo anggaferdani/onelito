@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Session;
 use Laravel\Socialite\Facades\Socialite;
 
@@ -551,5 +552,59 @@ class AuthenticationController extends Controller
         Mail::to($email)->send(new EmailResetPassword($email));
 
         return back()->with("success", "Email reset password dikirim");
+    }
+
+    public function emailChangePassword()
+    {
+        $token = $this->request->click;
+
+        try {
+            $data = Crypt::decrypt($token);
+            if ($data) {
+                $user = Member::where('email', $data['email'])
+                    ->where('id_peserta', $data['id'])->first();
+
+                if (!$user) {
+                    return redirect('login')
+                        ->with(['message' => 'User Not Found']);
+                }
+
+                // $user->email_verified_at = Carbon::now();
+                // $user->save();
+
+                // session()->flash('message','Your Email Successfully Verified',);
+
+                return view('reqreset_change_password')->with([
+                    // 'provinces' => $provinces
+                ]);
+            }
+        } catch (\Throwable $th) {
+            throw $th;
+        }
+    }
+
+    public function emailChangePasswordProsess()
+    {
+        $token = $this->request->token;
+
+        try {
+            $data = Crypt::decrypt($token);
+            if ($data) {
+                $user = Member::where('email', $data['email'])
+                    ->where('id_peserta', $data['id'])->first();
+
+                if (!$user) {
+                    return redirect()->back()
+                        ->with(['message' => 'User Not Found']);
+                }
+
+                $user->password = $this->request->password;
+                $user->save();
+
+                return redirect('login')->with("password", "Password berhasil diubah, silahkan login menggunakan password baru");
+            }
+        } catch (\Throwable $th) {
+            throw $th;
+        }
     }
 }
