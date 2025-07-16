@@ -93,30 +93,25 @@
         let currentEditRequest = null;
 
         $(document).ready(function() {
-            // Price format initialization
-            $('#ob').priceFormat({
-                prefix: '',
-                centsLimit: 0,
-                thousandsSeparator: '.'
-            });
+            // Price format initialization with null check
+            function initializePriceFormat(selector) {
+                $(selector).each(function() {
+                    if ($(this).val() === null || $(this).val() === undefined) {
+                        $(this).val('0');
+                    }
+                    $(this).priceFormat({
+                        prefix: '',
+                        centsLimit: 0,
+                        thousandsSeparator: '.'
+                    });
+                });
+            }
 
-            $('#kb').priceFormat({
-                prefix: '',
-                centsLimit: 0,
-                thousandsSeparator: '.'
-            });
-
-            $('#edit_ob').priceFormat({
-                prefix: '',
-                centsLimit: 0,
-                thousandsSeparator: '.'
-            });
-
-            $('#edit_kb').priceFormat({
-                prefix: '',
-                centsLimit: 0,
-                thousandsSeparator: '.'
-            });
+            // Initialize price format for all price fields
+            initializePriceFormat('#ob');
+            initializePriceFormat('#kb');
+            initializePriceFormat('#edit_ob');
+            initializePriceFormat('#edit_kb');
 
             // DataTable initialization
             $('#table-1').DataTable({
@@ -228,20 +223,20 @@
                 timeout: 10000,
                 success: function(res) {
                     $('#modalShow').modal('show');
-                    $('#show_no_ikan').val(res.no_ikan);
-                    $('#show_variety').val(res.variety);
-                    $('#show_breeder').val(res.breeder);
-                    $('#show_bloodline').val(res.bloodline);
-                    $('#show_sex').val(res.sex);
-                    $('#show_dob').val(res.dob);
-                    $('#show_size').val(res.size);
-                    $('#show_ob').val(res.currency.symbol + ' ' + res.ob);
-                    $('#show_kb').val(res.currency.symbol + ' ' + res.kb);
-                    $('#show_note').html(res.note);
-                    $('#show_link_video').val(res.link_video);
-                    $('#show_extra_time').val(res.extra_time);
+                    $('#show_no_ikan').val(res.no_ikan || '');
+                    $('#show_variety').val(res.variety || '');
+                    $('#show_breeder').val(res.breeder || '');
+                    $('#show_bloodline').val(res.bloodline || '');
+                    $('#show_sex').val(res.sex || '');
+                    $('#show_dob').val(res.dob || '');
+                    $('#show_size').val(res.size || '');
+                    $('#show_ob').val((res.currency ? res.currency.symbol : '') + ' ' + (res.ob || '0'));
+                    $('#show_kb').val((res.currency ? res.currency.symbol : '') + ' ' + (res.kb || '0'));
+                    $('#show_note').html(res.note || '');
+                    $('#show_link_video').val(res.link_video || '');
+                    $('#show_extra_time').val(res.extra_time || '');
                     
-                    if (res.photo.path_foto) {
+                    if (res.photo && res.photo.path_foto) {
                         $('#show_foto').attr('src', `/storage/${res.photo.path_foto}`);
                     }
                 },
@@ -287,7 +282,7 @@
                 timeout: 10000,
                 beforeSend: function() {
                     // Show loading indicator
-                    $button.html('<i class="fa fa-spinner fa-spin"></i>');
+                    $button.html('<i class="fa fa-spinner fa-spin"></i> Loading...');
                 },
                 success: function(res) {
                     // Set form action
@@ -296,11 +291,11 @@
                     // Show modal
                     $('#modalEdit').modal('show');
                     
-                    // Populate form fields
-                    $('#edit_no_ikan').val(res.no_ikan);
-                    $('#edit_variety').val(res.variety);
-                    $('#edit_breeder').val(res.breeder);
-                    $('#edit_bloodline').val(res.bloodline);
+                    // Populate form fields (handle null/undefined values)
+                    $('#edit_no_ikan').val(res.no_ikan || '');
+                    $('#edit_variety').val(res.variety || '');
+                    $('#edit_breeder').val(res.breeder || '');
+                    $('#edit_bloodline').val(res.bloodline || '');
                     
                     // Set sex dropdown
                     $('#edit_sex').html(`
@@ -309,36 +304,39 @@
                         <option value="Unknown" ${((res.sex === 'Unknown') ? 'selected' : '')}>Unknown</option>
                     `);
                     
-                    $('#edit_dob').val(res.dob);
-                    $('#edit_size').val(res.size);
-                    $('#edit_currency_id').val(res.currency.id);
+                    $('#edit_dob').val(res.dob || '');
+                    $('#edit_size').val(res.size || '');
+                    $('#edit_currency_id').val(res.currency ? res.currency.id : '');
                     $('#edit_currency_id').trigger('change');
                     
-                    // Set price fields with formatting
-                    $('#edit_ob').val(res.ob);
+                    // Set price fields with formatting (handle null/undefined values)
+                    let obValue = res.ob || '0';
+                    let kbValue = res.kb || '0';
+                    
+                    $('#edit_ob').val(obValue);
                     $('#edit_ob').priceFormat({
                         prefix: '',
                         centsLimit: 0,
                         thousandsSeparator: '.'
                     });
                     
-                    $('#edit_kb').val(res.kb);
+                    $('#edit_kb').val(kbValue);
                     $('#edit_kb').priceFormat({
                         prefix: '',
                         centsLimit: 0,
                         thousandsSeparator: '.'
                     });
                     
-                    // Set TinyMCE content
+                    // Set TinyMCE content (handle null/undefined)
                     if (typeof tinymce !== 'undefined' && tinymce.get('edit_note')) {
-                        tinymce.get('edit_note').setContent(res.note);
+                        tinymce.get('edit_note').setContent(res.note || '');
                     }
                     
-                    $('#edit_link_video').val(res.link_video);
-                    $('#edit_extra_time').val(res.extra_time);
+                    $('#edit_link_video').val(res.link_video || '');
+                    $('#edit_extra_time').val(res.extra_time || '');
                     
-                    // Set image
-                    if (res.photo.path_foto) {
+                    // Set image (handle null/undefined)
+                    if (res.photo && res.photo.path_foto) {
                         $('#edit_foto2').attr('src', `/storage/${res.photo.path_foto}`);
                     }
                 },
@@ -350,7 +348,7 @@
                 },
                 complete: function() {
                     // Reset button text and re-enable
-                    $button.html('<i class="fa fa-pen"></i>');
+                    $button.html('<i class="fa fa-edit"></i> Edit');
                     $('button#btn-edit').prop('disabled', false);
                 }
             });
