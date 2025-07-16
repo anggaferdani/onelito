@@ -282,7 +282,7 @@
                 timeout: 10000,
                 beforeSend: function() {
                     // Show loading indicator
-                    $button.html('<i class="fa fa-spinner fa-spin"></i> Loading...');
+                    $button.html('<i class="fa fa-spinner fa-spin"></i>');
                 },
                 success: function(res) {
                     // Set form action
@@ -348,7 +348,7 @@
                 },
                 complete: function() {
                     // Reset button text and re-enable
-                    $button.html('<i class="fa fa-edit"></i> Edit');
+                    $button.html('<i class="fa fa-pen"></i>');
                     $('button#btn-edit').prop('disabled', false);
                 }
             });
