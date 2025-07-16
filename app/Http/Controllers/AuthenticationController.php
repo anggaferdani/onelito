@@ -5,14 +5,16 @@ namespace App\Http\Controllers;
 use Carbon\Carbon;
 use App\Models\Member;
 use App\Models\Province;
+use App\Models\LoginHistory;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use App\Mail\EmailResetPassword;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Session;
 use Laravel\Socialite\Facades\Socialite;
-use App\Models\LoginHistory;
 
 class AuthenticationController extends Controller
 {
