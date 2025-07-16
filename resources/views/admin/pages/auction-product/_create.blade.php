@@ -65,11 +65,11 @@
             </div>
             <div class="form-group">
                 <label for="link_video">Link Video</label>
-                <input  type="text" id="link_video" name="link_video" class="form-control" placeholder="">
+                <input  type="text" id="link_video" name="link_video" class="form-control" placeholder="" required>
             </div>
             <div class="form-group">
                 <label for="extra_time">Extra Time</label>
-                <input  type="number" id="extra_time" name="extra_time" class="form-control" placeholder="">
+                <input  type="number" id="extra_time" name="extra_time" class="form-control" placeholder="" required>
             </div>
             <div class="form-group">
                 <label for="path_foto">Foto Ikan</label>

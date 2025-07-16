@@ -66,11 +66,11 @@
             </div>
             <div class="form-group">
                 <label for="edit_link_video">Link Video</label>
-                <input  type="text" id="edit_link_video" name="edit_link_video" class="form-control" placeholder="">
+                <input  type="text" id="edit_link_video" name="edit_link_video" class="form-control" placeholder="" required>
             </div>
             <div class="form-group">
                 <label for="edit_extra_time">Extra Time</label>
-                <input  type="number" id="edit_extra_time" name="edit_extra_time" class="form-control" placeholder="">
+                <input  type="number" id="edit_extra_time" name="edit_extra_time" class="form-control" placeholder="" required>
             </div>
             <div class="form-group">
                 <label for="edit_foto">Foto Ikan</label>
