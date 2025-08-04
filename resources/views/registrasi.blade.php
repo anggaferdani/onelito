@@ -64,13 +64,13 @@
             @if(request('google_id'))
                 <input type="hidden" value="{{ request('google_id') }}" name="google_id">
             @endif
-            <div class="alert alert-danger mb-3">Pastikan nomor telepon yang Anda masukkan sudah benar. Kode verifikasi akan dikirimkan ke WhatsApp Anda.</div>
+            <div class="alert alert-primary mb-3">Pastikan nomor telepon yang Anda masukkan sudah benar. Kode verifikasi akan dikirimkan ke WhatsApp Anda.</div>
             <div class="row">
                 <div class="col-md-6">
                     <div class="row">
                         <div class="col-lg-6 mb-3">
                             <div class="relative">
-                                <input type="text" @if(request('google_id')) readonly @endif value="{{ request('firstName') }}" name="nama[]" id="namadepan" required
+                                <input value="{{ old('nama.0', request('firstName')) }}" type="text" @if(request('google_id')) readonly @endif value="{{ request('firstName') }}" name="nama[]" id="namadepan" required
                                     class="@if(request('google_id')) border-danger @endif bg-transparent block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                                     placeholder=" " />
                                 <label for="namadepan"
@@ -80,7 +80,7 @@
                         </div>
                         <div class="col-lg-6 mb-3">
                             <div class="relative">
-                                <input type="text" name="nama[]" @if(request('google_id')) readonly @endif value="{{ request('lastName') }}" id="namabelakang" required
+                                <input value="{{ old('nama.1', request('lastName')) }}" type="text" name="nama[]" @if(request('google_id')) readonly @endif value="{{ request('lastName') }}" id="namabelakang" required
                                     class="@if(request('google_id')) border-danger @endif bg-transparent block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                                     placeholder=" " />
                                 <label for="namabelakang"
@@ -90,7 +90,7 @@
                         </div>
                         <div class="mb-3">
                             <div class="relative">
-                                <input type="email" name="email" id="email" @if(request('google_id')) readonly @endif value="{{ request('email') }}" required
+                                <input value="{{ old('email', request('email')) }}" type="email" name="email" id="email" @if(request('google_id')) readonly @endif value="{{ request('email') }}" required
                                     class="@if(request('google_id')) border-danger @endif bg-transparent block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                                     placeholder=" " />
                                 <label for="email"
@@ -98,7 +98,7 @@
                             </div>
                         </div>
                         <div class="col-lg-6 mb-3">
-                            <div class="relative">
+                            <div class="relative mb-2">
                                 <input type="password" name="password" id="password" required
                                     class="block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                                     placeholder=" " />
@@ -106,9 +106,10 @@
                                     class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-3 scale-75 top-1 z-10 origin-[0] bg-white dark:bg-gray-900 px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-1 peer-focus:scale-75 peer-focus:-translate-y-3 left-1">Kata
                                     Sandi</label>
                             </div>
+                            <div class="text-muted small">Password minimal 8 karakter, gunakan kombinasi huruf dan angka</div>
                         </div>
                         <div class="col-lg-6 mb-3">
-                            <div class="relative">
+                            <div class="relative mb-2">
                                 <input type="password" name="confirmpassword" id="confirmpassword" required
                                     class="block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                                     placeholder=" " />
@@ -116,15 +117,17 @@
                                     class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-3 scale-75 top-1 z-10 origin-[0] bg-white dark:bg-gray-900 px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-1 peer-focus:scale-75 peer-focus:-translate-y-3 left-1">Konfirmasi
                                     Kata Sandi</label>
                             </div>
+                            <div class="text-muted small">Konfirmasi password harus sama dengan password</div>
                         </div>
                         <div class="mb-3">
-                            <div class="relative">
-                                <input type="text" name="no_hp" id="no_hp" required
+                            <div class="relative mb-2">
+                                <input value="{{ old('no_hp') }}" type="text" name="no_hp" id="no_hp" required
                                     class="block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                                     placeholder=" " />
                                 <label for="no_hp"
                                     class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-3 scale-75 top-1 z-10 origin-[0] bg-white dark:bg-gray-900 px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-1 peer-focus:scale-75 peer-focus:-translate-y-3 left-1">No.Handphone</label>
                             </div>
+                            <div class="text-muted small">Pastikan nomor yang dimasukkan aktif dan terhubung dengan WhatsApp</div>
                         </div>
                     </div>
                 </div>
@@ -132,10 +135,11 @@
                     <div class="row">
                         <div class="col-lg-6 mb-3">
                             <div class="relative ">
-                                <select name="provinsi" id="provinsi" required class="select2-setup form-control ">
-                                    <option></option>
+                                <select name="provinsi" id="provinsi" required class="select2-setup form-control">
                                     @foreach ($provinces as $province)
-                                        <option value="{{ $province->prov_id }}">{{ $province->prov_name }}</option>
+                                        <option value="{{ $province->prov_id }}" {{ old('provinsi') == $province->prov_id ? 'selected' : '' }}>
+                                            {{ $province->prov_name }}
+                                        </option>
                                     @endforeach
                                 </select>
                             </div>
@@ -144,27 +148,39 @@
                             <div class="relative">
                                 <select name="kota" id="kota" required
                                     class="select2-setup form-control js-data-example-ajax">
-                                    <option></option>
+                                    @if(old('kota') && $oldKota)
+                                        <option value="{{ old('kota') }}" selected>{{ $oldKota->city_name }}</option>
+                                    @else
+                                        <option></option>
+                                    @endif
                                 </select>
                             </div>
                         </div>
                         <div class="col-lg-6 mb-3">
                             <div class="relative">
                                 <select name="kecamatan" id="kecamatan" required class="select2-setup form-control">
-                                    <option></option>
+                                    @if(old('kecamatan') && $oldKecamatan)
+                                        <option value="{{ old('kecamatan') }}" selected>{{ $oldKecamatan->dis_name }}</option>
+                                    @else
+                                        <option></option>
+                                    @endif
                                 </select>
                             </div>
                         </div>
                         <div class="col-lg-6 mb-3">
                             <div class="relative">
                                 <select id="kelurahan" name="kelurahan" required class="select2-setup form-control">
-                                    <option></option>
+                                    @if(old('kelurahan') && $oldKelurahan)
+                                        <option value="{{ old('kelurahan') }}" selected>{{ $oldKelurahan->subdis_name }}</option>
+                                    @else
+                                        <option></option>
+                                    @endif
                                 </select>
                             </div>
                         </div>
                         <div class="mb-3">
                             <div class="relative">
-                                <input type="text" required name="alamat" id="alamat"
+                                <input value="{{ old('alamat') }}" type="text" required name="alamat" id="alamat"
                                     class="block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                                     placeholder=" " />
                                 <label for="alamat"
@@ -173,7 +189,7 @@
                         </div>
                         <div class="mb-3">
                             <div class="relative">
-                                <input type="text" name="kode_pos" id="kode_pos"
+                                <input value="{{ old('kode_pos') }}" type="text" name="kode_pos" id="kode_pos"
                                     class="block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                                     placeholder=" " />
                                 <label for="kode_pos"
@@ -202,7 +218,7 @@
                     </ul>
                 </div>
             @endif
-            <br><br><br><br><br>
+            <br><br>
             <center>
                 <div class="d-grid gap-2 col-lg-4 mx-auto px-lg-4">
                     <button type="submit"
@@ -239,8 +255,22 @@
     </div>
     </div>
 
-    <!-- <script src="{{ asset('library/jquery/dist/jquery.min.js') }}"></script> -->
+    <script src="{{ asset('library/jquery/dist/jquery.min.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gasparesganga-jquery-loading-overlay@2.1.7/dist/loadingoverlay.min.js"></script>
+
+    <script type="text/javascript">
+      $(document).ready( function () {
+        $('form').on('submit', function() {
+          $.LoadingOverlay("show");
+      
+          setTimeout(function(){
+              $.LoadingOverlay("hide");
+          }, 100000);
+        });
+      });
+    </script>
+
     <script>
         $.ajaxSetup({
             headers: {

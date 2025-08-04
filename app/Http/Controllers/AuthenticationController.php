@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use Carbon\Carbon;
+use App\Models\City;
 use App\Models\Member;
+use App\Models\District;
 use App\Models\Province;
+use App\Models\Subdistrict;
 use App\Models\LoginHistory;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -147,8 +150,25 @@ class AuthenticationController extends Controller
         
         $provinces = Province::get();
 
+        $oldKota = null;
+        $oldKecamatan = null;
+        $oldKelurahan = null;
+
+        if (old('kota')) {
+            $oldKota = City::find(old('kota'));
+        }
+        if (old('kecamatan')) {
+            $oldKecamatan = District::find(old('kecamatan'));
+        }
+        if (old('kelurahan')) {
+            $oldKelurahan = Subdistrict::find(old('kelurahan'));
+        }
+
         return view('registrasi')->with([
-            'provinces' => $provinces
+            'provinces' => $provinces,
+            'oldKota' => $oldKota,
+            'oldKecamatan' => $oldKecamatan,
+            'oldKelurahan' => $oldKelurahan,
         ]);
     }
 
@@ -166,7 +186,7 @@ class AuthenticationController extends Controller
                     return $query->where('status_aktif', 1);
                 })
             ],
-            'password' => ['required', 'min:8'],
+            'password' => ['required', 'string', 'min:8', 'regex:/^(?=.*[A-Za-z])(?=.*\d).+$/'],
             'confirmpassword' => 'required|same:password',
             'alamat' => ['required', 'string', 'max:255'],
             'no_hp' => ['required', 'string', 'max:20', Rule::unique('m_peserta')->where(function ($query) {
@@ -188,6 +208,7 @@ class AuthenticationController extends Controller
             'password.required' => 'Password wajib diisi.',
             'password.min' => 'Password minimal 8 karakter.',
             'password.confirmed' => 'Konfirmasi password tidak cocok.',
+            'password.regex' => 'Password harus minimal 8 karakter dan mengandung kombinasi huruf dan angka.',
             'confirmpassword.required' => 'Konfirmasi password wajib diisi.',
             'confirmpassword.same' => 'Konfirmasi password tidak cocok dengan password.',
             'alamat.required' => 'Alamat wajib diisi.',
