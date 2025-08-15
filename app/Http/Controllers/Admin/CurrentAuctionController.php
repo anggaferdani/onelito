@@ -24,21 +24,6 @@ class CurrentAuctionController extends Controller
             $now = Carbon::now();
             $nowAkhir = Carbon::now()->subDays(3)->endOfDay();
 
-            // $currentAuctions = Event::with([
-            //         'auctionProducts' => function ($q) {
-            //             $q->withCount('bidDetails')->with(['photo', 'maxBid']);
-            //         },
-            //     ])
-            //     ->where('tgl_mulai', '<=', $now)
-            //     ->where('tgl_akhir', '>=', $nowAkhir)
-            //     ->where('status_aktif', 1)
-            //     ->orderBy('tgl_mulai')
-                // ->orderBy('created_at', 'desc')
-            //     ->get();
-
-            // $currentProducts = $currentAuctions->pluck('auctionProducts')
-            // ->flatten(1);
-
             $currentProducts = EventFish::
             withCount('bidDetails')->with(['photo', 'maxBid'])
             ->whereHas('event', function ($q) {
@@ -47,7 +32,6 @@ class CurrentAuctionController extends Controller
             ->where('status_aktif', 1)
             ->orderBy('created_at', 'desc')
             ;
-
 
             return DataTables::of($currentProducts)
             ->addIndexColumn()
@@ -93,7 +77,7 @@ class CurrentAuctionController extends Controller
 
         $logBids = LogBidDetail::with('logBid.member')
         ->distinct('nominal_bid')
-        ->selectRaw('t_log_bidding_detail.*, DATE_FORMAT(created_at, "%e %b %H:%i:%s") as bid_time')
+        ->selectRaw('t_log_bidding_detail.*, DATE_FORMAT(CONVERT_TZ(created_at, "+00:00", "+07:00"), "%e %b %H:%i:%s") as bid_time')
         ->whereHas('logBid', function($q) use ($id){
             $q->where('id_ikan_lelang', $id);
         })

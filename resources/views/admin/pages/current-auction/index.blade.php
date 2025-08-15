@@ -3,7 +3,6 @@
 @section('title', 'Current Auction')
 
 @push('style')
-    <!-- CSS Libraries -->
     <link rel="stylesheet"
         href="{{ asset('library/datatables/media/css/jquery.dataTables.min.css') }}">
     <link rel="stylesheet"
@@ -64,21 +63,16 @@
 @endsection
 
 @push('scripts')
-    <!-- JS Libraies -->
-    {{-- <script src="assets/modules/datatables/DataTables-1.10.16/js/dataTables.bootstrap4.min.js"></script>
-    <script src="assets/modules/datatables/Select-1.2.4/js/dataTables.select.min.js"></script> --}}
+    <script src="assets/modules/datatables/Select-1.2.4/js/dataTables.select.min.js"></script>
     <script src="{{ asset('library/datatables/media/js/jquery.dataTables.min.js') }}"></script>
-    <!-- <script src="{{ asset('library/datatables.net-bs4/css/dataTables.bootstrap4.min.js') }}"></script> -->
-    {{-- <script src="{{ asset() }}"></script> --}}
+    <script src="{{ asset('library/datatables.net-bs4/css/dataTables.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('library/jquery-ui-dist/jquery-ui.min.js') }}"></script>
 
     <script src="https://demo.getstisla.com/assets/modules/datatables/DataTables-1.10.16/js/dataTables.bootstrap4.min.js"></script>
     <script src="https://demo.getstisla.com/assets/modules/datatables/Select-1.2.4/js/dataTables.select.min.js"></script>
 
-    <!-- Page Specific JS File -->
     <script src="{{ asset('library/sweetalert/dist/sweetalert.min.js') }}"></script>
 
-    <!-- bootsrap datepicker -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
 
     <script src="{{ asset('/js/price-separator.min.js') }}"></script>
@@ -92,44 +86,7 @@
     </script>
     <script>
         $(document).ready(function() {
-            // $('#ob').priceFormat({
-            //     prefix: '',
-            //     centsLimit: 0,
-            //     thousandsSeparator: '.'
-            // });
-
-            // $('#kb').priceFormat({
-            //     prefix: '',
-            //     centsLimit: 0,
-            //     thousandsSeparator: '.'
-            // });
-
-            // $('#edit_ob').priceFormat({
-            //     prefix: '',
-            //     centsLimit: 0,
-            //     thousandsSeparator: '.'
-            // });
-
-            // $('#edit_kb').priceFormat({
-            //     prefix: '',
-            //     centsLimit: 0,
-            //     thousandsSeparator: '.'
-            // });
-
-            // $("#dob").datepicker( {
-            //     format: "mm-yyyy",
-            //     startView: "months",
-            //     minViewMode: "months"
-            // });
-
-            // $("#edit_dob").datepicker( {
-            //     format: "mm-yyyy",
-            //     startView: "months",
-            //     minViewMode: "months"
-            // });
-
             $('#table-1').DataTable({
-                // dom: 'Bfrtip',
                 lengthMenu: [
                     [ 10, 25, 50, -1 ],
                     [ '10 rows', '25 rows', '50 rows', 'Show all' ]
@@ -147,7 +104,6 @@
                 ajax : {
                 url : '{{ url("admin/current-auctions") }}',
                 data : function(d) {
-                    // d.jenis_task = $('#filter_jenis_task').val()
                 }
                 },
                 columns : [
@@ -213,10 +169,6 @@
 
                     $('#modalShow tbody').html(historyBidHtml);
                     $('#modalShow').modal('show');
-
-                    // if (res.photo.path_foto) {
-                        // $('#show_foto').attr('src', `/storage/${res.photo.path_foto}`)
-                    // }
                 },
                 error:function(error) {
                     console.log(error)

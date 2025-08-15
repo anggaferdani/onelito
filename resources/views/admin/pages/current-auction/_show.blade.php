@@ -28,21 +28,19 @@
     </div>
 </div>
 
-
-
 <div class="modal fade" tabindex="-1" role="dialog" id="cancelBidConfirm">
     <div class="modal-dialog modal-md" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Cancel Bidding</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                       <span aria-hidden="true">×</span>
-                       </button>
+                    <span aria-hidden="true">×</span>
+                </button>
             </div>
-        <div class="modal-body">           Anda akan menghapus data bidding</div>
-            <div class="modal-footer">
-                <button onclick="cancelLastBidding(this, 'process')" type="button" class="btn btn-danger btn-shadow" id="yesCancelBidding">Yes</button>
-            </div>
+        <div class="modal-body">Anda akan menghapus data bidding</div>
+        <div class="modal-footer">
+            <button onclick="cancelLastBidding(this, 'process')" type="button" class="btn btn-danger btn-shadow" id="yesCancelBidding">Yes</button>
+        </div>
         </div>
     </div>
 </div>
