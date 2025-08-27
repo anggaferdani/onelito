@@ -48,15 +48,6 @@ use App\Http\Controllers\AuthenticationController;
 //     ]);
 // });
 
-Route::get('/test-reminder/{eventId}', function ($eventId) {
-    $job = new SendAuctionReminder($eventId);
-
-    // langsung panggil handle() (tidak lewat queue worker)
-    $result = $job->handle();
-
-    return response()->json($result);
-});
-
 Route::get('send-event-reminder', [SendEventController::class, 'sendEventReminder'])->name('send-event-reminder');
 Route::get('example', [SendEventController::class, 'example'])->name('example');
 
