@@ -3,6 +3,7 @@
 use Illuminate\Support\Carbon;
 use App\Http\Controllers\Admin;
 use App\Mail\EmailVerification;
+use App\Jobs\SendAuctionReminder;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TagController;
@@ -46,6 +47,15 @@ use App\Http\Controllers\AuthenticationController;
 //         "title" => "home"
 //     ]);
 // });
+
+Route::get('/test-reminder/{eventId}', function ($eventId) {
+    $job = new SendAuctionReminder($eventId);
+
+    // langsung panggil handle() (tidak lewat queue worker)
+    $result = $job->handle();
+
+    return response()->json($result);
+});
 
 Route::get('send-event-reminder', [SendEventController::class, 'sendEventReminder'])->name('send-event-reminder');
 Route::get('example', [SendEventController::class, 'example'])->name('example');

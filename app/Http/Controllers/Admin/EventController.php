@@ -8,6 +8,7 @@ use App\Models\EventFish;
 use App\Models\Notification;
 use Illuminate\Http\Request;
 use App\Models\AuctionWinner;
+use App\Jobs\SendAuctionReminder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
@@ -15,6 +16,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
+use App\Jobs\SendAuctionWinnerNotification;
 
 class EventController extends Controller
 {
@@ -153,6 +155,13 @@ class EventController extends Controller
                 'id_event' => $createAuction->id_event
             ]);
 
+            // $delayTime = Carbon::parse($createAuction->tgl_akhir)->subMinutes(5);
+            $delayTime = Carbon::parse($createAuction->tgl_akhir)->subHours(1);
+            SendAuctionReminder::dispatch($createAuction->id_event)->delay($delayTime);
+
+            $delayWinner = Carbon::parse($createAuction->tgl_akhir);
+            SendAuctionWinnerNotification::dispatch($createAuction->id_event)->delay($delayWinner);
+
             DB::commit();
 
             return redirect()->back()->with([
@@ -201,101 +210,8 @@ class EventController extends Controller
             $auction = Event::with('auctionProducts')->findOrFail($id);
 
             if ($action === 'close-auction') {
-                // Log::info("Closing Auction ID: " . $id);
-
                 $auction->status_tutup = 1;
                 $auction->save();
-
-                $now = Carbon::now();
-                // Log::info("Current Time (Now): " . $now->toDateTimeString());
-
-                $auctionProducts = EventFish::doesntHave('winners')
-                    ->whereHas('event', function ($q) use ($now) {
-                        // Remove the date check here.  This is the important change.
-                        // $q->where('tgl_akhir', '<', $now);  // REMOVED
-                    })
-                    ->with(['bids.member', 'maxBid', 'event', 'maxBid.member'])
-                    ->where('status_aktif', 1)
-                    ->get();
-
-                // Log::info("Number of auction products: " . $auctionProducts->count());
-
-                $auctionProducts = $auctionProducts->mapWithKeys(fn($a) => [$a->id_ikan => $a]);
-
-                $fishInWinner = AuctionWinner::whereIn('id_bidding', $auctionProducts->pluck('maxBid.id_bidding'))
-                    ->get()
-                    ->mapWithKeys(fn($q) => [$q->id_bidding => $q]);
-
-                $notificationResponses = [];
-                $notifiedParticipants = [];
-
-                foreach ($auctionProducts as $cProduct) {
-                    // Log::info("Processing product ID: " . $cProduct->id_ikan);
-
-                    if ($cProduct->maxBid === null || $cProduct->maxBid->member === null) {
-                        Log::warning("Skipping product ID: {$cProduct->id_ikan} because it has no max bid or the winning member data is missing.");
-                        continue;
-                    }
-
-                    // Log::info("Product ID: " . $cProduct->id_ikan . " - Max Bid Updated At: " . $cProduct->maxBid->updated_at->toDateTimeString());
-
-                    // Remove the date difference check.  This is another key change.
-                    // $dateDiff = Carbon::parse($now, 'id')->diffInMinutes($cProduct->maxBid->updated_at);
-                    // Log::info("Product ID: " . $cProduct->id_ikan . " - Date Diff (Minutes): " . $dateDiff);
-
-                    $dateEventEnd = Carbon::parse($cProduct->event->tgl_akhir)->addMinutes($cProduct->extra_time);
-                    // Log::info("Product ID: " . $cProduct->id_ikan . " - Event End Time (Calculated): " . $dateEventEnd->toDateTimeString());
-
-                    // Remove the check.  This is the third critical change.
-                    // if ($now < $dateEventEnd) {
-                    //     Log::info("Product ID: " . $cProduct->id_ikan . " - Event not ended yet, skipping.");
-                    //     continue;
-                    // }
-
-                    // Removed the time difference check
-                    // if ($dateDiff < $cProduct->extra_time || array_key_exists($cProduct->maxBid->id_bidding, $fishInWinner->toArray())) {
-                    //     Log::info("Product ID: " . $cProduct->id_ikan . " - Did not meet time criteria or already won, skipping.");
-                    //     continue;
-                    // }
-
-                    $winner = $cProduct->maxBid->member;
-
-                    // Check if participant has already been notified
-                    if (in_array($winner->id_peserta, $notifiedParticipants)) {
-                        continue;
-                    }
-
-                    $data = [
-                        'id_bidding' => $cProduct->maxBid->id_bidding,
-                        'create_by' => Auth::guard('admin')->id(),
-                        'update_by' => Auth::guard('admin')->id(),
-                        'status_aktif' => 1,
-                    ];
-
-                    try {
-                      AuctionWinner::create($data);
-                    //   Log::info("Auction winner created for product ID: " . $cProduct->id_ikan . " and bidder ID: " . $cProduct->maxBid->member->id_peserta);
-                    } catch (\Exception $e) {
-                       Log::error("Error creating auction winner for product ID: " . $cProduct->id_ikan . ": " . $e->getMessage());
-                    }
-
-                    $fishVariety = "{$cProduct->no_ikan} | {$cProduct->variety} | {$cProduct->breeder} | {$cProduct->bloodline} | {$cProduct->sex}";
-                    $finalBidPrice = $cProduct->maxBid->nominal_bid;
-
-                    $notification = Notification::create([
-                        'peserta_id' => $winner->id_peserta,
-                        'label' => 'Auction Winner',
-                        'description' => "Selamat kepada Mr. / Ms. {$winner->nama} telah memenangkan Lelang Koi {$fishVariety} dengan nilai final bid Rp " . number_format($finalBidPrice, 0, ',', '.'),
-                        'link' => route('winning-auction'),
-                    ]);
-
-                    if($notification) {
-                        $notificationResponses[] = $this->sendWhatsAppNotification($winner, $fishVariety, $finalBidPrice);
-                    }
-
-                    $notifiedParticipants[] = $winner->id_peserta; // Add participant to notified list
-                    // Log::info("Notified participant ID: " . $winner->id_peserta . " for product ID: " . $cProduct->id_ikan);
-                }
 
                 DB::commit();
 
@@ -303,16 +219,14 @@ class EventController extends Controller
                     'success' => true,
                     'message' => [
                         'title' => 'Berhasil',
-                        'content' => 'Mengubah data auction dan menentukan pemenang lelang',
+                        'content' => 'Lelang berhasil ditutup',
                         'type' => 'success',
                     ],
-                    'notification_responses' => $notificationResponses,
                 ], 200);
             }
 
             $data = $this->request->all();
 
-            // Tangani rules_event untuk update
             if (isset($data['rules_event'])) {
                 $data['rules_event'] = preg_replace('/[\x{FEFF}]/u', '', $data['rules_event']);
                 $encoding = mb_detect_encoding($data['rules_event'], ['UTF-8', 'ASCII', 'ISO-8859-1']);
@@ -393,71 +307,5 @@ class EventController extends Controller
                 'message' => $e->getMessage()
             ],500);
         }
-    }
-
-    private function sendWhatsAppNotification($winner, $fishVariety, $finalBidPrice)
-    {
-        $url = 'https://service-chat.qontak.com/api/open/v1/broadcasts/whatsapp/direct';
-        $token = env('QONTAK_API_KEY');
-
-        $phoneNumber = $winner->no_hp;
-        $phoneNumber = preg_replace('/[^0-9]/', '', $phoneNumber);
-        if (preg_match('/^0/', $phoneNumber)) {
-            $phoneNumber = '62' . substr($phoneNumber, 1);
-        }
-
-        $data = [
-            "to_name" => $winner->nama,
-            "to_number" => $phoneNumber,
-            "message_template_id" => "2c9c5f12-4578-4d36-9df9-b9296e9e9af2",
-            "channel_integration_id" => env('QONTAK_CHANNEL_INTEGRATION_ID'),
-            "language" => [
-                "code" => "id",
-            ],
-            "parameters" => [
-                "header" => [
-                    "format" => "DOCUMENT",
-                    "params" => [],
-                ],
-                "body" => [
-                    [
-                        "key" => "0",
-                        "value_text" => $winner->nama,
-                        "value" => "customer_name",
-                    ],
-                    [
-                        "key" => "1",
-                        "value_text" => $fishVariety,
-                        "value" => "fish_variety",
-                    ],
-                    [
-                        "key" => "2",
-                        "value_text" => $finalBidPrice,
-                        "value" => "final_bid_price",
-                    ],
-                ],
-                "buttons" => []
-            ]
-        ];
-
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . $token,
-            'Content-Type' => 'application/json',
-        ])->post($url, $data);
-
-        if ($response->successful()) {
-            return [
-                'success' => true,
-                'message' => 'Broadcast berhasil dikirim ke: ' . $winner->nama,
-                'data' => $response->json(),
-            ];
-        }
-
-        return [
-            'success' => false,
-            'message' => 'Broadcast gagal dikirim ke: ' . $winner->nama,
-            'error' => $response->body(),
-            'status' => $response->status(),
-        ];
     }
 }

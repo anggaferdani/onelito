@@ -31,11 +31,14 @@
           <li class="p-3 notification" @if($notification->status == 1 || $notification->peserta_id == null) style="background: RGBA(170, 217, 187, 0.2);" @endif data-id="{{ $notification->id }}">
             <div class="card bg-transparent p-0 border-0">
               <div class="fw-bold mb-1">{{ $notification->label }}</div>
-              <div class="small text-muted">{{ $notification->description }}</div>
+              <div class="small text-muted mb-1">{{ $notification->description }}</div>
+              <div class="fw-bold small text-muted">{{ $notification->created_at->timezone('Asia/Jakarta')->translatedFormat('d F Y H:i') }}</div>
               @if($notification->link)<a href="{{ $notification->link }}" class="stretched-link"></a>@endif
             </div>
           </li>
-          <hr class="m-0">
+          @if(!$loop->last)
+            <hr class="m-0">
+          @endif
         @endforeach
       </ul>
   </div>

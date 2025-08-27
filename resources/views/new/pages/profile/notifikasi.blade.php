@@ -26,7 +26,9 @@
       <div class="text-muted">{{ $notification->description }}</div>
       @if($notification->link)<a href="{{ $notification->link }}" class="stretched-link"></a>@endif
     </div>
-    <hr class="m-0">
+    @if(!$loop->last)
+      <hr class="m-0">
+    @endif
   @endforeach
   <div class="d-flex justify-content-end mt-3">{{ $notifications->appends(request()->query())->links('pagination::bootstrap-4') }}</div>
 </div>
