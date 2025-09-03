@@ -70,7 +70,7 @@
                     <div class="row">
                         <div class="col-lg-6 mb-3">
                             <div class="relative">
-                                <input value="{{ old('nama.0', request('firstName')) }}" type="text" @if(request('google_id')) readonly @endif value="{{ request('firstName') }}" name="nama[]" id="namadepan" required
+                                <input value="{{ old('nama.0', request('firstName')) }}" type="text" value="{{ request('firstName') }}" name="nama[]" id="namadepan" required
                                     class="@if(request('google_id')) border-danger @endif bg-transparent block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                                     placeholder=" " />
                                 <label for="namadepan"
@@ -80,7 +80,7 @@
                         </div>
                         <div class="col-lg-6 mb-3">
                             <div class="relative">
-                                <input value="{{ old('nama.1', request('lastName')) }}" type="text" name="nama[]" @if(request('google_id')) readonly @endif value="{{ request('lastName') }}" id="namabelakang" required
+                                <input value="{{ old('nama.1', request('lastName')) }}" type="text" name="nama[]" value="{{ request('lastName') }}" id="namabelakang" required
                                     class="@if(request('google_id')) border-danger @endif bg-transparent block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                                     placeholder=" " />
                                 <label for="namabelakang"
