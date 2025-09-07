@@ -159,8 +159,22 @@ class EventController extends Controller
             $delayTime = Carbon::parse($createAuction->tgl_akhir)->subHours(1);
             SendAuctionReminder::dispatch($createAuction->id_event)->delay($delayTime);
 
-            $delayWinner = Carbon::parse($createAuction->tgl_akhir);
-            SendAuctionWinnerNotification::dispatch($createAuction->id_event)->delay($delayWinner);
+            // 🔔 Winner notification per ikan
+            foreach ($createAuction->auctionProducts as $fish) {
+                $endTime = Carbon::parse($createAuction->tgl_akhir);
+                $finalEndTime = $endTime->copy()->addMinutes($fish->extra_time ?? 0);
+
+                $lastBid = $fish->maxBid;
+                if ($lastBid && $lastBid->updated_at > $endTime) {
+                    $potentialEnd = Carbon::parse($lastBid->updated_at)->addMinutes($fish->extra_time ?? 0);
+                    if ($potentialEnd > $finalEndTime) {
+                        $finalEndTime = $potentialEnd;
+                    }
+                }
+
+                SendAuctionWinnerNotification::dispatch($fish->id_ikan)
+                    ->delay($finalEndTime);
+            }
 
             DB::commit();
 
@@ -269,6 +283,23 @@ class EventController extends Controller
             EventFish::whereIn('id_ikan', $removeProductIds)->update([
                 'id_event' => null
             ]);
+
+            // 🔔 Winner notification per ikan
+            foreach ($auction->auctionProducts as $fish) {
+                $endTime = Carbon::parse($auction->tgl_akhir);
+                $finalEndTime = $endTime->copy()->addMinutes($fish->extra_time ?? 0);
+
+                $lastBid = $fish->maxBid;
+                if ($lastBid && $lastBid->updated_at > $endTime) {
+                    $potentialEnd = Carbon::parse($lastBid->updated_at)->addMinutes($fish->extra_time ?? 0);
+                    if ($potentialEnd > $finalEndTime) {
+                        $finalEndTime = $potentialEnd;
+                    }
+                }
+
+                SendAuctionWinnerNotification::dispatch($fish->id_ikan)
+                    ->delay($finalEndTime);
+            }
 
             DB::commit();
 
