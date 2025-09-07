@@ -32,7 +32,7 @@
             <div class="card bg-transparent p-0 border-0">
               <div class="fw-bold mb-1">{{ $notification->label }}</div>
               <div class="small text-muted mb-1">{{ $notification->description }}</div>
-              <div class="fw-bold small text-muted">{{ $notification->created_at->timezone('Asia/Jakarta')->translatedFormat('d F Y H:i') }}</div>
+              <div class="fw-bold small text-muted">{{ $notification->created_at ? $notification->created_at->timezone('Asia/Jakarta')->translatedFormat('d F Y H:i') : '-' }}</div>
               @if($notification->link)<a href="{{ $notification->link }}" class="stretched-link"></a>@endif
             </div>
           </li>
