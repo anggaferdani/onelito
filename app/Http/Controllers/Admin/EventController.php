@@ -155,8 +155,8 @@ class EventController extends Controller
                 'id_event' => $createAuction->id_event
             ]);
 
-            // $delayTime = Carbon::parse($createAuction->tgl_akhir)->subMinutes(5);
-            $delayTime = Carbon::parse($createAuction->tgl_akhir)->subHours(1);
+            $delayTime = Carbon::parse($createAuction->tgl_akhir)->subMinutes(5);
+            // $delayTime = Carbon::parse($createAuction->tgl_akhir)->subHours(1);
             SendAuctionReminder::dispatch($createAuction->id_event)->delay($delayTime);
 
             // 🔔 Winner notification per ikan
