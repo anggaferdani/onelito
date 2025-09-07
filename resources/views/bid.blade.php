@@ -156,6 +156,13 @@
                 <div class="row m-1">
                     <div class="col-md-4">
                     </div>
+                    @guest('member')
+                        <div class="col-12 col-md-8">
+                            <div class="alert alert-danger">
+                                Silakan <a href="{{ route('login') }}" class="alert-link">login</a> untuk ikut bidding dan melihat history.
+                            </div>
+                        </div>
+                    @endguest
                     @auth('member')
                         <div class="col-12 col-md-8 no-gutters">
                             <form method="" id="" action="" class="row">
