@@ -5,6 +5,7 @@ namespace App\Jobs;
 use Carbon\Carbon;
 use App\Models\Event;
 use App\Models\Notification;
+use App\Models\SystemNotification;
 use Illuminate\Bus\Queueable;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Queue\SerializesModels;
@@ -58,7 +59,7 @@ class SendAuctionReminder implements ShouldQueue
             'Content-Type' => 'application/json',
         ])->post($url, $data);
 
-        Notification::create([
+        SystemNotification::create([
             'label' => 'Event Akan Segera Berakhir',
             'description' => "Hi, Onelito Koi Auction akan berakhir 1 jam ke depan, koi pilihan kamu jangan sampai terlewatkan 😊",
             'link' => route('auction.index'),
