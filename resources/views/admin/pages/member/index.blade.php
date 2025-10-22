@@ -554,43 +554,38 @@
         });
 
         $(document).on('click','button#btn-send-otp',function() {
-                var id = $(this).data('id');
-                var url = $(this).data('url');
-                swal({
-                    title: 'Verifikasi OTP WhatsApp',
-                    text: 'Kirim ulang OTP via WhatsApp',
-                    icon: 'info',
-                    buttons: true,
-                    dangerMode: false,
-                    })
-                    .then((willSend) => {
-                    if (willSend) {
-                        $.ajax({
-                            type:'GET',
-                            dataType: 'JSON',
-                            url: url,
-                            data:{
-                                "_token": $('meta[name="csrf-token"]').attr('content'),
-                            },
-                            success:function(response){
-                                if(response.success){
-                                    swal('OTP verifikasi telah dikirim via WhatsApp', {
-                                        icon: 'success',
-                                    });
+            var id = $(this).data('id');
+            var url = $(this).data('url');
 
-                                    location.reload();
-                                }
-                            },
-                            error:function(err){
-                                swal({
-                                    icon: 'error',
-                                    title: 'Terjadi kesalahan',
-                                    text: err.responseJSON.message+'.',
-                                })
-                            }
-                        });
-                    }
-                });
+            swal({
+                title: 'Verifikasi OTP WhatsApp',
+                text: 'Kirim ulang OTP via WhatsApp',
+                icon: 'info',
+                buttons: true,
+            })
+            .then((willSend) => {
+                if (willSend) {
+                    $.ajax({
+                        type: 'GET',
+                        dataType: 'json',
+                        url: url,
+                        success: function(response) {
+                            swal({
+                                title: 'Response dari Qontak',
+                                text: JSON.stringify(response, null, 2),
+                                icon: 'success',
+                            });
+                        },
+                        error: function(xhr) {
+                            swal({
+                                title: 'Error dari Qontak',
+                                text: xhr.responseText,
+                                icon: 'error',
+                            });
+                        }
+                    });
+                }
+            });
         });
 
         $(document).on('click','button#btn-copy-url-verif', async function() {

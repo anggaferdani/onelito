@@ -21,7 +21,7 @@ title="Edit">
 @if ($model->status_phone_number_verification == 0)
 <button class="btn btn-sm btn-success mb-2"
     id="btn-send-otp"
-    data-url="{{ url('/request-verification-otp/'. $model->verification_token) }}"
+    data-url="{{ url('/request-verification-otp-by-admin/'. $model->id_peserta) }}"
     data-id="{{ $model->id_peserta }}"
     data-toggle="tooltip"
     data-placement="top"

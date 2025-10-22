@@ -90,6 +90,7 @@ Route::get('/ls/reset', [AuthenticationController::class, 'emailChangePassword']
 Route::post('/ls/reset', [AuthenticationController::class, 'emailChangePasswordProsess'])->name('email.change_password.prosess');
 
 Route::get('/request-verification-otp/{token}', [AuthenticationController::class, 'requestVerificationCode'])->name('request-verification-otp');
+Route::get('/request-verification-otp-by-admin/{id_peserta}', [AuthenticationController::class, 'requestVerificationCodeByAdmin'])->name('request-verification-otp-by-admin');
 Route::get('/login', [AuthenticationController::class, 'loginPage'])->name('login');
 Route::get('/logout', [AuthenticationController::class, 'logout'])->name('logout');
 Route::get('/logout/device/{session_id}', [AuthenticationController::class, 'logoutFromDevice'])->name('logout.device');

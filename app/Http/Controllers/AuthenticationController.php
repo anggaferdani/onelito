@@ -386,13 +386,32 @@ class AuthenticationController extends Controller
 
     }
 
+    public function requestVerificationCodeByAdmin(Request $request, $id_peserta)
+    {
+        $member = Member::where('id_peserta', $id_peserta)->first();
+
+        if (!$member) {
+            return response()->json(['message' => 'Member tidak ditemukan.'], 404);
+        }
+
+        $verificationCode = Member::generateVerificationCode();
+        $member->verification_code = $verificationCode;
+        $member->verification_code_expires_at = Carbon::now()->addMinutes(10);
+        $member->save();
+
+        $response = $this->sendVerificationCodeViaQontak($member, $verificationCode);
+
+        // langsung kirim response Qontak apa adanya ke browser
+        return response($response->body(), $response->status())
+            ->header('Content-Type', 'application/json');
+    }
+
     private function sendVerificationCodeViaQontak(Member $member, $verificationCode)
     {
         $url = 'https://service-chat.qontak.com/api/open/v1/broadcasts/whatsapp/direct';
         $token = env('QONTAK_API_KEY');
 
-        $phoneNumber = $member->no_hp;
-        $phoneNumber = preg_replace('/[^0-9]/', '', $phoneNumber);
+        $phoneNumber = preg_replace('/[^0-9]/', '', $member->no_hp);
         if (preg_match('/^0/', $phoneNumber)) {
             $phoneNumber = '62' . substr($phoneNumber, 1);
         }
@@ -427,16 +446,10 @@ class AuthenticationController extends Controller
             ]
         ];
 
-        $response = Http::withHeaders([
+        return Http::withHeaders([
             'Authorization' => 'Bearer ' . $token,
             'Content-Type' => 'application/json',
         ])->post($url, $data_qontak);
-
-        if ($response->failed()) {
-           return ['message' => "Gagal mengirim notifikasi WhatsApp: " . $response->body()];
-        } else {
-            return ['message' => "Berhasil mengirim notifikasi WhatsApp"];
-        }
     }
 
     public function redirect()
