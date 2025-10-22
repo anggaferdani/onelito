@@ -234,6 +234,7 @@ Route::group(['prefix' => 'admin', 'middleware' => 'auth:admin'], function () {
         Route::resource('pesanan', PesananController::class);
         Route::resource('kategori', KategoriController::class);
         Route::resource('label', LabelController::class);
+        Route::resource('notifikasi', Admin\NotifikasiController::class);
         Route::get('pesanan/detail/{no_order}', [PesananController::class, 'detail'])->name('pesanan.detail');
         Route::get('pesanan/kirim/{no_order}', [OrderController::class, 'kirim'])->name('pesanan.kirim');
         Route::get('pesanan/process/{no_order}', [OrderController::class, 'process'])->name('pesanan.process');

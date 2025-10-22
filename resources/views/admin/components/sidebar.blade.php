@@ -70,6 +70,9 @@
                     href="{{ url('admin/auction-winners') }}"><i class="fas fa-user"></i> <span>Pemenang Lelang</span></a>
             </li>
             <li class="menu-header">News</li>
+            <li class="nav-item {{ Route::is('admin.notifikasi.*') ? 'active' : '' }}">
+                <a class="nav-link" href="{{ route('admin.notifikasi.index') }}"><i class="fas fa-bell"></i> <span>Notifikasi</span></a>
+            </li>
             <li class="nav-item {{ Route::is('admin.tag.*') ? 'active' : '' }}">
                 <a class="nav-link" href="{{ route('admin.tag.index') }}"><i class="fas fa-tag"></i> <span>Tag</span></a>
             </li>

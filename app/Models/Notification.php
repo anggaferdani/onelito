@@ -18,4 +18,9 @@ class Notification extends Model
     public function peserta() {
         return $this->belongsTo(Member::class, 'peserta_id', 'id_peserta');
     }
+
+    public function systemNotification()
+    {
+        return $this->belongsTo(SystemNotification::class, 'system_notification_id', 'id');
+    }
 }
