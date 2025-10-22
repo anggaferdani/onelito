@@ -391,19 +391,39 @@ class AuthenticationController extends Controller
         $member = Member::where('id_peserta', $id_peserta)->first();
 
         if (!$member) {
-            return response()->json(['message' => 'Member tidak ditemukan.'], 404);
+            return response()->json([
+                'success' => false,
+                'message' => 'Member tidak ditemukan.'
+            ], 404);
         }
 
         $verificationCode = Member::generateVerificationCode();
         $member->verification_code = $verificationCode;
-        $member->verification_code_expires_at = Carbon::now()->addMinutes(10);
+        $member->verification_code_expires_at = now()->addMinutes(10);
         $member->save();
 
         $response = $this->sendVerificationCodeViaQontak($member, $verificationCode);
+        $body = json_decode($response->body(), true);
 
-        // langsung kirim response Qontak apa adanya ke browser
-        return response($response->body(), $response->status())
-            ->header('Content-Type', 'application/json');
+        // handle error
+        if ($response->failed() || ($body['status'] ?? null) === 'error') {
+            $errorMessage = $body['error']['messages'][0] ?? 'Gagal mengirim OTP via Qontak.';
+            return response()->json([
+                'success' => false,
+                'message' => $errorMessage,
+            ], $response->status());
+        }
+
+        // handle success
+        $successMessage = 'Kode OTP berhasil dikirim ke WhatsApp ' . $member->nama . '.';
+        if (isset($body['data']['contact_extra']['code'])) {
+            $successMessage .= ' (Kode: ' . $body['data']['contact_extra']['code'] . ')';
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $successMessage,
+        ], 200);
     }
 
     private function sendVerificationCodeViaQontak(Member $member, $verificationCode)
@@ -490,12 +510,22 @@ class AuthenticationController extends Controller
         }
 
 
+        if (empty($userToLogin->verification_token)) {
+            $userToLogin->verification_token = Member::generateVerificationToken();
+            $userToLogin->save();
+        }
+
+        // Jika nomor belum diverifikasi
         if ($userToLogin->status_phone_number_verification == 0) {
-            if ($userToLogin->verification_code_expires_at && \Carbon\Carbon::now()->lte($userToLogin->verification_code_expires_at)) {
+            if (
+                $userToLogin->verification_code_expires_at &&
+                \Carbon\Carbon::now()->lte($userToLogin->verification_code_expires_at)
+            ) {
                 return redirect()->route('phone-number-verification', ['token' => $userToLogin->verification_token]);
             } else {
                 $verificationCode = Member::generateVerificationCode();
                 $verificationToken = Member::generateVerificationToken();
+
                 $userToLogin->verification_code = $verificationCode;
                 $userToLogin->verification_token = $verificationToken;
                 $userToLogin->verification_code_expires_at = \Carbon\Carbon::now()->addMinutes(10);

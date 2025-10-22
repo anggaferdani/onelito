@@ -554,12 +554,11 @@
         });
 
         $(document).on('click','button#btn-send-otp',function() {
-            var id = $(this).data('id');
             var url = $(this).data('url');
 
             swal({
                 title: 'Verifikasi OTP WhatsApp',
-                text: 'Kirim ulang OTP via WhatsApp',
+                text: 'Kirim ulang OTP via WhatsApp?',
                 icon: 'info',
                 buttons: true,
             })
@@ -571,15 +570,15 @@
                         url: url,
                         success: function(response) {
                             swal({
-                                title: 'Response dari Qontak',
-                                text: JSON.stringify(response, null, 2),
-                                icon: 'success',
+                                title: response.success ? 'Berhasil!' : 'Gagal!',
+                                text: response.message,
+                                icon: response.success ? 'success' : 'error',
                             });
                         },
                         error: function(xhr) {
                             swal({
-                                title: 'Error dari Qontak',
-                                text: xhr.responseText,
+                                title: 'Error Server',
+                                text: xhr.responseJSON?.message ?? 'Terjadi kesalahan tak terduga.',
                                 icon: 'error',
                             });
                         }
