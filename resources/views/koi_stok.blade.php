@@ -68,7 +68,7 @@
                 @if ($auction->banner !== null)
                     <div class="carousel-item {{ $key === 0 ? '' : '' }}">
                         <div class="container-fluit" style="background-color:red;">
-                            <img src="{{ $bannerImg }}" class="w-100" alt="...">
+                            <img src="{{ $bannerImg }}" class="w-100" alt="..." loading="lazy">
                         </div>
                     </div>
                 @endif

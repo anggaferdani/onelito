@@ -88,7 +88,7 @@
                 @if ($val->banner !== null)
                     <div class="carousel-item {{ $key === 0 ? '' : '' }}">
                         <div class="container-fluit" style="background-color:red;">
-                            <img src="{{ $bannerImg }}" class="w-100" alt="...">
+                            <img src="{{ $bannerImg }}" class="w-100" alt="..." loading="lazy">
                         </div>
                     </div>
                 @endif
@@ -316,7 +316,7 @@
                 }
             @endphp
             <div class="d-grid">
-                <img src="{{ $photoChampion }}" class="" alt="...">
+                <img src="{{ $photoChampion }}" class="" alt="..." loading="lazy">
             </div>
         @empty
         @endforelse
@@ -336,11 +336,14 @@
             }
         });
 
-        let currentTime = "{{ $now }}";
+        let currentTime = new Date("{{ $now }}");
+
+        setInterval(() => {
+            currentTime = new Date(currentTime.getTime() + 1000);
+        }, 1000);
+
         let timerLabels = document.getElementsByClassName('countdown-label');
         let addedExtraTimeGroups = [];
-
-        getCurrentNow();
 
         function allTimer() {
             $.each(timerLabels, function(prefix, val) {
@@ -350,63 +353,36 @@
             })
         }
 
-        function getCurrentNow() {
-            $.ajax({
-                type: 'GET',
-                contentType: false,
-                processData: false,
-                url: '/now',
-                beforeSend: function() {
-
-                },
-                success: function(res) {
-                    currentTime = res;
-                },
-                complete: function() {
-                    setTimeout(() => {
-                        getCurrentNow()
-                    }, 800);
-                },
-                error(err) {
-
-                }
-            })
-        }
-
         allTimer()
 
+        let timers = {};
+
         function startTimer(addedExtraTime, currentEndTime, val) {
-            var endTime = new Date(currentEndTime.replace(' ', 'T'));
+            let id = $(val).data('id');
+            if (timers[id]) return;
 
-            // Update the count down every 1 second
-            var x = setInterval(function() {
-                // Get today's date and time and extend it
-                var now = new Date(currentTime.replace(' ', 'T'));
-                // Find the distance between now and the count down date
-                var duration = endTime - now;
+            let endTime = new Date(currentEndTime.replace(' ', 'T'));
 
-                // Time calculations for days, hours, minutes and seconds
-                var days = Math.floor(duration / (1000 * 60 * 60 * 24));
-                var hours = Math.floor((duration % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                hours = hours + (days * 24);
+            timers[id] = setInterval(() => {
+                let now = currentTime;
+                let duration = endTime - now;
 
-                var minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60));
-                var seconds = Math.floor((duration % (1000 * 60)) / 1000);
-
-                // Display the result in the element with id="timer"
-                const hourString = `${hours < 10 ? '0' : ''}${hours}`;
-                const minuteString = `${minutes < 10 ? '0' : ''}${minutes}`;
-                const secondString = `${seconds < 10 ? '0' : ''}${seconds}`;
-                const timerString = `${hourString}:${minuteString}:${secondString}`;
-                $(val).html(timerString);
-
-                // If the count down is finished, finish the exam
-                if (duration < 0) {
-                    $(val).html(`00:00:00`);
-
-                    clearInterval(x);
+                if (duration <= 0) {
+                    clearInterval(timers[id]);
+                    delete timers[id];
                     startExtraTimer(addedExtraTime, val);
+                    return;
                 }
+
+                let hours = Math.floor(duration / (1000 * 60 * 60));
+                let minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60));
+                let seconds = Math.floor((duration % (1000 * 60)) / 1000);
+
+                $(val).html(
+                    `${hours.toString().padStart(2, '0')}:` +
+                    `${minutes.toString().padStart(2, '0')}:` +
+                    `${seconds.toString().padStart(2, '0')}`
+                );
             }, 1000);
         }
 
@@ -464,32 +440,15 @@
         }
 
         function autoDetailBid(idIkan) {
-            urlGet = `/auction/${idIkan}/detail?simple=yes`;
+            if (!addedExtraTimeGroups[idIkan]) return;
 
             $.ajax({
                 type: 'GET',
-                contentType: false,
-                processData: false,
-                url: urlGet,
-                beforeSend: function() {
-
-                },
+                url: `/auction/${idIkan}/detail?simple=yes`,
                 success: function(res) {
-                    // var currentPriceHtml = $('#currentPrice').html();
-                    // var formatedMaxBid = thousandSeparator(res.maxBid)
-                    // $('#currentPrice').html(`${formatedMaxBid}`);
-
                     addedExtraTimeGroups[idIkan] = res.addedExtraTime;
-                },
-                complete: function() {
-                    setTimeout(() => {
-                        autoDetailBid(idIkan)
-                    }, 20000);
-                },
-                error(err) {
-
                 }
-            })
+            });
         }
 
         $(document).on('click', '.wishlist', function(e) {

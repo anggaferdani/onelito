@@ -2,14 +2,12 @@
 
 @section('container')
     <style>
-        /* On screens that are 992px or less, set the background color to blue */
         @media screen and (min-width: 601px) {
             .res {
                 display: none
             }
         }
 
-        /* On screens that are 600px or less, set the background color to olive */
         @media screen and (max-width: 600px) {
             .web {
                 display: none;
@@ -150,7 +148,7 @@
                     @endphp
                     <div class="col mt-3">
                         <div class="card">
-                            <img src="{{ $photo }}" class="card-img-top" alt="...">
+                            <img src="{{ $photo }}" class="card-img-top" alt="..." loading="lazy">
                             <div class="card-body">
                                 <div class="cb-judul">
                                     <h5 class="card-title">{!! Illuminate\Support\Str::limit(
@@ -240,13 +238,10 @@
 
         const timers = {};
 
-        // Function to format currency
         function formatCurrency(amount) {
             return new Intl.NumberFormat('id-ID').format(amount);
         }
 
-        // --- START : Real-time Data Updates ---
-        // Refreshes real-time data (Current Bid, Number of Bids, Highest Bidder Indicator)
         function refreshAuctionData() {
             $.ajax({
                 url: '/auction-data',
@@ -256,24 +251,19 @@
                     $('#current-total-prize').text(formatCurrency(data.currentTotalPrize));
 
                     data.auctionProducts.forEach(product => {
-                        // Update harga, jumlah bid, dan status highest bidder (ini sudah ada)
                         $('#current-price-' + product.id_ikan).text(product.currency.symbol + ' ' + formatCurrency(product.currentMaxBid));
                         $('#bid-count-' + product.id_ikan).text(product.bid_details_count);
                         
                         const highestBidContainer = $('#highest-bid-container-' + product.id_ikan);
                         if (highestBidContainer) {
-                            highestBidContainer.toggle(product.is_highest_bidder); // Cara lebih singkat
+                            highestBidContainer.toggle(product.is_highest_bidder);
                         }
 
-                        // ===== PERUBAHAN DI SINI =====
-                        // Perbarui state timer dengan extra time yang baru dari server
                         const timerId = `timer-${product.id_ikan}`;
                         if (timers[timerId]) {
                             const newExtraTime = moment(product.tgl_akhir_extra_time);
-                            // Jika waktu baru dari server lebih akhir, update state-nya
                             if (newExtraTime.isAfter(timers[timerId].extraTime)) {
                                 timers[timerId].extraTime = newExtraTime;
-                                // Jika timer sudah ditandai selesai, hidupkan lagi
                                 if (timers[timerId].finished) {
                                     timers[timerId].finished = false;
                                 }
@@ -288,23 +278,19 @@
             });
         }
 
-        // Refresh data every 3 seconds (adjust interval as needed)
         function updateAllTimers() {
-            // Find all elements with a 'data-endtime' attribute that haven't been processed
             $('.countdown-label[data-endtime]').each(function() {
                 const timerElement = $(this);
                 const id = timerElement.attr('id');
 
-                // If timer is already finished, skip it
                 if (timers[id] && timers[id].finished) {
                     return;
                 }
                 
-                // Initialize timer state if it doesn't exist
                 if (!timers[id]) {
                     timers[id] = {
-                        endTime: moment(timerElement.data('endtime')), // Parse ISO 8601 string
-                        extraTime: moment(timerElement.data('end-extratime')), // Parse ISO 8601 string
+                        endTime: moment(timerElement.data('endtime')),
+                        extraTime: moment(timerElement.data('end-extratime')),
                         isExtra: false,
                         finished: false
                     };
@@ -316,13 +302,10 @@
                 let duration = moment.duration(targetTime.diff(now));
 
                 if (duration <= 0) {
-                    // Main time is up, check for extra time
                     if (!timers[id].isExtra) {
                         timers[id].isExtra = true;
-                        // Re-evaluate against extra time
                         duration = moment.duration(timers[id].extraTime.diff(now));
                         
-                        // If there's a real need for extra time, poll for updates.
                         if (duration > 0) {
                            autoDetailBid(timerElement.attr('id').replace('timer-', ''));
                         }
@@ -330,10 +313,8 @@
                 }
                 
                 if (duration <= 0) {
-                    // Both main and extra time are up
                     timerElement.text("00:00:00");
-                    timers[id].finished = true; // Mark as finished
-                    // Optionally disable bid buttons
+                    timers[id].finished = true;
                     let productId = id.replace('timer-', '');
                     $('#btn-bid-' + productId).addClass('disabled').css('pointer-events', 'none');
                 } else {
@@ -348,12 +329,8 @@
                 }
             });
         }
-        // --- END : Countdown Timers ---
 
-
-        // --- START : Asynchronous Operations ---
         async function autoDetailBid(idIkan) {
-            // This function now primarily updates the extra time if it changes
             const urlGet = `/auction/${idIkan}/detail?simple=yes`;
             try {
                 const response = await $.get(urlGet);
@@ -361,10 +338,9 @@
                 
                 if (response.addedExtraTime && timers[timerId]) {
                     const newExtraTime = moment(response.addedExtraTime);
-                    // If the new extra time from server is later than what we have, update it
                     if (newExtraTime.isAfter(timers[timerId].extraTime)) {
                         timers[timerId].extraTime = newExtraTime;
-                        timers[timerId].finished = false; // Un-finish the timer if it was marked done
+                        timers[timerId].finished = false;
                     }
                 }
             } catch (error) {
@@ -372,10 +348,6 @@
             }
         }
 
-        // --- END :  Asynchronous Operations (Auto Bid, Wishlist) ---
-
-
-        // --- START : Wishlist Functionality ---
         $(document).on('click', '.wishlist', async function(e) {
             const element = $(e.currentTarget);
             const elClass = element.attr('class');
@@ -418,20 +390,11 @@
                 console.error('Error during wishlist operation:', error);
             }
         });
-        // --- END : Wishlist Functionality ---
 
-        // --- START : Page Initialization ---
-
-        // Initialize the timers when the page loads.
         $(document).ready(function() {
-            // Initial data load
             refreshAuctionData(); 
-            // Update timers every second
             setInterval(updateAllTimers, 1000); 
-            // Refresh bids/prices every 3 seconds
             setInterval(refreshAuctionData, 3000); 
         });
-
-        // --- END : Page Initialization ---
     </script>
 @endpush

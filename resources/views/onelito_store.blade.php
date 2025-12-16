@@ -169,7 +169,7 @@
                 @if ($auction->banner !== null)
                     <div class="carousel-item {{ $key === 0 ? '' : '' }}">
                         <div class="container-fluit" style="background-color:red;">
-                            <img src="{{ $bannerImg }}" class="w-100" alt="...">
+                            <img src="{{ $bannerImg }}" class="w-100" alt="..." loading="lazy">
                         </div>
                     </div>
                 @endif
@@ -307,7 +307,7 @@
                                         <div class="border bg-light cart">
                                             <a href="/onelito_store/{{ $product->id_produk }}"><img
                                                     src="{{ $productPhoto }}" alt="bio media" class="card-img-top"
-                                                    height="170"></a>
+                                                    height="170" loading="lazy"></a>
                                             <div class="container px-2">
                                                 <div class="cb-judul">
                                                     <p>{!! Illuminate\Support\Str::limit("$product->nama_produk", 35) !!}</p>
