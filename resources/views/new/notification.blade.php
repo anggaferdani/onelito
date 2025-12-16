@@ -28,7 +28,6 @@ foreach ($personalNotifications as $notif) {
         'status' => $notif->status,
         'peserta_id' => $notif->peserta_id,
         'system_notification_id' => null,
-        'type' => 'personal',
     ]);
 }
 
@@ -43,7 +42,6 @@ foreach ($systemNotifications as $sys) {
         'status' => $isRead ? 0 : 1,
         'peserta_id' => null,
         'system_notification_id' => $sys->id,
-        'type' => 'system',
     ]);
 }
 
@@ -86,10 +84,7 @@ $unreadCount = $notifications->take(10)->filter(fn($n) => $n->status == 1)->coun
               {{ $notification->created_at?->timezone('Asia/Jakarta')->translatedFormat('d F Y H:i') }}
             </div>
             @if($notification->link)
-              <a href="{{ route('profile.notifikasi.status', [
-                  'id' => $notification->system_notification_id ?? $notification->id,
-                  'type' => $notification->system_notification_id ? 'system' : 'personal'
-              ]) }}" class="stretched-link"></a>
+              <a href="{{ $notification->link }}" class="stretched-link"></a>
             @endif
           </div>
         </li>
@@ -113,7 +108,6 @@ document.querySelectorAll('.dropdown-menu .notification').forEach(function(notif
 
     fetch('{{ route('profile.notifikasi.update') }}', {
       method: 'PUT',
-      credentials: 'same-origin',
       headers: {
         'Content-Type': 'application/json',
         'X-CSRF-TOKEN': '{{ csrf_token() }}'

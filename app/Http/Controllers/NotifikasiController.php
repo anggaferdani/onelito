@@ -94,25 +94,4 @@ class NotifikasiController extends Controller
             'notifications' => $paginated
         ]);
     }
-
-    public function status(Request $request)
-    {
-        $user = Auth::guard('member')->user();
-
-        if ($request->type === 'system') {
-            Notification::firstOrCreate([
-                'peserta_id' => $user->id_peserta,
-                'system_notification_id' => $request->id,
-            ]);
-        } else {
-            Notification::where('id', $request->id)
-                ->where('peserta_id', $user->id_peserta)
-                ->update(['status' => 0]);
-        }
-
-        $link = SystemNotification::find($request->id)?->link
-            ?? Notification::find($request->id)?->link;
-
-        return redirect($link ?? route('profile.notifikasi'));
-    }
 }

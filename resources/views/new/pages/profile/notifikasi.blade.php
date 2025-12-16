@@ -30,10 +30,7 @@
       </div>
       <div class="text-muted">{{ $notification->description }}</div>
       @if($notification->link)
-        <a href="{{ route('profile.notifikasi.status', [
-            'id' => $notification->id,
-            'type' => $notification->type
-        ]) }}" class="stretched-link"></a>
+        <a href="{{ $notification->link }}" class="stretched-link"></a>
       @endif
     </div>
 
@@ -59,7 +56,6 @@ document.querySelectorAll('.notification-item').forEach(function(item) {
 
     fetch('{{ route('profile.notifikasi.update') }}', {
       method: 'PUT',
-      credentials: 'same-origin',
       headers: {
         'Content-Type': 'application/json',
         'X-CSRF-TOKEN': '{{ csrf_token() }}'
