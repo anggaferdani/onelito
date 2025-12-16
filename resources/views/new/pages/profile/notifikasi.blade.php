@@ -30,7 +30,7 @@
       </div>
       <div class="text-muted">{{ $notification->description }}</div>
       @if($notification->link)
-        <a href="{{ $notification->link }}" class="stretched-link"></a>
+        <a href="{{ route('notification.redirect', $notification->system_notification_id ?? $notification->id) }}" class="stretched-link"></a>
       @endif
     </div>
 

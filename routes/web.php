@@ -50,22 +50,22 @@ use App\Models\Notification;
 //     ]);
 // });
 
-// Route::get('/debug/create-dummy-notification', function () {
-//     URL::forceScheme('https');
+Route::get('/debug/create-dummy-notification', function () {
+    URL::forceScheme('https');
 
-//     $notification = Notification::create([
-//         'peserta_id' => 977,
-//         'label' => 'Lorem ipsum dolor.',
-//         'description' => 'Lorem ipsum dolor, sit amet consectetur adipisicing elit.',
-//         'link' => route('auction.bid', ['idIkan' => 1]),
-//     ]);
+    $notification = Notification::create([
+        'peserta_id' => 977,
+        'label' => 'Lorem ipsum dolor.',
+        'description' => 'Lorem ipsum dolor, sit amet consectetur adipisicing elit.',
+        'link' => route('auction.bid', ['idIkan' => 2070]),
+    ]);
 
-//     return response()->json([
-//         'success' => true,
-//         'peserta_id' => 977,
-//         'link' => $notification->link,
-//     ]);
-// });
+    return response()->json([
+        'success' => true,
+        'peserta_id' => 977,
+        'link' => $notification->link,
+    ]);
+});
 
 Route::get('send-event-reminder', [SendEventController::class, 'sendEventReminder'])->name('send-event-reminder');
 Route::get('example', [SendEventController::class, 'example'])->name('example');
@@ -181,6 +181,7 @@ Route::group(['middleware' => 'auth:member'], function () {
 
     Route::get('/notifikasi', [NotifikasiController::class, 'notifikasi'])->name('profile.notifikasi');
     Route::put('/notifikasi/update', [NotifikasiController::class, 'notifikasiUpdate'])->name('profile.notifikasi.update');
+    Route::get('/notification/{id}', [NotifikasiController::class, 'redirect'])->name('notification.redirect');
 
     Route::get('/aktivitas-login', [AktivitasLoginController::class, 'aktivitasLogin'])->name('profile.aktivitas-login');
 
