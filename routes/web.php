@@ -182,6 +182,7 @@ Route::group(['middleware' => 'auth:member'], function () {
 
     Route::get('/notifikasi', [NotifikasiController::class, 'notifikasi'])->name('profile.notifikasi');
     Route::put('/notifikasi/update', [NotifikasiController::class, 'notifikasiUpdate'])->name('profile.notifikasi.update');
+    Route::get('/notifikasi/click', [NotifikasiController::class, 'click'])->name('profile.notifikasi.click');
 
     Route::get('/aktivitas-login', [AktivitasLoginController::class, 'aktivitasLogin'])->name('profile.aktivitas-login');
 

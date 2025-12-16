@@ -84,7 +84,10 @@ $unreadCount = $notifications->take(10)->filter(fn($n) => $n->status == 1)->coun
               {{ $notification->created_at?->timezone('Asia/Jakarta')->translatedFormat('d F Y H:i') }}
             </div>
             @if($notification->link)
-              <a href="{{ $notification->link }}" class="stretched-link"></a>
+              <a href="{{ route('profile.notifikasi.click', [
+                    'id' => $notification->id,
+                    'type' => $notification->type
+                ]) }}" class="stretched-link"></a>
             @endif
           </div>
         </li>
