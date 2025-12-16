@@ -48,6 +48,26 @@ use App\Http\Controllers\AuthenticationController;
 //     ]);
 // });
 
+use Illuminate\Support\Facades\URL;
+use App\Models\Notification;
+
+Route::get('/debug/create-dummy-notification', function () {
+    URL::forceScheme('https');
+
+    $notification = Notification::create([
+        'peserta_id' => 977,
+        'label' => 'Dummy Notification',
+        'description' => 'Notifikasi dummy untuk testing URL route',
+        'link' => route('auction.bid', ['idIkan' => 2070]),
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'peserta_id' => 977,
+        'link_generated' => $notification->link,
+    ]);
+});
+
 Route::get('send-event-reminder', [SendEventController::class, 'sendEventReminder'])->name('send-event-reminder');
 Route::get('example', [SendEventController::class, 'example'])->name('example');
 
