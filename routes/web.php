@@ -51,22 +51,22 @@ use App\Http\Controllers\AuthenticationController;
 use Illuminate\Support\Facades\URL;
 use App\Models\Notification;
 
-Route::get('/debug/create-dummy-notification', function () {
-    URL::forceScheme('https');
+// Route::get('/debug/create-dummy-notification', function () {
+//     URL::forceScheme('https');
 
-    $notification = Notification::create([
-        'peserta_id' => 977,
-        'label' => 'Dummy Notification',
-        'description' => 'Notifikasi dummy untuk testing URL route',
-        'link' => route('auction.bid', ['idIkan' => 2070]),
-    ]);
+//     $notification = Notification::create([
+//         'peserta_id' => 977,
+//         'label' => 'Lorem ipsum dolor.',
+//         'description' => 'Lorem ipsum dolor, sit amet consectetur adipisicing elit.',
+//         'link' => route('auction.bid', ['idIkan' => 1]),
+//     ]);
 
-    return response()->json([
-        'success' => true,
-        'peserta_id' => 977,
-        'link_generated' => $notification->link,
-    ]);
-});
+//     return response()->json([
+//         'success' => true,
+//         'peserta_id' => 977,
+//         'link' => $notification->link,
+//     ]);
+// });
 
 Route::get('send-event-reminder', [SendEventController::class, 'sendEventReminder'])->name('send-event-reminder');
 Route::get('example', [SendEventController::class, 'example'])->name('example');
@@ -182,7 +182,7 @@ Route::group(['middleware' => 'auth:member'], function () {
 
     Route::get('/notifikasi', [NotifikasiController::class, 'notifikasi'])->name('profile.notifikasi');
     Route::put('/notifikasi/update', [NotifikasiController::class, 'notifikasiUpdate'])->name('profile.notifikasi.update');
-    Route::get('/notifikasi/click', [NotifikasiController::class, 'click'])->name('profile.notifikasi.click');
+    Route::get('/notification', [NotifikasiController::class, 'status'])->name('profile.notifikasi.status');
 
     Route::get('/aktivitas-login', [AktivitasLoginController::class, 'aktivitasLogin'])->name('profile.aktivitas-login');
 

@@ -30,11 +30,10 @@
       </div>
       <div class="text-muted">{{ $notification->description }}</div>
       @if($notification->link)
-        <a href="{{ route('profile.notifikasi.click', [
+        <a href="{{ route('profile.notifikasi.status', [
             'id' => $notification->id,
             'type' => $notification->type
         ]) }}" class="stretched-link"></a>
-
       @endif
     </div>
 

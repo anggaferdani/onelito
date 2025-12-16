@@ -95,7 +95,7 @@ class NotifikasiController extends Controller
         ]);
     }
 
-    public function click(Request $request)
+    public function status(Request $request)
     {
         $user = Auth::guard('member')->user();
 
