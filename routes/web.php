@@ -30,6 +30,8 @@ use App\Http\Controllers\ShoppingCartController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\AktivitasLoginController;
 use App\Http\Controllers\AuthenticationController;
+use Illuminate\Support\Facades\URL;
+use App\Models\Notification;
 
 /*
 |--------------------------------------------------------------------------
@@ -47,9 +49,6 @@ use App\Http\Controllers\AuthenticationController;
 //         "title" => "home"
 //     ]);
 // });
-
-use Illuminate\Support\Facades\URL;
-use App\Models\Notification;
 
 // Route::get('/debug/create-dummy-notification', function () {
 //     URL::forceScheme('https');
