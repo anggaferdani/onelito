@@ -14,25 +14,26 @@ class NotifikasiController extends Controller
         $auth = Auth::guard('member')->user();
 
         if ($request->type === 'personal') {
-            // Update notifikasi personal jadi sudah dibaca
             $notification = Notification::find($request->notification_id);
             if ($notification && $notification->peserta_id == $auth->id_peserta) {
                 $notification->update(['status' => 0]);
             }
         } elseif ($request->type === 'system') {
-            // Tandai system notification sudah dibaca (buat entri baru jika belum)
             $sysNotif = SystemNotification::find($request->notification_id);
-            if ($sysNotif) {
-                $exists = Notification::where('system_notification_id', $sysNotif->id)
-                    ->where('peserta_id', $auth->id_peserta)
-                    ->exists();
 
-                if (!$exists) {
-                    Notification::create([
+            if ($sysNotif) {
+                $notif = Notification::firstOrCreate(
+                    [
                         'system_notification_id' => $sysNotif->id,
                         'peserta_id' => $auth->id_peserta,
+                    ],
+                    [
                         'status' => 0,
-                    ]);
+                    ]
+                );
+
+                if ($notif->status == 1) {
+                    $notif->update(['status' => 0]);
                 }
             }
         }
@@ -44,15 +45,12 @@ class NotifikasiController extends Controller
     {
         $auth = Auth::guard('member')->user();
 
-        // Ambil semua system notification aktif
         $systemNotifications = \App\Models\SystemNotification::where('status', 1)->get();
 
-        // Ambil semua notifikasi personal
         $personalNotifications = \App\Models\Notification::where('peserta_id', $auth->id_peserta)->get();
 
         $notifications = collect();
 
-        // Gabungkan system notifikasi (cek apakah sudah dibaca di personal)
         foreach ($systemNotifications as $sys) {
             $personal = $personalNotifications->firstWhere('system_notification_id', $sys->id);
             $notifications->push((object)[
@@ -66,7 +64,6 @@ class NotifikasiController extends Controller
             ]);
         }
 
-        // Tambahkan notifikasi personal yang bukan system (system_notification_id null)
         foreach ($personalNotifications->whereNull('system_notification_id') as $notif) {
             $notifications->push((object)[
                 'id' => $notif->id,
@@ -79,10 +76,8 @@ class NotifikasiController extends Controller
             ]);
         }
 
-        // Urutkan terbaru
         $notifications = $notifications->sortByDesc('created_at')->values();
 
-        // Manual pagination
         $perPage = 10;
         $page = request()->get('page', 1);
         $offset = ($page - 1) * $perPage;

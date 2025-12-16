@@ -5,15 +5,12 @@ use Illuminate\Support\Collection;
 
 $auth = Auth::guard('member')->user();
 
-// Personal notifications (yang bukan turunan system)
 $personalNotifications = Notification::where('peserta_id', $auth->id_peserta)
     ->whereNull('system_notification_id')
     ->get();
 
-// System notifications aktif
 $systemNotifications = SystemNotification::where('status', 1)->get();
 
-// System notification yang sudah dibaca user
 $readSystemIds = Notification::where('peserta_id', $auth->id_peserta)
     ->whereNotNull('system_notification_id')
     ->pluck('system_notification_id')
@@ -21,7 +18,6 @@ $readSystemIds = Notification::where('peserta_id', $auth->id_peserta)
 
 $notifications = collect();
 
-// Tambah personal
 foreach ($personalNotifications as $notif) {
     $notifications->push((object)[
         'id' => $notif->id,
@@ -35,7 +31,6 @@ foreach ($personalNotifications as $notif) {
     ]);
 }
 
-// Tambah system
 foreach ($systemNotifications as $sys) {
     $isRead = in_array($sys->id, $readSystemIds);
     $notifications->push((object)[
@@ -113,6 +108,7 @@ document.querySelectorAll('.dropdown-menu .notification').forEach(function(notif
 
     fetch('{{ route('profile.notifikasi.update') }}', {
       method: 'PUT',
+      credentials: 'same-origin',
       headers: {
         'Content-Type': 'application/json',
         'X-CSRF-TOKEN': '{{ csrf_token() }}'

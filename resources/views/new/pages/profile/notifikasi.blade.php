@@ -56,6 +56,7 @@ document.querySelectorAll('.notification-item').forEach(function(item) {
 
     fetch('{{ route('profile.notifikasi.update') }}', {
       method: 'PUT',
+      credentials: 'same-origin',
       headers: {
         'Content-Type': 'application/json',
         'X-CSRF-TOKEN': '{{ csrf_token() }}'
