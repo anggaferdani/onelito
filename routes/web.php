@@ -50,22 +50,22 @@ use App\Models\Notification;
 //     ]);
 // });
 
-Route::get('/debug/create-dummy-notification', function () {
-    URL::forceScheme('https');
+// Route::get('/debug/create-dummy-notification', function () {
+//     URL::forceScheme('https');
 
-    $notification = Notification::create([
-        'peserta_id' => 977,
-        'label' => 'Lorem ipsum dolor.',
-        'description' => 'Lorem ipsum dolor, sit amet consectetur adipisicing elit.',
-        'link' => route('auction.bid', ['idIkan' => 2070]),
-    ]);
+//     $notification = Notification::create([
+//         'peserta_id' => 977,
+//         'label' => 'Lorem ipsum dolor.',
+//         'description' => 'Lorem ipsum dolor, sit amet consectetur adipisicing elit.',
+//         'link' => route('auction.bid', ['idIkan' => 1]),
+//     ]);
 
-    return response()->json([
-        'success' => true,
-        'peserta_id' => 977,
-        'link' => $notification->link,
-    ]);
-});
+//     return response()->json([
+//         'success' => true,
+//         'peserta_id' => 977,
+//         'link' => $notification->link,
+//     ]);
+// });
 
 Route::get('send-event-reminder', [SendEventController::class, 'sendEventReminder'])->name('send-event-reminder');
 Route::get('example', [SendEventController::class, 'example'])->name('example');
