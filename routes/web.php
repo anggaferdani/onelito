@@ -53,19 +53,32 @@ use App\Models\Notification;
 Route::get('/debug/create-dummy-notification', function () {
     URL::forceScheme('https');
 
+    $last = Notification::where('peserta_id', 977)
+        ->where('label', 'like', 'Testing%')
+        ->orderBy('id', 'desc')
+        ->first();
+
+    $number = 1;
+
+    if ($last && preg_match('/Testing\s(\d+)/', $last->label, $m)) {
+        $number = (int) $m[1] + 1;
+    }
+
     $notification = Notification::create([
         'peserta_id' => 1186,
-        'label' => 'bang fikri suka safira',
-        'description' => 'lorem ipsum dolor, sit amet consectetur adipisicing elit.',
+        'label' => 'Testing ' . $number,
+        'description' => 'Lorem ipsum dolor, sit amet consectetur adipisicing elit.',
         'link' => route('auction.bid', ['idIkan' => 1]),
     ]);
 
     return response()->json([
         'success' => true,
         'peserta_id' => 977,
+        'label' => $notification->label,
         'link' => $notification->link,
     ]);
 });
+
 
 Route::get('send-event-reminder', [SendEventController::class, 'sendEventReminder'])->name('send-event-reminder');
 Route::get('example', [SendEventController::class, 'example'])->name('example');
