@@ -50,6 +50,10 @@ use App\Models\Notification;
 //     ]);
 // });
 
+Route::get('/clear-browser-cache', function () {
+    return view('clear-browser-cache');
+});
+
 Route::get('/debug/create-dummy-notification', function () {
     URL::forceScheme('https');
 
