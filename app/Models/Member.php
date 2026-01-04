@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\HasApiTokens;
@@ -13,10 +13,9 @@ class Member extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-    protected $guarded = [];
-
     protected $table = 'm_peserta';
     protected $primaryKey = 'id_peserta';
+    protected $guarded = [];
 
     protected $hidden = [
         'password',
@@ -29,7 +28,7 @@ class Member extends Authenticatable
 
     public static function generateVerificationCode()
     {
-        return mt_rand(100000, 999999); // Kode 6 digit
+        return mt_rand(100000, 999999);
     }
 
     public function setPasswordAttribute($password)

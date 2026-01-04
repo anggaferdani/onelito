@@ -9,10 +9,9 @@ class LogBidDetail extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
-
     protected $table = 't_log_bidding_detail';
     protected $primaryKey = 'id_bidding_detail';
+    protected $guarded = [];
 
     protected $casts = [
         'nominal_bid' => 'integer'

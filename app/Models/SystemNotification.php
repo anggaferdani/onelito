@@ -10,9 +10,7 @@ class SystemNotification extends Model
     use HasFactory;
 
     protected $table = 'system_notifications';
-
     protected $primaryKey = 'id';
-
     protected $guarded = [];
 
     public function notifications()

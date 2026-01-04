@@ -6,19 +6,16 @@
             .nav-samping {
                 display: none;
             }
-
         }
 
         .swal2-cancel {
             margin-right: 10px;
         }
     </style>
-
-    <br><br><br><br>
+    <br><br><br><br><br><br>
     @php
         $previous = url()->previous();
     @endphp
-
     <div class="container">
         <div class="modal fade" id="exampleModal" tabindex="-1">
             <div class="modal-dialog modal-lg">
@@ -58,7 +55,6 @@
                 }
             }
         </style>
-
         <div class="web">
             <div class="row gx-5">
                 <div class="col-6 col-md-4">
@@ -88,17 +84,14 @@
                                 <table>
                                     <tr>
                                         <td>Variety</td>
-                                        <!-- <td>: Kohaku</td> -->
                                         <td>: {{ $auctionProduct->variety }}</td>
                                     </tr>
                                     <tr>
                                         <td>Breeder</td>
-                                        <!-- <td>: Sakai Fish Farm</td> -->
                                         <td>: {{ $auctionProduct->breeder }}</td>
                                     </tr>
                                     <tr>
                                         <td>Bloodline</td>
-                                        <!-- <td>: S Legend</td> -->
                                         <td>: {{ $auctionProduct->bloodline }}</td>
                                     </tr>
                                 </table>
@@ -109,17 +102,14 @@
                                 <table>
                                     <tr>
                                         <td>Sex</td>
-                                        <!-- <td>: Female</td> -->
                                         <td>: {{ $auctionProduct->sex }}</td>
                                     </tr>
                                     <tr>
                                         <td>DOB</td>
-                                        <!-- <td>: 2020</td> -->
                                         <td>: {{ $auctionProduct->dob }}</td>
                                     </tr>
                                     <tr>
                                         <td>Size</td>
-                                        <!-- <td>: 57 cm</td> -->
                                         <td>: {{ $auctionProduct->size }}</td>
                                     </tr>
                                 </table>
@@ -138,7 +128,6 @@
                             class="alert-link text-danger number-separator">{{ number_format($currentPrice, 0, '.', '.') }}</span>
                     </p>
                     <hr>
-
                     <p style="font-size:25px">Kelipatan BID: <span
                             class="alert-link text-danger">{{ $auctionProduct->currency->symbol }}
                             {{ number_format($auctionProduct->kb, 0, '.', '.') }}</span></p>
@@ -173,7 +162,7 @@
                                 </div>
                                 <div class="col-5 col-md-3" style="padding-left:0px; max-height: 38px">
                                     <button id="buttonHistoryBidding" type="button"
-                                        class="btn btn-danger w-100 justify-content-between" data-bs-toggle="modal"
+                                        class="btn btn-secondary w-100 justify-content-between" data-bs-toggle="modal"
                                         data-bs-target="#exampleModal">HISTORY BIDDING</button>
                                 </div>
                             </form>
@@ -199,8 +188,6 @@
                                         <button id="buttonNormalBidSubmit" type="submit" hidden class="d-none"></button>
                                         <button id="buttonNormalBid" type="button" onclick="clickyakin()"
                                             class="btn btn-danger w-100 justify-content-between">BID AUCTION</button>
-                                        <button hidden onclick="cancelAutoBid()" id="buttonCancelAutoBid" type="button"
-                                            class="btn btn-danger mb-3 w-100 justify-content-between">CANCEL AUTO BID</button>
                                     </div>
                                 </form>
                                 <div class="alert alert-danger bid alert-dismissible fade mb-0 mt-3" role="alert">
@@ -209,35 +196,53 @@
                         @endauth
                     </div>
 
-                    <div class="row m-1 d-none">
+                    <div class="row m-1">
                         <div class="col-md-4 no-gutters">
                         </div>
                         @auth('member')
                             <div class="col-12 col-md-8 no-gutters">
+                                <div class="alert alert-secondary small">Sebelum menggunakan fitur Auto Bid, pahami cara kerjanya agar lelang berjalan lancar. <a href="javascript:void(0)" id="autoBidInfo" class="text-danger">Lihat panduan Auto Bid.</a></div>
                                 <form method="POST" id="autoBidForm" action="/auction/{{ $idIkan }}" class="row">
                                     <div class="col-7 col-md-9" style="padding-right:0px">
-                                        <!-- <input type="text" id="auto_bid2" name="auto_bid2" class="form-control" value="{{ $logBid->auto_bid ?? '' }}" id="exampleFormControlInput1" placeholder="Nominal Max Auto BID"> -->
                                         <input type="text" id="auto_bid" name="auto_bid" class="form-control"
                                             value="" id="exampleFormControlInput1" placeholder="Nominal Max Auto BID">
                                     </div>
                                     <div class="col-5 col-md-3" style="padding-left:0px">
                                         <button type="submit" id="buttonAutoBid"
-                                            class="btn btn-danger w-100 justify-content-between">
+                                            class="btn btn-primary w-100 justify-content-between">
                                             AUTO BID
                                         </button>
                                     </div>
                                 </form>
+
+                                <div id="autoBidActiveBox" class="mt-2 {{ $autoBid > 0 ? '' : 'd-none' }}">
+                                    <div class="row">
+                                        <div class="col-7 col-md-9" style="padding-right:0px">
+                                            <input type="text"
+                                                id="auto_bid_active"
+                                                class="form-control number-separator border border-danger text-danger"
+                                                readonly
+                                                value="{{ $autoBid > 0 ? number_format($autoBid, 0, '.', '.') : '' }}">
+                                        </div>
+                                        <div class="col-5 col-md-3" style="padding-left:0px">
+                                            <button type="button"
+                                                id="buttonCancelAutoBid"
+                                                onclick="cancelAutoBid()"
+                                                class="btn btn-danger w-100">
+                                                CANCEL AUTO BID
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         @endauth
                     </div>
                 @endif
             </div>
         </div>
-
         <br><br><br>
     </div>
 @endsection
-
 @push('scripts')
     <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="{{ asset('library/moment/min/moment.min.js') }}"></script>
@@ -245,7 +250,6 @@
     <script src="{{ asset('/library/lodash/lodash.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/gasparesganga-jquery-loading-overlay@2.1.7/dist/loadingoverlay.min.js"></script>
     <script type="text/javascript">
-        // Setup CSRF token untuk semua request AJAX
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -254,25 +258,19 @@
     </script>
 
     <script type="text/javascript">
-        // --- START: Variable Setup ---
-        // Variabel ini diinisialisasi oleh data dari controller saat halaman dimuat
         let currentMaxBid = @json($maxBid);
+        let myAutoBidOnLoad = @json($autoBid);
         let idIkan = @json($idIkan);
         let auctionProduct = @json($auctionProduct);
         let currency = auctionProduct.currency.symbol;
         let meMaxBid = false;
 
-        // Inisialisasi waktu menggunakan moment.js dari data ISO 8601 yang dikirim controller
         let regularEndTime = moment(@json($auctionProduct->event->tgl_akhir));
-        let extraEndTime = moment(@json($addedExtraTime)); // Nilai awal dari controller
+        let extraEndTime = moment(@json($addedExtraTime));
         
         let isExtraTimeActive = false;
-        let timerInterval; // Definisikan interval di scope luar agar bisa diakses/dibersihkan dari mana saja
-        // --- END: Variable Setup ---
+        let timerInterval;
 
-
-        // --- START: Helper & UI Functions ---
-        // SweetAlert2 instance dengan style Bootstrap
         const swalWithBootstrapButtons = Swal.mixin({
             customClass: {
                 confirmButton: 'btn btn-success',
@@ -281,7 +279,6 @@
             buttonsStyling: false
         });
 
-        // Fungsi konfirmasi sebelum melakukan bid
         function clickyakin() {
             var nominal = $('#nominal_bid').val();
             if (!nominal || parseInt($('#nominal_bid').unmask()) <= 0) {
@@ -299,7 +296,7 @@
                 reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) {
-                    $("#buttonNormalBidSubmit").click(); // Memicu submit form secara tersembunyi
+                    $("#buttonNormalBidSubmit").click();
                 } else if (result.dismiss === Swal.DismissReason.cancel) {
                     swalWithBootstrapButtons.fire(
                         'Dibatalkan',
@@ -310,39 +307,77 @@
             });
         }
 
-        // Fungsi untuk format angka dengan pemisah ribuan
         function thousandSeparator(x) {
             if (x === null || x === undefined) return '0';
             return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
         }
 
-        // Inisialisasi format harga pada input nominal
         $('#nominal_bid').priceFormat({
             prefix: '',
             centsLimit: 0,
             thousandsSeparator: '.'
         });
-        // --- END: Helper & UI Functions ---
 
+        $('#auto_bid').priceFormat({
+            prefix: '',
+            centsLimit: 0,
+            thousandsSeparator: '.'
+        });
 
-        // --- START: Core Bidding Logic ---
-        // Handler untuk submit form bidding
+        $('#auto_bid_active').priceFormat({
+            prefix: '',
+            centsLimit: 0,
+            thousandsSeparator: '.'
+        });
+
         $('#normalBidForm').submit(function(e) {
-            e.preventDefault(); // Mencegah form submit biasa
+            e.preventDefault();
             $.LoadingOverlay("show");
             let formData = new FormData(this);
             let url = $(this).attr('action');
             var inputNominalBid = parseInt($('#nominal_bid').unmask());
 
             formData.set('nominal_bid', inputNominalBid);
-            formData.append('nominal_bid_detail', inputNominalBid); // Sesuai logika controller Anda
+            formData.append('nominal_bid_detail', inputNominalBid);
             
             bidding(formData, url);
         });
 
-        // Fungsi AJAX untuk mengirim data bid ke server
+        $('#autoBidForm').submit(function(e) {
+            e.preventDefault();
+            let autoBid = parseInt($('#auto_bid').unmask());
+
+            if (autoBid <= currentMaxBid) {
+                Swal.fire('Error', 'Auto Bid harus lebih besar dari harga saat ini', 'error');
+                return;
+            }
+
+            if (!autoBid || autoBid <= 0) {
+                Swal.fire('Error', 'Nominal Auto Bid tidak valid.', 'error');
+                return;
+            }
+
+            swalWithBootstrapButtons.fire({
+                title: `Apakah anda yakin ingin Auto Bid hingga ${currency} ${thousandSeparator(autoBid)}?`,
+                text: `Auto Bid akan otomatis menaikkan bid Anda hingga nominal ini.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Aktifkan Auto Bid!',
+                cancelButtonText: 'Batal',
+                reverseButtons: true
+            }).then((result) => {
+                if (!result.isConfirmed) return;
+
+                $.LoadingOverlay("show");
+                let formData = new FormData(this);
+                formData.set('auto_bid', autoBid);
+                formData.append('_token', '{{ csrf_token() }}');
+                bidding(formData, $(this).attr('action'));
+            });
+        });
+
         async function bidding(formData, url) {
-            formData.append('_token', '{{ csrf_token() }}'); // Pastikan token selalu ada
+            formData.append('_token', '{{ csrf_token() }}');
             $.ajax({
                 type: 'POST',
                 data: formData,
@@ -353,52 +388,75 @@
                     $.LoadingOverlay("hide");
                 },
                 success: function(res) {
-                    $('#nominal_bid').val(''); // Kosongkan input setelah berhasil
+                    $('#nominal_bid').val('');
+                    $('#auto_bid').val('');
                     swalWithBootstrapButtons.fire('Berhasil!', 'Bidding Anda telah diterima.', 'success');
-                    // Panggil refresh data SEGERA setelah bid berhasil untuk update instan
                     autoDetailBid();
                 },
                 error: function(err) {
-                    // Tampilkan pesan error dari server
                     const message = err.responseJSON?.message || 'Terjadi kesalahan, coba lagi.';
                     $('.alert.bid').html(message).addClass('show');
                     setTimeout(() => $('.alert.bid').removeClass('show'), 3000);
                 }
             });
         }
-        // --- END: Core Bidding Logic ---
 
-
-        // --- START: Polling for Bid & Time Updates ---
-        // Fungsi ini berjalan periodik untuk sinkronisasi dengan server
         function autoDetailBid() {
             let urlGet = `/auction/${idIkan}/detail`;
 
             $.get(urlGet, function(res) {
-                // 1. Update data harga dan status bidder
                 meMaxBid = res.meMaxBid;
                 currentMaxBid = parseInt(res.maxBid);
                 $('#currentPrice').text(thousandSeparator(res.maxBid));
 
-                // 2. Update tabel riwayat bidding
                 var historyBidHtml = 'Belum ada data bidding.';
                 if (res.logBids && res.logBids.length > 0) {
-                    historyBidHtml = `<table class="table table-dark table-hover"><thead><tr><th scope="col" class="text-danger">Nama</th><th scope="col" class="text-danger">Nominal Bidding</th><th scope="col" class="text-danger">Waktu</th></tr></thead><tbody>`;
+                    historyBidHtml = `<table class="table table-dark table-hover">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="text-danger">Nama</th>
+                                <th scope="col" class="text-danger">Nominal Bidding</th>
+                                <th scope="col" class="text-danger">Waktu</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+
                     $.each(res.logBids, function(index, value) {
                         var name = value.log_bid.member.nama.replace(/(.{2})(.+)(.{1})/g, (match, start, middle, end) => start + "*".repeat(middle.length) + end);
+                        
                         var nominal = thousandSeparator(value.nominal_bid);
-                        historyBidHtml += `<tr><td>${name}</td><td>${currency} ${nominal}</td><td>${value.bid_time}</td></tr>`;
+                        
+                        var autoBidBadge = value.status_bid === 1 ? '<span class="badge bg-danger ms-1">AUTO BID</span>' : '';
+                        
+                        historyBidHtml += `<tr>
+                            <td>${name}</td>
+                            <td>${currency} ${nominal} ${autoBidBadge}</td>
+                            <td>${value.bid_time}</td>
+                        </tr>`;
                     });
+
                     historyBidHtml += `</tbody></table>`;
                 }
+
                 $('#exampleModal .modal-body').html(historyBidHtml);
 
-                // 3. Periksa dan perbarui `extraEndTime` jika ada perpanjangan
+                let myAutoBidValue = res.autoBid ?? myAutoBidOnLoad;
+
+                if (myAutoBidValue && myAutoBidValue > 0) {
+                    myAutoBidOnLoad = myAutoBidValue;
+                    $('#autoBidActiveBox').removeClass('d-none');
+                    $('#auto_bid_active').val(thousandSeparator(myAutoBidValue));
+                    $('#buttonAutoBid').text('UPDATE AUTO BID');
+                } else {
+                    $('#autoBidActiveBox').addClass('d-none');
+                    $('#auto_bid_active').val('');
+                    $('#buttonAutoBid').text('AUTO BID');
+                }
+
                 const newExtraTime = moment(res.addedExtraTime);
                 if (newExtraTime.isAfter(extraEndTime)) {
                     console.log("Waktu lelang diperpanjang!");
                     extraEndTime = newExtraTime;
-                    // Jika timer sudah mati, hidupkan kembali dengan memulai ulang intervalnya
                     if (!timerInterval) {
                         startTimer();
                     }
@@ -407,35 +465,85 @@
                 console.error("Gagal mengambil detail lelang:", err);
             });
         }
-        // --- END: Polling for Bid & Time Updates ---
 
+        function cancelAutoBid() {
+            swalWithBootstrapButtons.fire({
+                title: 'Batalkan Auto Bid?',
+                text: 'Auto Bid Anda akan dihentikan.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Batalkan',
+                cancelButtonText: 'Tidak',
+                reverseButtons: true
+            }).then((result) => {
+                if (!result.isConfirmed) return;
 
-        // --- START: Countdown Timer Logic ---
+                $.LoadingOverlay("show");
+
+                let formData = new FormData();
+                formData.append('_token', '{{ csrf_token() }}');
+                formData.append('auto_bid', 0);
+
+                $.ajax({
+                    type: 'POST',
+                    url: `/auction/${idIkan}`,
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    complete: function () {
+                        $.LoadingOverlay("hide");
+                    },
+                    success: function(res) {
+                        $('#nominal_bid').val('');
+                        $('#auto_bid').val('');
+
+                        if (res.autoBid && res.autoBid > 0) {
+                            myAutoBidOnLoad = res.autoBid;
+                            $('#autoBidActiveBox').removeClass('d-none');
+                            $('#auto_bid_active').val(thousandSeparator(res.autoBid));
+                            $('#buttonAutoBid').text('UPDATE AUTO BID');
+                        } else {
+                            myAutoBidOnLoad = 0;
+                            $('#autoBidActiveBox').addClass('d-none');
+                            $('#auto_bid_active').val('');
+                            $('#buttonAutoBid').text('AUTO BID');
+                        }
+
+                        swalWithBootstrapButtons.fire(
+                            'Berhasil!',
+                            'Auto Bid berhasil dibatalkan.',
+                            'success'
+                        );
+
+                        autoDetailBid();
+                    },
+                    error: function () {
+                        Swal.fire('Error', 'Gagal membatalkan Auto Bid', 'error');
+                    }
+                });
+            });
+        }
+
         function startTimer() {
-            // Hentikan interval lama jika ada, untuk menghindari duplikasi timer
             if (timerInterval) clearInterval(timerInterval);
 
             timerInterval = setInterval(function() {
                 let now = moment();
                 
-                // Cek dulu apakah sudah masuk mode extra time
                 if (!isExtraTimeActive && moment.duration(regularEndTime.diff(now)) <= 0) {
                     isExtraTimeActive = true;
-                    $('#countdown-extra').removeClass('d-none'); // Tampilkan label "Extra Time"
+                    $('#countdown-extra').removeClass('d-none');
                 }
 
-                // Tentukan waktu target berdasarkan mode saat ini
                 let targetTime = isExtraTimeActive ? extraEndTime : regularEndTime;
                 let duration = moment.duration(targetTime.diff(now));
                 
                 if (duration <= 0) {
-                    // Semua waktu (normal dan extra) telah habis
                     $('.countdown-label').html(`00 : 00 : 00`);
                     $("#nominal_bid, #buttonNormalBid").prop('disabled', true);
-                    clearInterval(timerInterval); // Hentikan timer
-                    timerInterval = null; // Tandai bahwa timer sudah mati
+                    clearInterval(timerInterval);
+                    timerInterval = null;
                 } else {
-                    // Jika timer berjalan, pastikan tombol bid aktif
                     $("#nominal_bid, #buttonNormalBid").prop('disabled', false); 
                     
                     const hours = Math.floor(duration.asHours());
@@ -445,19 +553,55 @@
                     const timerString = `${String(hours).padStart(2, '0')} : ${String(minutes).padStart(2, '0')} : ${String(seconds).padStart(2, '0')}`;
                     $('.countdown-label').html(timerString);
                 }
-            }, 1000); // Jalankan setiap detik
+            }, 1000);
         }
-        // --- END: Countdown Timer Logic ---
 
-
-        // --- START: Page Initialization ---
-        // Semua dimulai dari sini saat dokumen siap
-        $(document).ready(function() {
-            startTimer(); // Mulai hitung mundur pertama kali
-            
-            // Atur interval untuk polling data dari server setiap 3 detik
-            setInterval(autoDetailBid, 3000);
+        $('#autoBidInfo').click(function() {
+            Swal.fire({
+                title: 'Panduan Auto Bid.',
+                html: `
+                    <ul style="text-align:left; padding-left: 20px;">
+                        <li>Auto Bid akan secara otomatis menaikkan bid Anda hingga mencapai nominal maksimum yang ditentukan.</li>
+                        <li>Auto Bid hanya bisa digunakan jika nominal lebih besar dari harga saat ini.</li>
+                        <li>Nominal Auto Bid harus sesuai dengan kelipatan BID yang berlaku pada lelang ini</li>
+                        <li>Jika ada peserta lain yang menawar lebih tinggi, Auto Bid Anda akan berhenti pada nominal maksimum Anda.</li>
+                        <li>Anda bisa membatalkan Auto Bid kapan saja dengan tombol CANCEL AUTO BID.</li>
+                        <li>Setelah Auto Bid diaktifkan, tombol AUTO BID akan berubah menjadi UPDATE AUTO BID.</li>
+                        <li>Pastikan nominal sudah benar sebelum submit!</li>
+                    </ul>
+                `,
+                icon: 'info',
+                confirmButtonText: 'Mengerti',
+                width: '600px'
+            });
         });
-        // --- END: Page Initialization ---
+
+        $(document).ready(function() {
+            startTimer();
+
+            if (myAutoBidOnLoad && myAutoBidOnLoad > 0) {
+                $('#autoBidActiveBox').removeClass('d-none');
+                $('#auto_bid_active').val(thousandSeparator(myAutoBidOnLoad));
+                $('#buttonAutoBid').text('UPDATE AUTO BID');
+            } else {
+                $('#autoBidActiveBox').addClass('d-none');
+                $('#auto_bid_active').val('');
+                $('#buttonAutoBid').text('AUTO BID');
+            }
+
+            setInterval(autoDetailBid, 3000);
+
+            $('#buttonHistoryBidding').click(function() {
+                $('#exampleModal .modal-body').html(`
+                    <div class="text-center my-3">
+                        <div class="spinner-border text-danger" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                `);
+
+                autoDetailBid();
+            });
+        });
     </script>
 @endpush

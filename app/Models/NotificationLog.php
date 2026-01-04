@@ -10,9 +10,7 @@ class NotificationLog extends Model
     use HasFactory;
 
     protected $table = 'notification_logs';
-
     protected $primaryKey = 'id';
-
     protected $guarded = [];
 
     public function member()
@@ -27,6 +25,6 @@ class NotificationLog extends Model
     
     public function eventFish()
     {
-        return $this->belongsTo(EventFish::class, 'id_ikan_lelang', 'id');
+        return $this->belongsTo(EventFish::class, 'id_ikan_lelang', 'id_ikan');
     }
 }

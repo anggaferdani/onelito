@@ -9,12 +9,10 @@ class Event extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
-
     protected $table = 'm_event';
     protected $primaryKey = 'id_event';
+    protected $guarded = [];
 
-    // kategori_event
     public const EVENT = 'Event';
     public const REGULAR = 'Regular';
 
@@ -28,14 +26,10 @@ class Event extends Model
         if (!$this->tgl_mulai) {
             return null;
         }
-        // $this->tgl_mulai adalah objek Carbon karena casting aktif
-        // Kita hanya perlu mengubah timezone dan formatnya.
+
         return $this->tgl_mulai->setTimezone('Asia/Jakarta')->format('Y-m-d H:i');
     }
 
-    /**
-     * Get the tgl_akhir for admin panel in WIB format.
-     */
     public function getTglAkhirWibAttribute(): ?string
     {
         if (!$this->tgl_akhir) {
@@ -51,6 +45,13 @@ class Event extends Model
 
     public function biddings()
     {
-        return $this->hasManyThrough(LogBid::class, EventFish::class, 'id_ikan', 'id_ikan_lelang');
+        return $this->hasManyThrough(
+            LogBid::class,
+            EventFish::class,
+            'id_event',
+            'id_ikan_lelang',
+            'id_event',
+            'id_ikan'
+        );
     }
 }

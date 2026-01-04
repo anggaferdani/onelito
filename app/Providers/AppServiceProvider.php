@@ -17,21 +17,11 @@ use Illuminate\Support\Facades\App;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     *
-     * @return void
-     */
     public function register()
     {
         //
     }
 
-    /**
-     * Bootstrap any application services.
-     *
-     * @return void
-     */
     public function boot(UrlGenerator $url)
     {
         if (App::environment('local')) {
@@ -41,12 +31,6 @@ class AppServiceProvider extends ServiceProvider
         }
 
         $this->bootMorph();
-
-        $this->app->booted(function () {
-            $schedule = $this->app->make(Schedule::class);
-              $schedule->command(SendEventReminder::class)
-                  ->everyMinute();
-        });
     }
 
     public function bootMorph()

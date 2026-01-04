@@ -10,9 +10,7 @@ class Notification extends Model
     use HasFactory;
 
     protected $table = 'notifications';
-
     protected $primaryKey = 'id';
-
     protected $guarded = [];
 
     public function peserta() {

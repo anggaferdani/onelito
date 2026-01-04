@@ -2,13 +2,13 @@
 
 namespace App\Jobs;
 
-use Carbon\Carbon;
-use App\Models\Event;
+use App\Models\LogBid;
 use App\Models\EventFish;
-use App\Models\Notification;
 use App\Models\AuctionWinner;
+use App\Models\Notification;
+use App\Services\AuctionTimeService;
 use Illuminate\Bus\Queueable;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -18,80 +18,76 @@ class SendAuctionWinnerNotification implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public $productId;
+    public int $eventFishId;
 
-    public function __construct($productId)
+    public function __construct(int $eventFishId)
     {
-        $this->productId = $productId;
+        $this->eventFishId = $eventFishId;
     }
 
-    public function handle()
+    public function handle(): void
     {
-        $product = EventFish::with('maxBid.member', 'event')->find($this->productId);
-        if (!$product) return;
+        DB::transaction(function () {
 
-        $endTime = Carbon::parse($product->event->tgl_akhir);
-        $addedExtraTime = $endTime->copy()->addMinutes($product->extra_time ?? 0);
-
-        $lastBid = $product->maxBid;
-        if ($lastBid && $lastBid->updated_at > $endTime) {
-            $potentialEnd = Carbon::parse($lastBid->updated_at)->addMinutes($product->extra_time ?? 0);
-            if ($potentialEnd > $addedExtraTime) {
-                $addedExtraTime = $potentialEnd;
+            $fish = EventFish::lockForUpdate()->find($this->eventFishId);
+            if (!$fish) {
+                return;
             }
-        }
 
-        if (now()->lt($addedExtraTime)) {
-            self::dispatch($this->productId)->delay($addedExtraTime);
-            return;
-        }
+            if (!AuctionTimeService::isFishEnded($fish)) {
+                return;
+            }
 
-        $winner = $product->maxBid?->member;
-        if (!$winner) return;
+            if ($fish->auction_status !== 'open') {
+                return;
+            }
 
-        AuctionWinner::firstOrCreate(
-            ['id_bidding' => $product->maxBid->id_bidding],
-            ['create_by' => 1, 'update_by' => 1, 'status_aktif' => 1]
-        );
+            $topBid = LogBid::with('member')
+                ->where('id_ikan_lelang', $fish->id_ikan)
+                ->orderByDesc('nominal_bid')
+                ->orderBy('waktu_bid')
+                ->first();
 
-        $fishVariety = "{$product->no_ikan} | {$product->variety} | {$product->breeder} | {$product->bloodline} | {$product->sex}";
-        $finalBidPriceFormatted = number_format($product->maxBid->nominal_bid, 0, ',', '.');
+            if (!$topBid) {
+                $fish->update([
+                    'auction_status' => 'no_bid',
+                ]);
+                return;
+            }
 
-        Notification::create([
-            'peserta_id' => $winner->id_peserta,
-            'label' => 'Auction Winner',
-            'description' => "Selamat kepada {$winner->nama} telah memenangkan Lelang Koi {$fishVariety} dengan harga Rp {$finalBidPriceFormatted}",
-            'link' => route('winning-auction'),
-        ]);
+            $existingWinner = AuctionWinner::where('id_ikan_lelang', $fish->id_ikan)
+                ->lockForUpdate()
+                ->first();
 
-        $this->sendWhatsApp($winner, $fishVariety, $finalBidPriceFormatted);
-    }
+            if ($existingWinner) {
+                $fish->update([
+                    'auction_status' => 'won',
+                ]);
+                return;
+            }
 
-    private function sendWhatsApp($winner, $fishVariety, $finalBidPriceFormatted)
-    {
-        $url = 'https://service-chat.qontak.com/api/open/v1/broadcasts/whatsapp/direct';
-        $token = env('QONTAK_API_KEY');
+            AuctionWinner::create([
+                'id_ikan_lelang' => $fish->id_ikan,
+                'id_bidding' => $topBid->id_bidding,
+                'nominal' => $topBid->nominal_bid,
+                'status_aktif' => 1,
+                'create_by' => 1,
+            ]);
 
-        $phoneNumber = '62' . ltrim(preg_replace('/[^0-9]/', '', $winner->no_hp), '0');
+            $fish->update([
+                'auction_status' => 'won',
+            ]);
 
-        $data = [
-            "to_name" => $winner->nama,
-            "to_number" => $phoneNumber,
-            "message_template_id" => env('WINNER_TEMPLATE_ID'),
-            "channel_integration_id" => env('QONTAK_CHANNEL_INTEGRATION_ID'),
-            "language" => ["code" => "id"],
-            "parameters" => [
-                "body" => [
-                    ["key" => "0", "value_text" => $winner->nama, "value" => "customer_name"],
-                    ["key" => "1", "value_text" => $fishVariety, "value" => "fish_variety"],
-                    ["key" => "2", "value_text" => $finalBidPriceFormatted, "value" => "final_bid_price"],
-                ]
-            ]
-        ];
+            $fishVariety = "{$fish->no_ikan} | {$fish->variety} | {$fish->breeder} | {$fish->bloodline} | {$fish->sex}";
+            $finalBidPriceFormatted = number_format($topBid->nominal_bid, 0, ',', '.');
 
-        Http::withHeaders([
-            'Authorization' => 'Bearer ' . $token,
-            'Content-Type' => 'application/json',
-        ])->post($url, $data);
+            Notification::create([
+                'peserta_id' => $topBid->id_peserta,
+                'label' => 'Auction Winner',
+                'description'=> "Selamat kepada {$topBid->member->nama} telah memenangkan Lelang Koi {$fishVariety} dengan harga Rp {$finalBidPriceFormatted}",
+                'link' => route('winning-auction'),
+                'status' => 1,
+            ]);
+        });
     }
 }

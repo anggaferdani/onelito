@@ -9,20 +9,25 @@ class AuctionWinner extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
-
     protected $table = 't_pemenang_lelang';
     protected $primaryKey = 'id_pemenang_lelang';
+    protected $guarded = [];
 
     public function bidding()
     {
         return $this->belongsTo(LogBid::class, 'id_bidding');
     }
 
-    // relation avaible for join
     public function member()
     {
-        return $this->belongsTo(Member::class, 'id_peserta');
+        return $this->hasOneThrough(
+            Member::class,
+            LogBid::class,
+            'id_bidding',
+            'id_peserta',
+            'id_bidding',
+            'id_peserta'
+        );
     }
 
     public function event()
