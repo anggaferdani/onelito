@@ -12,6 +12,7 @@ use App\Models\Notification;
 use Illuminate\Http\Request;
 use App\Models\NotificationLog;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Services\AuctionTimeService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
@@ -151,53 +152,41 @@ class AuctionController extends Controller
     public function bid($idIkan)
     {
         $reqMaxBid = $this->request->input('request.max_bid', 0);
-
-        if ($this->request->ajax()) {
-        }
-
-        if ($reqMaxBid === 1) {
-        }
-
         $auth = Auth::guard('member')->user();
 
-        $auctionProduct = EventFish::with(['photo', 'event'])->findOrFail($idIkan);
+        // ✅ FIXED: Use correct relationships
+        $auctionProduct = EventFish::with([
+            'photo',
+            'event',
+            'maxBid' => function($q) {
+                $q->orderBy('nominal_bid', 'desc')
+                  ->orderBy('waktu_bid', 'asc');
+            }
+        ])->findOrFail($idIkan);
 
+        // Get user's bid if authenticated
         $logBid = null;
-
         if ($auth) {
-            $logBid = LogBid::where('id_peserta', $auth->id_peserta)->where('id_ikan_lelang', $idIkan)->first();
+            $logBid = LogBid::where('id_peserta', $auth->id_peserta)
+                ->where('id_ikan_lelang', $idIkan)
+                ->first();
         }
 
-        $maxBid = LogBid::where('id_ikan_lelang', $idIkan)
-            ->orderBy('nominal_bid', 'desc')
-            ->orderBy('waktu_bid', 'asc')
-            ->first()->nominal_bid ?? $auctionProduct->ob;
-
-        $autoBid = 0;
-
-        if ($logBid) {
-            $nominalBid = $logBid->nominal_bid ?? 0;
-            $maxBid = $nominalBid > $maxBid ? $nominalBid : $maxBid;
-            $autoBid = $logBid->auto_bid;
-        }
-
-        $maxBidData = LogBidDetail::whereHas('logBid', function ($q) use ($idIkan) {
-            $q->where('id_ikan_lelang', $idIkan);
-        })
-            ->with('logBid')
-            ->orderBy('nominal_bid', 'desc')
-            ->orderBy('id_bidding_detail', 'desc')
-            ->first();
-
+        // Get max bid data
+        $maxBidData = $auctionProduct->maxBid;
+        $maxBid = $maxBidData?->nominal_bid ?? $auctionProduct->ob;
+        
+        $autoBid = $logBid?->auto_bid ?? 0;
+        
+        // Calculate final end time
         Carbon::setLocale('id');
-
-        $addedExtraTime = Carbon::createFromDate($auctionProduct->event->tgl_akhir)
+        $addedExtraTime = Carbon::parse($auctionProduct->event->tgl_akhir)
             ->addMinutes($auctionProduct->extra_time ?? 0);
 
-        $now = Carbon::now()->toDateTimeString();
-
-        if ($maxBidData !== null && $maxBidData->logBid->updated_at >= $auctionProduct->event->tgl_akhir) {
-            $potentialExtraTime = Carbon::createFromDate($maxBidData->logBid->updated_at)
+        if ($maxBidData && 
+            $maxBidData->updated_at >= $auctionProduct->event->tgl_akhir) {
+            
+            $potentialExtraTime = Carbon::parse($maxBidData->updated_at)
                 ->addMinutes($auctionProduct->extra_time ?? 0);
             
             if ($potentialExtraTime > $addedExtraTime) {
@@ -205,15 +194,13 @@ class AuctionController extends Controller
             }
         }
 
-        $now = Carbon::now()->toDateTimeString();
-
         return view('bid', [
             'auth' => $auth,
             'logBid' => $logBid,
             'autoBid' => (int) $autoBid,
             'maxBid' => (int) $maxBid,
             'idIkan' => $idIkan,
-            'now' => $now,
+            'now' => now()->toDateTimeString(),
             'auctionProduct' => $auctionProduct,
             'title' => 'auction',
             'addedExtraTime' => $addedExtraTime,
@@ -222,22 +209,258 @@ class AuctionController extends Controller
         ]);
     }
 
+    // ========================================
+    // METHOD 2: bidOptimized() - FASTEST (Query Builder)
+    // ========================================
+    public function bidOptimized($idIkan)
+    {
+        $auth = Auth::guard('member')->user();
+
+        // ✅ Single optimized query with JOIN
+        $data = DB::table('m_ikan_lelang as mik')
+            ->leftJoin('m_event as me', 'mik.id_event', '=', 'me.id_event')
+            ->leftJoin('t_log_bidding as tlb', function($join) use ($idIkan) {
+                $join->on('tlb.id_ikan_lelang', '=', 'mik.id_ikan')
+                     ->where('tlb.status_aktif', 1)
+                     ->whereRaw('tlb.nominal_bid = (
+                         SELECT MAX(nominal_bid) 
+                         FROM t_log_bidding 
+                         WHERE id_ikan_lelang = ? 
+                         AND status_aktif = 1
+                     )', [$idIkan])
+                     ->whereRaw('tlb.waktu_bid = (
+                         SELECT MIN(waktu_bid)
+                         FROM t_log_bidding
+                         WHERE id_ikan_lelang = ?
+                         AND status_aktif = 1
+                         AND nominal_bid = (
+                             SELECT MAX(nominal_bid)
+                             FROM t_log_bidding
+                             WHERE id_ikan_lelang = ?
+                             AND status_aktif = 1
+                         )
+                     )', [$idIkan, $idIkan]);
+            })
+            ->where('mik.id_ikan', $idIkan)
+            ->select([
+                'mik.*',
+                'me.tgl_akhir',
+                'me.status_tutup',
+                'me.nama_event',
+                'tlb.id_bidding as max_bid_id',
+                'tlb.nominal_bid as max_bid',
+                'tlb.waktu_bid as max_bid_time',
+                'tlb.updated_at as max_bid_updated',
+                'tlb.id_peserta as max_bid_peserta'
+            ])
+            ->first();
+
+        if (!$data) {
+            abort(404);
+        }
+
+        // Get user's bid jika authenticated
+        $logBid = null;
+        if ($auth) {
+            $logBid = LogBid::where('id_peserta', $auth->id_peserta)
+                ->where('id_ikan_lelang', $idIkan)
+                ->first();
+        }
+
+        // Prepare data
+        $maxBid = $data->max_bid ?? $data->ob;
+        $autoBid = $logBid?->auto_bid ?? 0;
+
+        // Calculate extra time
+        Carbon::setLocale('id');
+        $addedExtraTime = Carbon::parse($data->tgl_akhir)
+            ->addMinutes($data->extra_time ?? 0);
+
+        if ($data->max_bid_updated && 
+            Carbon::parse($data->max_bid_updated) >= Carbon::parse($data->tgl_akhir)) {
+            
+            $potentialExtraTime = Carbon::parse($data->max_bid_updated)
+                ->addMinutes($data->extra_time ?? 0);
+            
+            if ($potentialExtraTime > $addedExtraTime) {
+                $addedExtraTime = $potentialExtraTime;
+            }
+        }
+
+        return view('bid', [
+            'auth' => $auth,
+            'logBid' => $logBid,
+            'autoBid' => (int) $autoBid,
+            'maxBid' => (int) $maxBid,
+            'idIkan' => $idIkan,
+            'now' => now()->toDateTimeString(),
+            'auctionProduct' => $data,
+            'title' => 'auction',
+            'addedExtraTime' => $addedExtraTime,
+            'maxBidData' => $data->max_bid_id ? (object)[
+                'id_bidding' => $data->max_bid_id,
+                'nominal_bid' => $data->max_bid,
+                'waktu_bid' => $data->max_bid_time,
+                'updated_at' => $data->max_bid_updated
+            ] : null,
+            'currentPrice' => $maxBid,
+        ]);
+    }
+
+    // ========================================
+    // METHOD 3: detail() - FIXED VERSION
+    // ========================================
     public function detail($idIkan)
     {
         $auth = Auth::guard('member')->user();
         $simple = $this->request->input('simple', null);
 
-        $auctionProduct = EventFish::with(['photo', 'event', 'maxBid'])->findOrFail($idIkan);
+        // ✅ FIXED: Use correct relationship
+        $auctionProduct = EventFish::with(['photo', 'event', 'maxBid'])
+            ->findOrFail($idIkan);
 
-        $addedExtraTime = Carbon::createFromDate($auctionProduct->event->tgl_akhir)
+        // Get latest bid details melalui hasManyThrough
+        $logBids = $auctionProduct->bidDetails()
+            ->with('logBid.member')
+            ->orderBy('t_log_bidding_detail.nominal_bid', 'desc')
+            ->orderBy('t_log_bidding_detail.id_bidding_detail', 'desc')
+            ->limit(10)
+            ->get();
+
+        $lastBidDetail = $logBids->first();
+        
+        // Calculate extra time
+        Carbon::setLocale('id');
+        $addedExtraTime = Carbon::parse($auctionProduct->event->tgl_akhir)
             ->addMinutes($auctionProduct->extra_time ?? 0);
 
-        $lastBidDetail = LogBidDetail::whereHas('logBid', function ($q) use ($idIkan) {
-            $q->where('id_ikan_lelang', $idIkan);
-        })->latest('created_at')->first();
+        if ($lastBidDetail && 
+            $lastBidDetail->created_at > $auctionProduct->event->tgl_akhir) {
+            
+            $potentialExtraTime = Carbon::parse($lastBidDetail->created_at)
+                ->addMinutes($auctionProduct->extra_time ?? 0);
+            
+            if ($potentialExtraTime > $addedExtraTime) {
+                $addedExtraTime = $potentialExtraTime;
+            }
+        }
 
-        if ($lastBidDetail && $lastBidDetail->created_at > $auctionProduct->event->tgl_akhir) {
-            $potentialExtraTime = Carbon::createFromDate($lastBidDetail->created_at)
+        // Quick response for simple requests
+        if ($simple === 'yes') {
+            if ($this->request->ajax()) {
+                return response()->json([
+                    'addedExtraTime' => $addedExtraTime->toIso8601String(),
+                ]);
+            }
+        }
+
+        // Get user's bid if authenticated
+        $logBid = null;
+        if ($auth) {
+            $logBid = LogBid::where('id_peserta', $auth->id_peserta)
+                ->where('id_ikan_lelang', $idIkan)
+                ->first();
+        }
+
+        // Format timestamps
+        $logBids->each(function($item) {
+            $item->bid_time = Carbon::parse($item->created_at)
+                ->setTimezone('Asia/Jakarta')
+                ->format('d M H:i:s');
+        });
+
+        $maxBidData = $logBids->first();
+        $maxBid = $maxBidData?->nominal_bid ?? $auctionProduct->ob;
+        $autoBid = $logBid?->auto_bid ?? 0;
+        
+        $meMaxBid = $auth && $maxBidData && 
+                    $maxBidData->logBid?->id_peserta === $auth->id_peserta;
+
+        return response()->json([
+            'logBid' => $logBid,
+            'autoBid' => $autoBid,
+            'myAutoBid' => $autoBid,
+            'maxBid' => $maxBid,
+            'idIkan' => $idIkan,
+            'meMaxBid' => $meMaxBid,
+            'logBids' => $logBids,
+            'maxBidData' => $maxBidData,
+            'auctionProduct' => $auctionProduct,
+            'addedExtraTime' => $addedExtraTime->toIso8601String(),
+        ]);
+    }
+
+    // ========================================
+    // METHOD 4: detailOptimized() - FASTEST (Query Builder)
+    // ========================================
+    public function detailOptimized($idIkan)
+    {
+        $auth = Auth::guard('member')->user();
+        $simple = $this->request->input('simple', null);
+
+        // Get fish with event
+        $auctionProduct = EventFish::with(['photo', 'event', 'maxBid'])
+            ->findOrFail($idIkan);
+
+        // ✅ Optimized query dengan JOIN (bukan whereHas)
+        $logBids = DB::table('t_log_bidding_detail as lbd')
+            ->join('t_log_bidding as lb', 'lbd.id_bidding', '=', 'lb.id_bidding')
+            ->leftJoin('m_peserta as mp', 'lb.id_peserta', '=', 'mp.id_peserta')
+            ->where('lb.id_ikan_lelang', $idIkan)
+            ->where('lb.status_aktif', 1)
+            ->where('lbd.status_aktif', 1)
+            ->select([
+                'lbd.*',
+                'lb.id_bidding',
+                'lb.id_peserta',
+                'lb.id_ikan_lelang',
+                'lb.nominal_bid as log_nominal_bid',
+                'lb.waktu_bid',
+                'lb.auto_bid',
+                'mp.nama as member_name',
+                'mp.username as member_username',
+                'mp.email as member_email',
+            ])
+            ->orderBy('lbd.nominal_bid', 'desc')
+            ->orderBy('lbd.id_bidding_detail', 'desc')
+            ->limit(10)
+            ->get()
+            ->map(function($item) {
+                // Format timestamp
+                $item->bid_time = Carbon::parse($item->created_at)
+                    ->setTimezone('Asia/Jakarta')
+                    ->format('d M H:i:s');
+                
+                // Structure like Eloquent relationship
+                $item->logBid = (object)[
+                    'id_bidding' => $item->id_bidding,
+                    'id_peserta' => $item->id_peserta,
+                    'id_ikan_lelang' => $item->id_ikan_lelang,
+                    'nominal_bid' => $item->log_nominal_bid,
+                    'waktu_bid' => $item->waktu_bid,
+                    'auto_bid' => $item->auto_bid,
+                    'member' => (object)[
+                        'id_peserta' => $item->id_peserta,
+                        'nama' => $item->member_name,
+                        'username' => $item->member_username,
+                        'email' => $item->member_email,
+                    ]
+                ];
+                
+                return $item;
+            });
+
+        $lastBidDetail = $logBids->first();
+        
+        // Calculate extra time
+        Carbon::setLocale('id');
+        $addedExtraTime = Carbon::parse($auctionProduct->event->tgl_akhir)
+            ->addMinutes($auctionProduct->extra_time ?? 0);
+
+        if ($lastBidDetail && 
+            Carbon::parse($lastBidDetail->created_at) > Carbon::parse($auctionProduct->event->tgl_akhir)) {
+            
+            $potentialExtraTime = Carbon::parse($lastBidDetail->created_at)
                 ->addMinutes($auctionProduct->extra_time ?? 0);
             
             if ($potentialExtraTime > $addedExtraTime) {
@@ -255,60 +478,35 @@ class AuctionController extends Controller
 
         $logBid = null;
         if ($auth) {
-            $logBid = LogBid::where('id_peserta', $auth->id_peserta)->where('id_ikan_lelang', $idIkan)->first();
-        }
-
-        $logBids = LogBidDetail::with('logBid.member')
-            ->whereHas('logBid', function ($q) use ($idIkan) {
-                $q->where('id_ikan_lelang', $idIkan);
-            })
-            ->orderBy('nominal_bid', 'desc')
-            ->orderBy('id_bidding_detail', 'desc')
-            ->limit(10)->get();
-
-        foreach ($logBids as $logBidItem) {
-            $logBidItem->bid_time = Carbon::parse($logBidItem->created_at)
-                                        ->setTimezone('Asia/Jakarta')
-                                        ->format('d M H:i:s');
+            $logBid = LogBid::where('id_peserta', $auth->id_peserta)
+                ->where('id_ikan_lelang', $idIkan)
+                ->first();
         }
 
         $maxBidData = $logBids->first();
-        $maxBid = $maxBidData->nominal_bid ?? $auctionProduct->ob;
-        $autoBid = $logBid->auto_bid ?? 0;
+        $maxBid = $maxBidData?->nominal_bid ?? $auctionProduct->ob;
+        $autoBid = $logBid?->auto_bid ?? 0;
         
-        $meMaxBid = false;
-        if ($auth && $maxBidData && $maxBidData->logBid && $maxBidData->logBid->id_peserta === $auth->id_peserta) {
-            $meMaxBid = true;
-        }
-
-        if ($this->request->ajax()) {
-            return response()->json([
-                'logBid' => $logBid,
-                'autoBid' => $autoBid,
-                'maxBid' => $maxBid,
-                'idIkan' => $idIkan,
-                'meMaxBid' => $meMaxBid,
-                'logBids' => $logBids,
-                'maxBidData' => $maxBidData,
-                'auctionProduct' => $auctionProduct,
-                'addedExtraTime' => $addedExtraTime->toIso8601String(),
-            ]);
-        }
+        $meMaxBid = $auth && $maxBidData && 
+                    $maxBidData->id_peserta === $auth->id_peserta;
 
         return response()->json([
-            'logBid'        => $logBid,
-            'myAutoBid'     => $autoBid,
-            'autoBid'       => $autoBid,
-            'maxBid'        => $maxBid,
-            'idIkan'        => $idIkan,
-            'meMaxBid'      => $meMaxBid,
-            'logBids'       => $logBids,
-            'maxBidData'    => $maxBidData,
-            'auctionProduct'=> $auctionProduct,
-            'addedExtraTime'=> $addedExtraTime->toIso8601String(),
+            'logBid' => $logBid,
+            'autoBid' => $autoBid,
+            'myAutoBid' => $autoBid,
+            'maxBid' => $maxBid,
+            'idIkan' => $idIkan,
+            'meMaxBid' => $meMaxBid,
+            'logBids' => $logBids,
+            'maxBidData' => $maxBidData,
+            'auctionProduct' => $auctionProduct,
+            'addedExtraTime' => $addedExtraTime->toIso8601String(),
         ]);
     }
 
+    // ========================================
+    // 3. OPTIMIZED bidProcess() WITH BETTER LOCKING
+    // ========================================
     public function bidProcess($idIkan)
     {
         $auth = Auth::guard('member')->user();
@@ -317,214 +515,150 @@ class AuctionController extends Controller
         }
 
         return DB::transaction(function () use ($idIkan, $auth) {
-
+            
+            // Lock fish first
             $auctionProduct = EventFish::lockForUpdate()->findOrFail($idIkan);
 
             if (AuctionTimeService::isFishEnded($auctionProduct)) {
-                return response()->json([
-                    'message' => 'Auction ikan sudah berakhir'
-                ], 400);
+                return response()->json(['message' => 'Auction ikan sudah berakhir'], 400);
             }
 
             $nominalBid = request()->input('nominal_bid');
-            $autoBid    = request()->input('auto_bid');
+            $autoBid = request()->input('auto_bid');
 
+            // Lock current highest bid
             $currentHighest = LogBid::where('id_ikan_lelang', $idIkan)
+                ->lockForUpdate()
                 ->orderBy('nominal_bid', 'desc')
                 ->orderBy('waktu_bid', 'asc')
-                ->lockForUpdate()
                 ->first();
 
-            $currentPrice = $currentHighest->nominal_bid ?? $auctionProduct->ob;
+            $currentPrice = $currentHighest?->nominal_bid ?? $auctionProduct->ob;
 
+            // Handle auto bid cancellation
             if ($autoBid === 0 || $autoBid === '0') {
-                $logBid = LogBid::where('id_peserta', $auth->id_peserta)
-                    ->where('id_ikan_lelang', $idIkan)
-                    ->first();
-
-                if ($logBid) {
-                    $logBid->auto_bid = null;
-                    $logBid->save();
-                }
-
-                return response()->json(['message' => 'Auto bid cancelled']);
+                return $this->cancelAutoBid($auth->id_peserta, $idIkan);
             }
 
-            if ($autoBid !== null) {
-                if ($autoBid % $auctionProduct->kb !== 0) {
-                    return response()->json([
-                        'message' => 'Nominal auto bid harus sesuai kelipatan'
-                    ], 400);
-                }
-
-                if ($autoBid <= $currentPrice) {
-                    return response()->json([
-                        'message' => 'Auto bid harus lebih besar dari harga saat ini'
-                    ], 400);
-                }
-            }
-
-            if ($nominalBid !== null) {
-                if ($nominalBid <= $currentPrice) {
-                    return response()->json([
-                        'message' => 'Nominal bid harus lebih tinggi dari harga saat ini'
-                    ], 400);
-                }
-
-                if (($nominalBid - $currentPrice) % $auctionProduct->kb !== 0) {
-                    return response()->json([
-                        'message' => 'Nominal bid harus sesuai kelipatan bid'
-                    ], 400);
-                }
-            }
-
-            $logBid = LogBid::firstOrCreate(
-                [
-                    'id_peserta'     => $auth->id_peserta,
-                    'id_ikan_lelang' => $idIkan
-                ],
-                [
-                    'nominal_bid' => $auctionProduct->ob,
-                    'waktu_bid'   => now(),
-                    'status_aktif'=> 1
-                ]
+            // Validations dengan data yang sudah di-lock
+            $validation = $this->validateBid(
+                $nominalBid, 
+                $autoBid, 
+                $currentPrice, 
+                $auctionProduct->kb
             );
+            
+            if ($validation !== true) {
+                return $validation;
+            }
+
+            // Get or create logBid dengan lock
+            $logBid = LogBid::lockForUpdate()
+                ->firstOrCreate(
+                    [
+                        'id_peserta' => $auth->id_peserta,
+                        'id_ikan_lelang' => $idIkan
+                    ],
+                    [
+                        'nominal_bid' => $auctionProduct->ob,
+                        'waktu_bid' => now(),
+                        'status_aktif' => 1
+                    ]
+                );
 
             $isNewBidder = $logBid->wasRecentlyCreated;
-            $isCurrentWinner = $currentHighest && $currentHighest->id_peserta == $auth->id_peserta;
+            $isCurrentWinner = $currentHighest && 
+                            $currentHighest->id_peserta == $auth->id_peserta;
 
+            // Process manual bid
             if ($nominalBid !== null) {
-                $logBid->nominal_bid = $nominalBid;
-                $logBid->waktu_bid   = now();
-                $logBid->save();
-
-                LogBidDetail::create([
-                    'id_bidding'  => $logBid->id_bidding,
-                    'nominal_bid' => $nominalBid,
-                    'status_aktif'=> 1,
-                    'status_bid'  => 0,
-                ]);
-
-                $currentPrice = $nominalBid;
+                $currentPrice = $this->processManualBid(
+                    $logBid, 
+                    $nominalBid
+                );
             }
 
+            // Process auto bid
             if ($autoBid !== null) {
-                $oldAutoBid = $logBid->auto_bid;
+                $result = $this->processAutoBid(
+                    $logBid,
+                    $autoBid,
+                    $currentPrice,
+                    $auctionProduct->kb,
+                    $idIkan,
+                    $isCurrentWinner,
+                    $isNewBidder,
+                    $nominalBid,
+                    $auth->id_peserta
+                );
                 
-                $logBid->auto_bid = $autoBid;
-                $logBid->save();
-
-                if ($isCurrentWinner && !$isNewBidder && $nominalBid === null && $oldAutoBid !== null) {
-                    $hasCompetitorHigher = LogBid::where('id_ikan_lelang', $idIkan)
-                        ->where('id_peserta', '!=', $auth->id_peserta)
-                        ->whereNotNull('auto_bid')
-                        ->where('auto_bid', '>=', $autoBid)
-                        ->exists();
-                    
-                    if (!$hasCompetitorHigher) {
-                        return response()->json(['message' => 'Auto bid limit updated']);
-                    }
+                if ($result['skip_engine']) {
+                    return response()->json(['message' => $result['message']]);
                 }
-
-                if ($autoBid > $currentPrice) {
-                    $highestCompetitor = LogBid::where('id_ikan_lelang', $idIkan)
-                        ->where('id_peserta', '!=', $auth->id_peserta)
-                        ->whereNotNull('auto_bid')
-                        ->orderBy('auto_bid', 'desc')
-                        ->orderBy('waktu_bid', 'asc')
-                        ->first();
-
-                    $highestCompetitorAutoBid = $highestCompetitor ? $highestCompetitor->auto_bid : null;
-
-                    $userNewBid = null;
-                    
-                    if ($highestCompetitorAutoBid && $highestCompetitorAutoBid >= $currentPrice) {
-                        
-                        if ($autoBid > $highestCompetitorAutoBid) {
-                            $userNewBid = $highestCompetitorAutoBid + $auctionProduct->kb;
-                            
-                            if ($userNewBid > $autoBid) {
-                                $userNewBid = $autoBid;
-                            }
-                        } elseif ($autoBid == $highestCompetitorAutoBid) {
-                            $userNewBid = $autoBid;
-                        } else {
-                            $userNewBid = $autoBid;
-                        }
-                    } else {
-                        $userNewBid = $currentPrice + $auctionProduct->kb;
-                        
-                        if ($userNewBid > $autoBid) {
-                            $userNewBid = $autoBid;
-                        }
-                    }
-
-                    if ($userNewBid !== null) {
-                        $logBid->nominal_bid = $userNewBid;
-                        $logBid->waktu_bid   = now();
-                        $logBid->save();
-
-                        LogBidDetail::create([
-                            'id_bidding'  => $logBid->id_bidding,
-                            'nominal_bid' => $userNewBid,
-                            'status_aktif'=> 1,
-                            'status_bid'  => 1,
-                        ]);
-
-                        $currentPrice = $userNewBid;
-                    }
-                }
+                
+                $currentPrice = $result['currentPrice'];
             }
 
-            $shouldTriggerEngine = false;
-            
-            if ($nominalBid !== null) {
-                $shouldTriggerEngine = true;
-            } elseif ($autoBid !== null) {
-                $shouldTriggerEngine = ($autoBid > ($currentHighest->nominal_bid ?? $auctionProduct->ob));
-            }
+            // Trigger auto bid engine if needed
+            $shouldTriggerEngine = ($nominalBid !== null) || 
+                ($autoBid !== null && $autoBid > ($currentHighest?->nominal_bid ?? $auctionProduct->ob));
             
             if ($shouldTriggerEngine) {
-                $this->processAutoBidEngine($idIkan, $auctionProduct, $currentPrice, $auth->id_peserta);
+                $this->processAutoBidEngine(
+                    $idIkan, 
+                    $auctionProduct, 
+                    $currentPrice, 
+                    $auth->id_peserta
+                );
             }
 
+            // Extend time and send notifications
             AuctionTimeService::extendExtraTime($auctionProduct);
 
             if (AuctionTimeService::isOutbidSession($auctionProduct)) {
-                \App\Jobs\ProcessOutbidNotification::dispatch(
+                dispatch(new \App\Jobs\ProcessOutbidNotification(
                     $idIkan,
                     $auth->id_peserta
-                )->onQueue('auction-notification');
+                ))->onQueue('auction-notification');
             }
 
             return response()->json(['message' => 'success']);
         });
     }
 
+    // ========================================
+    // 4. OPTIMIZED AUTO BID ENGINE
+    // ========================================
     private function processAutoBidEngine($idIkan, $auctionProduct, $currentPrice, $triggeredBy)
     {
         $kb = $auctionProduct->kb;
-        $maxIterations = 100;
+        $maxIterations = 50;
         $iteration = 0;
+        
+        // Cache untuk menghindari query berulang
+        $processedBidders = [];
 
         while ($iteration < $maxIterations) {
             $iteration++;
 
+            // Single query dengan semua filter
             $autoBidders = LogBid::where('id_ikan_lelang', $idIkan)
                 ->where('id_peserta', '!=', $triggeredBy)
                 ->whereNotNull('auto_bid')
                 ->where('auto_bid', '>=', $currentPrice)
+                ->whereNotIn('id_peserta', $processedBidders)
                 ->orderBy('auto_bid', 'desc')
                 ->orderBy('waktu_bid', 'asc')
                 ->lockForUpdate()
+                ->limit(2)
                 ->get();
 
-            if ($autoBidders->count() === 0) {
+            if ($autoBidders->isEmpty()) {
                 break;
             }
 
-            $winner = $autoBidders[0];
-            $challenger = $autoBidders->count() > 1 ? $autoBidders[1] : null;
+            $winner = $autoBidders->first();
+            $challenger = $autoBidders->count() > 1 ? $autoBidders->get(1) : null;
 
             $newPrice = $this->calculateNewPrice(
                 $currentPrice,
@@ -533,36 +667,228 @@ class AuctionController extends Controller
                 $kb
             );
 
-            if ($newPrice === null || $newPrice < $currentPrice) {
+            if ($newPrice === null || $newPrice <= $currentPrice) {
                 break;
             }
 
-            if ($newPrice > $winner->auto_bid) {
-                $newPrice = $winner->auto_bid;
-            }
+            // Cap at winner's max
+            $newPrice = min($newPrice, $winner->auto_bid);
 
-            $winner->nominal_bid = $newPrice;
-            $winner->waktu_bid   = now();
-            $winner->save();
+            // Bulk update
+            $winner->update([
+                'nominal_bid' => $newPrice,
+                'waktu_bid' => now()
+            ]);
 
             LogBidDetail::create([
-                'id_bidding'  => $winner->id_bidding,
+                'id_bidding' => $winner->id_bidding,
                 'nominal_bid' => $newPrice,
-                'status_aktif'=> 1,
-                'status_bid'  => 1,
+                'status_aktif' => 1,
+                'status_bid' => 1,
             ]);
 
             $currentPrice = $newPrice;
             $triggeredBy = $winner->id_peserta;
+            $processedBidders[] = $winner->id_peserta;
 
-            if ($newPrice >= $winner->auto_bid) {
+            // Exit conditions
+            if ($newPrice >= $winner->auto_bid || !$challenger) {
                 break;
             }
 
-            if (!$challenger) {
-                break;
+            // Circuit breaker untuk bid yang terlalu cepat
+            if ($iteration > 10 && ($iteration % 5) === 0) {
+                usleep(100000);
             }
         }
+
+        // Log jika mencapai max iterations (potential issue)
+        if ($iteration >= $maxIterations) {
+            Log::warning("Auto bid engine reached max iterations", [
+                'fish_id' => $idIkan,
+                'iterations' => $iteration,
+                'final_price' => $currentPrice
+            ]);
+        }
+    }
+
+    // ========================================
+    // HELPER METHODS
+    // ========================================
+
+    private function calculateFinalEndTime($auctionProduct, $lastBidData)
+    {
+        Carbon::setLocale('id');
+        
+        $addedExtraTime = Carbon::parse($auctionProduct->event->tgl_akhir)
+            ->addMinutes($auctionProduct->extra_time ?? 0);
+
+        if ($lastBidData && 
+            $lastBidData->updated_at >= $auctionProduct->event->tgl_akhir) {
+            
+            $potentialExtraTime = Carbon::parse($lastBidData->updated_at)
+                ->addMinutes($auctionProduct->extra_time ?? 0);
+            
+            if ($potentialExtraTime > $addedExtraTime) {
+                $addedExtraTime = $potentialExtraTime;
+            }
+        }
+
+        return $addedExtraTime;
+    }
+
+    private function cancelAutoBid($idPeserta, $idIkan)
+    {
+        $logBid = LogBid::where('id_peserta', $idPeserta)
+            ->where('id_ikan_lelang', $idIkan)
+            ->first();
+
+        if ($logBid) {
+            $logBid->update(['auto_bid' => null]);
+        }
+
+        return response()->json(['message' => 'Auto bid cancelled']);
+    }
+
+    private function validateBid($nominalBid, $autoBid, $currentPrice, $kb)
+    {
+        // Auto bid validation
+        if ($autoBid !== null) {
+            if ($autoBid % $kb !== 0) {
+                return response()->json([
+                    'message' => 'Nominal auto bid harus sesuai kelipatan'
+                ], 400);
+            }
+
+            if ($autoBid <= $currentPrice) {
+                return response()->json([
+                    'message' => 'Auto bid harus lebih besar dari harga saat ini'
+                ], 400);
+            }
+        }
+
+        // Manual bid validation
+        if ($nominalBid !== null) {
+            if ($nominalBid <= $currentPrice) {
+                return response()->json([
+                    'message' => 'Nominal bid harus lebih tinggi dari harga saat ini'
+                ], 400);
+            }
+
+            if (($nominalBid - $currentPrice) % $kb !== 0) {
+                return response()->json([
+                    'message' => 'Nominal bid harus sesuai kelipatan bid'
+                ], 400);
+            }
+        }
+
+        return true;
+    }
+
+    private function processManualBid($logBid, $nominalBid)
+    {
+        $logBid->update([
+            'nominal_bid' => $nominalBid,
+            'waktu_bid' => now()
+        ]);
+
+        LogBidDetail::create([
+            'id_bidding' => $logBid->id_bidding,
+            'nominal_bid' => $nominalBid,
+            'status_aktif' => 1,
+            'status_bid' => 0,
+        ]);
+
+        return $nominalBid;
+    }
+
+    private function processAutoBid(
+        $logBid, 
+        $autoBid, 
+        $currentPrice, 
+        $kb, 
+        $idIkan, 
+        $isCurrentWinner, 
+        $isNewBidder, 
+        $nominalBid, 
+        $authId
+    ) {
+        $oldAutoBid = $logBid->auto_bid;
+        $logBid->update(['auto_bid' => $autoBid]);
+
+        // Skip engine if updating existing winner's limit
+        if ($isCurrentWinner && !$isNewBidder && 
+            $nominalBid === null && $oldAutoBid !== null) {
+            
+            $hasCompetitorHigher = LogBid::where('id_ikan_lelang', $idIkan)
+                ->where('id_peserta', '!=', $authId)
+                ->whereNotNull('auto_bid')
+                ->where('auto_bid', '>=', $autoBid)
+                ->exists();
+            
+            if (!$hasCompetitorHigher) {
+                return [
+                    'skip_engine' => true,
+                    'message' => 'Auto bid limit updated',
+                    'currentPrice' => $currentPrice
+                ];
+            }
+        }
+
+        // Calculate immediate auto bid
+        if ($autoBid > $currentPrice) {
+            $highestCompetitor = LogBid::where('id_ikan_lelang', $idIkan)
+                ->where('id_peserta', '!=', $authId)
+                ->whereNotNull('auto_bid')
+                ->orderBy('auto_bid', 'desc')
+                ->orderBy('waktu_bid', 'asc')
+                ->first();
+
+            $highestCompetitorAutoBid = $highestCompetitor?->auto_bid;
+            $userNewBid = $this->calculateImmediateAutoBid(
+                $currentPrice,
+                $autoBid,
+                $highestCompetitorAutoBid,
+                $kb
+            );
+
+            if ($userNewBid !== null) {
+                $logBid->update([
+                    'nominal_bid' => $userNewBid,
+                    'waktu_bid' => now()
+                ]);
+
+                LogBidDetail::create([
+                    'id_bidding' => $logBid->id_bidding,
+                    'nominal_bid' => $userNewBid,
+                    'status_aktif' => 1,
+                    'status_bid' => 1,
+                ]);
+
+                $currentPrice = $userNewBid;
+            }
+        }
+
+        return [
+            'skip_engine' => false,
+            'currentPrice' => $currentPrice
+        ];
+    }
+
+    private function calculateImmediateAutoBid(
+        $currentPrice, 
+        $autoBid, 
+        $competitorAutoBid, 
+        $kb
+    ) {
+        if ($competitorAutoBid && $competitorAutoBid >= $currentPrice) {
+            if ($autoBid > $competitorAutoBid) {
+                return min($competitorAutoBid + $kb, $autoBid);
+            }
+            return $autoBid;
+        }
+        
+        return min($currentPrice + $kb, $autoBid);
     }
 
     private function calculateNewPrice($currentPrice, $winner, $challenger, $kb)
@@ -571,18 +897,14 @@ class AuctionController extends Controller
             if ($winner->auto_bid == $challenger->auto_bid) {
                 return $winner->auto_bid;
             }
-            
-            $targetPrice = $challenger->auto_bid + $kb;
-            return min($winner->auto_bid, $targetPrice);
-            
-        } else {
-            if ($winner->auto_bid == $currentPrice) {
-                return $currentPrice;
-            }
-            
-            $targetPrice = $currentPrice + $kb;
-            return min($winner->auto_bid, $targetPrice);
+            return min($winner->auto_bid, $challenger->auto_bid + $kb);
         }
+        
+        if ($winner->auto_bid == $currentPrice) {
+            return $currentPrice;
+        }
+        
+        return min($winner->auto_bid, $currentPrice + $kb);
     }
 
     public function bidNow($idIkan)

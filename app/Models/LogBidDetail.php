@@ -19,6 +19,18 @@ class LogBidDetail extends Model
 
     public function logBid()
     {
-        return $this->belongsTo(LogBid::class, 'id_bidding');
+        return $this->belongsTo(LogBid::class, 'id_bidding', 'id_bidding');
+    }
+
+    // ✅ Accessor untuk get fish info via LogBid
+    public function getFishAttribute()
+    {
+        return $this->logBid?->eventFish;
+    }
+
+    // ✅ Accessor untuk get member info via LogBid
+    public function getMemberAttribute()
+    {
+        return $this->logBid?->member;
     }
 }

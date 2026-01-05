@@ -19,7 +19,7 @@ class LogBid extends Model
 
     public function eventFish()
     {
-        return $this->belongsTo(EventFish::class, 'id_ikan_lelang');
+        return $this->belongsTo(EventFish::class, 'id_ikan_lelang', 'id_ikan');
     }
 
     public function member()
@@ -30,5 +30,11 @@ class LogBid extends Model
     public function winner()
     {
         return $this->hasOne(AuctionWinner::class, 'id_bidding');
+    }
+
+    // ✅ ADD: Relationship to details
+    public function details()
+    {
+        return $this->hasMany(LogBidDetail::class, 'id_bidding', 'id_bidding');
     }
 }
