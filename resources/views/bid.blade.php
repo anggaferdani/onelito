@@ -196,7 +196,7 @@
                         @endauth
                     </div>
 
-                    <div class="row m-1">
+                    <div class="row m-1 d-none">
                         <div class="col-md-4 no-gutters">
                         </div>
                         @auth('member')
@@ -396,7 +396,6 @@
                 error: function(err) {
                     const message = err.responseJSON?.message || 'Terjadi kesalahan, coba lagi.';
                     $('.alert.bid').html(message).addClass('show');
-                    setTimeout(() => $('.alert.bid').removeClass('show'), 3000);
                 }
             });
         }
