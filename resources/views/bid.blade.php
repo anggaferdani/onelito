@@ -396,6 +396,7 @@
                 error: function(err) {
                     const message = err.responseJSON?.message || 'Terjadi kesalahan, coba lagi.';
                     $('.alert.bid').html(message).addClass('show');
+                    setTimeout(() => $('.alert.bid').removeClass('show'), 3000);
                 }
             });
         }
