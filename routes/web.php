@@ -46,41 +46,41 @@ use App\Http\Controllers\AuthenticationController;
 |
 */
 
-// Route::get('/testing-bid-terlampaui', function () {
+Route::get('/testing-bid-terlampaui', function () {
 
-//     $memberNama = 'Testing Bid Terlampaui';
-//     $phone = '6281290573256';
+    $memberNama = 'Testing Bid Terlampaui';
+    $phone = '6281290573256';
 
-//     SendOutbidWhatsApp::dispatch(
-//         $memberNama,
-//         $phone,
-//     )->onQueue('whatsapp');
+    SendOutbidWhatsApp::dispatch(
+        $memberNama,
+        $phone,
+    )->onQueue('whatsapp');
 
-//     return response()->json([
-//         'status' => 'queued',
-//         'queue' => 'whatsapp'
-//     ]);
-// });
+    return response()->json([
+        'status' => 'queued',
+        'queue' => 'whatsapp'
+    ]);
+});
 
-// Route::get('/testing-winner', function () {
+Route::get('/testing-winner', function () {
 
-//     $name = 'Angga';
-//     $phone = '6281290573256';
-//     $fishVariety = 'Ikan';
-//     $finalBid = '1500000';
+    $name = 'Angga';
+    $phone = '6281290573256';
+    $fishVariety = 'Ikan';
+    $finalBid = '1500000';
 
-//     SendWinnerWhatsApp::dispatch(
-//         $name,
-//         $phone,
-//         $fishVariety,
-//         $finalBid
-//     )->onQueue('whatsapp');
+    SendWinnerWhatsApp::dispatch(
+        $name,
+        $phone,
+        $fishVariety,
+        $finalBid
+    )->onQueue('whatsapp');
 
-//     return response()->json([
-//         'status' => 'queued',
-//         'queue'  => 'whatsapp'
-//     ]);
-// });
+    return response()->json([
+        'status' => 'queued',
+        'queue'  => 'whatsapp'
+    ]);
+});
 
 Route::get('/clear-browser-cache', function () {
     return view('clear-browser-cache');
