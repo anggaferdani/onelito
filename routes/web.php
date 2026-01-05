@@ -132,7 +132,7 @@ Route::post('/reqreset', [AuthenticationController::class, 'reqresetProsses'])->
 Route::get('/auction', [AuctionController::class, 'index'])->name('auction.index');
 Route::get('/auction-data', [AuctionController::class, 'getAuctionData']);
 Route::get('/auction/{idIkan}', [AuctionController::class, 'bid'])->name('auction.bid');
-Route::get('/auction/{idIkan}/detail', [AuctionController::class, 'deta il'])->name('auction.detail');
+Route::get('/auction/{idIkan}/detail', [AuctionController::class, 'detail'])->name('auction.detail');
 Route::POST('/auction/{idIkan}', [AuctionController::class, 'bidProcess'])->name('auction.bid_process');
 Route::get('/auction-bid-now/{idIkan}', [AuctionController::class, 'bidNow'])->name('auction.bid_now');
 
