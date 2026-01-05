@@ -79,6 +79,12 @@ class SendAuctionWinnerNotification implements ShouldQueue
                 'auction_status' => 'won',
             ]);
 
+            $member = $topBid->member;
+
+            if (!$member || empty($member->no_hp)) {
+                return;
+            }
+
             $fishVariety = "{$fish->no_ikan} | {$fish->variety} | {$fish->breeder} | {$fish->bloodline} | {$fish->sex}";
             $finalBidPriceFormatted = number_format($topBid->nominal_bid, 0, ',', '.');
 
@@ -90,17 +96,29 @@ class SendAuctionWinnerNotification implements ShouldQueue
                 'status' => 1,
             ]);
 
-            $phone = '62' . ltrim(
-                preg_replace('/[^0-9]/', '', $topBid->member->no_hp),
-                '0'
-            );
+            $phone = $this->normalizePhone($member->no_hp);
 
             SendWinnerWhatsApp::dispatch(
-                $topBid->member->nama,
+                $member->nama,
                 $phone,
                 $fishVariety,
                 $finalBidPriceFormatted
             )->onQueue('whatsapp');
         });
+    }
+
+    private function normalizePhone(string $phone): string
+    {
+        $phone = preg_replace('/[^0-9]/', '', $phone);
+
+        if (str_starts_with($phone, '62')) {
+            return $phone;
+        }
+
+        if (str_starts_with($phone, '0')) {
+            return '62' . substr($phone, 1);
+        }
+
+        return '62' . $phone;
     }
 }

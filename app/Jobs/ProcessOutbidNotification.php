@@ -71,6 +71,12 @@ class ProcessOutbidNotification implements ShouldQueue
                     return;
                 }
 
+                $phone = $this->normalizePhone($member->no_hp);
+
+                if (!str_starts_with($phone, '62')) {
+                    return;
+                }
+
                 $notification = Notification::create([
                     'peserta_id' => $member->id_peserta,
                     'label' => '⚠️ Koi Auction Alert',
@@ -87,16 +93,26 @@ class ProcessOutbidNotification implements ShouldQueue
                     'created_at' => Carbon::now(),
                 ]);
 
-                $phone = '62' . ltrim(
-                    preg_replace('/[^0-9]/', '', $member->no_hp),
-                    '0'
-                );
-
                 SendOutbidWhatsApp::dispatch(
                     $member->nama,
                     $phone,
                 )->onQueue('whatsapp');
             });
         }
+    }
+
+    function normalizePhone(string $phone): string
+    {
+        $phone = preg_replace('/[^0-9]/', '', $phone);
+    
+        if (str_starts_with($phone, '62')) {
+            return $phone;
+        }
+    
+        if (str_starts_with($phone, '0')) {
+            return '62' . substr($phone, 1);
+        }
+    
+        return '62' . $phone;
     }
 }
