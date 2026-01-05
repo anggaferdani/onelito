@@ -13,6 +13,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use App\Jobs\SendWinnerWhatsApp;
 
 class SendAuctionWinnerNotification implements ShouldQueue
 {
@@ -84,10 +85,22 @@ class SendAuctionWinnerNotification implements ShouldQueue
             Notification::create([
                 'peserta_id' => $topBid->id_peserta,
                 'label' => 'Auction Winner',
-                'description'=> "Selamat kepada {$topBid->member->nama} telah memenangkan Lelang Koi {$fishVariety} dengan harga Rp {$finalBidPriceFormatted}",
+                'description' => "Selamat kepada {$topBid->member->nama} telah memenangkan Lelang Koi {$fishVariety} dengan harga Rp {$finalBidPriceFormatted}",
                 'link' => route('winning-auction'),
                 'status' => 1,
             ]);
+
+            $phone = '62' . ltrim(
+                preg_replace('/[^0-9]/', '', $topBid->member->no_hp),
+                '0'
+            );
+
+            SendWinnerWhatsApp::dispatch(
+                $topBid->member->nama,
+                $phone,
+                $fishVariety,
+                $finalBidPriceFormatted
+            )->onQueue('whatsapp');
         });
     }
 }

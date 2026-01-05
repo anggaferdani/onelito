@@ -11,6 +11,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use App\Jobs\SendWhatsAppBroadcast;
 
 class SendAuctionReminderJob implements ShouldQueue
 {
@@ -55,6 +56,12 @@ class SendAuctionReminderJob implements ShouldQueue
                 'link' => route('auction.index'),
                 'status' => 1,
             ]);
+
+            $tanggalIndonesia = Carbon::parse($event->tgl_akhir)
+                ->translatedFormat('d F Y');
+
+            SendWhatsAppBroadcast::dispatch($tanggalIndonesia)
+                ->onQueue('whatsapp');
         });
     }
 }

@@ -1,9 +1,13 @@
 <?php
 
+use App\Models\Notification;
 use Illuminate\Support\Carbon;
 use App\Http\Controllers\Admin;
 use App\Mail\EmailVerification;
+use App\Jobs\SendOutbidWhatsApp;
+use App\Jobs\SendWinnerWhatsApp;
 use App\Jobs\SendAuctionReminder;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TagController;
@@ -30,8 +34,6 @@ use App\Http\Controllers\ShoppingCartController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\AktivitasLoginController;
 use App\Http\Controllers\AuthenticationController;
-use Illuminate\Support\Facades\URL;
-use App\Models\Notification;
 
 /*
 |--------------------------------------------------------------------------
@@ -44,9 +46,39 @@ use App\Models\Notification;
 |
 */
 
-// Route::get('/', function () {
-//     return view('home',[
-//         "title" => "home"
+// Route::get('/testing-bid-terlampaui', function () {
+
+//     $memberNama = 'Testing Bid Terlampaui';
+//     $phone = '6281290573256';
+
+//     SendOutbidWhatsApp::dispatch(
+//         $memberNama,
+//         $phone,
+//     )->onQueue('whatsapp');
+
+//     return response()->json([
+//         'status' => 'queued',
+//         'queue' => 'whatsapp'
+//     ]);
+// });
+
+// Route::get('/testing-winner', function () {
+
+//     $name = 'Angga';
+//     $phone = '6281290573256';
+//     $fishVariety = 'Ikan';
+//     $finalBid = '1500000';
+
+//     SendWinnerWhatsApp::dispatch(
+//         $name,
+//         $phone,
+//         $fishVariety,
+//         $finalBid
+//     )->onQueue('whatsapp');
+
+//     return response()->json([
+//         'status' => 'queued',
+//         'queue'  => 'whatsapp'
 //     ]);
 // });
 

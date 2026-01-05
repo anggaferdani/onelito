@@ -15,6 +15,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use App\Jobs\SendOutbidWhatsApp;
 
 class ProcessOutbidNotification implements ShouldQueue
 {
@@ -85,6 +86,16 @@ class ProcessOutbidNotification implements ShouldQueue
                     'session_type' => 'outbid',
                     'created_at' => Carbon::now(),
                 ]);
+
+                $phone = '62' . ltrim(
+                    preg_replace('/[^0-9]/', '', $member->no_hp),
+                    '0'
+                );
+
+                SendOutbidWhatsApp::dispatch(
+                    $member->nama,
+                    $phone,
+                )->onQueue('whatsapp');
             });
         }
     }
