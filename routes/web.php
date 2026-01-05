@@ -50,14 +50,6 @@ use App\Models\Notification;
 //     ]);
 // });
 
-Route::get('/telescope', function () {
-    return 'telescope';
-});
-
-Route::get('/telescope123', function () {
-    return 'telescope123';
-});
-
 Route::get('/clear-browser-cache', function () {
     return view('clear-browser-cache');
 });
