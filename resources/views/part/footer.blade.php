@@ -30,7 +30,7 @@
  height = 31hv">
     <div class="row">
         <div class="col-3 col-lg-3 py-4 text-center">
-            <img src="{{ url('img/logo-bawah.png') }}" alt="ONELITO" class="pb-1 pb-lg-1 p-lg-5 py-5 w-75">
+            <img src="{{ url('img/logo-bawah.webp') }}" alt="ONELITO" class="pb-1 pb-lg-1 p-lg-5 py-5 w-75">
         </div>
         <div class="col-4 col-lg-5">
             <nav class="justify-content-center navbar navbar-dark navbar-expand-lg py-5">
