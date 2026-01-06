@@ -60,7 +60,7 @@
                 <div class="col-6 col-md-4">
                     <div class="m-lg-auto" style="max-width: 18rem;">
                         @php
-                            $imgUrl = 'img/koi11.jpg';
+                            $imgUrl = 'img/koi11.webp';
 
                             if ($auctionProduct->photo) {
                                 $imgUrl = 'storage/' . $auctionProduct->photo->path_foto;

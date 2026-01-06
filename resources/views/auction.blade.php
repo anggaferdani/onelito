@@ -89,7 +89,7 @@
     <div class="mb-10"></div>
     @if ($currentAuction && $currentAuction->kategori_event === 'Event')
         @php
-            $bannerImg = 'img/event.png';
+            $bannerImg = 'img/event.webp';
 
             if ($currentAuction->banner !== null) {
                 $bannerImg = url('storage') . '/' . $currentAuction->banner;
@@ -124,7 +124,7 @@
 
                 @forelse($auctionProducts as $auctionProduct)
                     @php
-                        $photo = 'img/koi11.jpg';
+                        $photo = 'img/koi11.webp';
                         if ($auctionProduct->photo !== null) {
                             $photo = url('storage') . '/' . $auctionProduct->photo->path_foto;
                         }
@@ -221,7 +221,7 @@
                         </div>
                     </div>
                 @empty
-                    <img src="{{ url('img/no-auction.jpg') }}" class="d-block w-100 mt-5" alt="ceklis">
+                    <img src="{{ url('img/no-auction.webp') }}" class="d-block w-100 mt-5" alt="ceklis">
                 @endforelse
             </div>
         </div>
