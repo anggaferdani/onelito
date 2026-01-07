@@ -9,7 +9,7 @@
         "barryvdh/laravel-dompdf": "^2.2",
         "dompdf/dompdf": "^2.0",
         "guzzlehttp/guzzle": "^7.2",
-        "intervention/image": "^3.11",
+        "intervention/image": "^2.7",
         "laravel/framework": "^9.19",
         "laravel/sanctum": "^2.14.1",
         "laravel/socialite": "^5.20",
@@ -62,6 +62,9 @@
         }
     },
     "config": {
+        "platform": {
+            "php": "8.1.14"
+        },
         "optimize-autoloader": true,
         "preferred-install": "dist",
         "sort-packages": true
