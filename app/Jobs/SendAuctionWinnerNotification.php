@@ -31,7 +31,12 @@ class SendAuctionWinnerNotification implements ShouldQueue
         DB::transaction(function () {
 
             $fish = EventFish::lockForUpdate()->find($this->eventFishId);
+
             if (!$fish) {
+                return;
+            }
+
+            if ($fish->auction_status === 'old') {
                 return;
             }
 

@@ -33,7 +33,12 @@ class ProcessOutbidNotification implements ShouldQueue
     public function handle(): void
     {
         $fish = EventFish::with('event')->find($this->fishId);
+        
         if (!$fish) {
+            return;
+        }
+
+        if ($fish->auction_status === 'old') {
             return;
         }
 

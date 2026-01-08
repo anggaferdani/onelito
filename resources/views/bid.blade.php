@@ -153,17 +153,17 @@
                         </div>
                     @endguest
                     @auth('member')
-                        <div class="col-12 col-md-8 no-gutters">
-                            <form method="" id="" action="" class="row">
+                        <div class="col-12 col-md-8">
+                            <form method="" id="" action="" class="row g-0">
                                 @csrf
-                                <div class="col-7 col-md-9" style="padding-right:0px">
+                                <div class="col-9">
                                     <input type="text" id="" name="" value=""
                                         class="d-none form-control number-separator">
                                 </div>
-                                <div class="col-5 col-md-3" style="padding-left:0px; max-height: 38px">
+                                <div class="col-3">
                                     <button id="buttonHistoryBidding" type="button"
-                                        class="btn btn-secondary w-100 justify-content-between" data-bs-toggle="modal"
-                                        data-bs-target="#exampleModal">HISTORY BIDDING</button>
+                                        class="btn btn-secondary w-100" data-bs-toggle="modal"
+                                        data-bs-target="#exampleModal">HISTORY</button>
                                 </div>
                             </form>
                         </div>
@@ -175,61 +175,91 @@
                         <div class="col-md-4">
                         </div>
                         @auth('member')
-                            <div class="col-12 col-md-8 no-gutters">
-                                <form method="POST" id="normalBidForm" action="/auction/{{ $idIkan }}" class="row">
+                            <div class="col-12 col-md-8">
+                                <form method="POST" id="normalBidForm" action="/auction/{{ $idIkan }}" class="row g-0">
                                     @csrf
-                                    <div class="col-7 col-md-9" style="padding-right:0px">
-                                        <!-- <input type="text" id="nominal_bid2" name="nominal_bid2" value="{{ $logBid->nominal_bid ?? '' }}" class="form-control number-separator" id="exampleFormControlInput1" placeholder="Nominal BID"> -->
-                                        <input type="text" id="nominal_bid" name="nominal_bid" value="" required
-                                            class="form-control number-separator" id="exampleFormControlInput1"
-                                            placeholder="Nominal BID">
+                                    <div class="col-9">
+                                        <input type="text" 
+                                            id="nominal_bid" 
+                                            name="nominal_bid" 
+                                            value="" 
+                                            required
+                                            class="form-control number-separator" 
+                                            placeholder="Nominal BID"
+                                            style="border-top-right-radius: 0; border-bottom-right-radius: 0;"
+                                            {{ $disableManualBid ?? false ? 'disabled' : '' }}>
                                     </div>
-                                    <div class="col-5 col-md-3" style="padding-left:0px; max-height: 38px">
+                                    <div class="col-3">
                                         <button id="buttonNormalBidSubmit" type="submit" hidden class="d-none"></button>
-                                        <button id="buttonNormalBid" type="button" onclick="clickyakin()"
-                                            class="btn btn-danger w-100 justify-content-between">BID AUCTION</button>
+                                        <button id="buttonNormalBid" 
+                                            type="button" 
+                                            onclick="clickyakin()"
+                                            class="btn btn-danger w-100 h-100"
+                                            style="border-top-left-radius: 0; border-bottom-left-radius: 0;"
+                                            {{ $disableManualBid ?? false ? 'disabled' : '' }}>
+                                            BID
+                                        </button>
                                     </div>
                                 </form>
+                                
+                                @if($disableManualBid ?? false)
+                                <div class="alert alert-info small mt-2 mb-0 manual-bid-disabled">
+                                    Bid manual dinonaktifkan karena Auto Bid Anda masih aktif. 
+                                    Bid manual akan otomatis aktif kembali jika harga melebihi limit Auto Bid Anda 
+                                    (<strong class="auto-bid-limit-value">{{ $auctionProduct->currency->symbol }} {{ number_format($autoBid, 0, '.', '.') }}</strong>).
+                                </div>
+                                @endif
+                                
                                 <div class="alert alert-danger bid alert-dismissible fade mb-0 mt-3" role="alert">
                                 </div>
                             </div>
                         @endauth
                     </div>
 
-                    <div class="row m-1 d-none">
-                        <div class="col-md-4 no-gutters">
+                    <div class="row m-1">
+                        <div class="col-md-4">
                         </div>
                         @auth('member')
-                            <div class="col-12 col-md-8 no-gutters">
-                                <div class="alert alert-secondary small">Sebelum menggunakan fitur Auto Bid, pahami cara kerjanya agar lelang berjalan lancar. <a href="javascript:void(0)" id="autoBidInfo" class="text-danger">Lihat panduan Auto Bid.</a></div>
-                                <form method="POST" id="autoBidForm" action="/auction/{{ $idIkan }}" class="row">
-                                    <div class="col-7 col-md-9" style="padding-right:0px">
+                            <div class="col-12 col-md-8">
+                                <div class="alert alert-secondary small">
+                                    Fitur Auto Bid kini tersedia untuk membantu Anda mengikuti lelang secara otomatis.
+                                    Sebelum menggunakan fitur ini, pahami cara kerjanya agar lelang berjalan lancar.
+                                    <a href="javascript:void(0)" id="autoBidInfo" class="text-danger">Lihat panduan Auto Bid</a>.
+                                    Jika membutuhkan bantuan, silakan hubungi
+                                    <a href="https://wa.me/6282124425038" target="_blank" class="text-danger">Customer Support Onelito</a>.
+                                </div>
+                                <form method="POST" id="autoBidForm" action="/auction/{{ $idIkan }}" class="row g-0">
+                                    <div class="col-9">
                                         <input type="text" id="auto_bid" name="auto_bid" class="form-control"
-                                            value="" id="exampleFormControlInput1" placeholder="Nominal Max Auto BID">
+                                            value="" placeholder="Nominal Max Auto BID"
+                                            style="border-top-right-radius: 0; border-bottom-right-radius: 0;">
                                     </div>
-                                    <div class="col-5 col-md-3" style="padding-left:0px">
+                                    <div class="col-3">
                                         <button type="submit" id="buttonAutoBid"
-                                            class="btn btn-primary w-100 justify-content-between">
-                                            AUTO BID
+                                            class="btn btn-primary w-100 h-100"
+                                            style="border-top-left-radius: 0; border-bottom-left-radius: 0;">
+                                            AUTO
                                         </button>
                                     </div>
                                 </form>
 
                                 <div id="autoBidActiveBox" class="mt-2 {{ $autoBid > 0 ? '' : 'd-none' }}">
-                                    <div class="row">
-                                        <div class="col-7 col-md-9" style="padding-right:0px">
+                                    <div class="row g-0">
+                                        <div class="col-9">
                                             <input type="text"
                                                 id="auto_bid_active"
                                                 class="form-control number-separator border border-danger text-danger"
                                                 readonly
+                                                style="border-top-right-radius: 0; border-bottom-right-radius: 0;"
                                                 value="{{ $autoBid > 0 ? number_format($autoBid, 0, '.', '.') : '' }}">
                                         </div>
-                                        <div class="col-5 col-md-3" style="padding-left:0px">
+                                        <div class="col-3">
                                             <button type="button"
                                                 id="buttonCancelAutoBid"
                                                 onclick="cancelAutoBid()"
-                                                class="btn btn-danger w-100">
-                                                CANCEL AUTO BID
+                                                class="btn btn-danger w-100 h-100"
+                                                style="border-top-left-radius: 0; border-bottom-left-radius: 0;">
+                                                CANCEL
                                             </button>
                                         </div>
                                     </div>
@@ -280,6 +310,12 @@
         });
 
         function clickyakin() {
+            // ✅ BARU: Cek jika button disabled
+            if ($('#buttonNormalBid').prop('disabled')) {
+                Swal.fire('Error', 'Bid manual dinonaktifkan karena Auto Bid masih aktif.', 'error');
+                return;
+            }
+            
             var nominal = $('#nominal_bid').val();
             if (!nominal || parseInt($('#nominal_bid').unmask()) <= 0) {
                 Swal.fire('Error', 'Nominal bid tidak boleh kosong.', 'error');
@@ -332,6 +368,13 @@
 
         $('#normalBidForm').submit(function(e) {
             e.preventDefault();
+            
+            // ✅ BARU: Cek jika input disabled
+            if ($('#nominal_bid').prop('disabled')) {
+                Swal.fire('Error', 'Bid manual dinonaktifkan. Silakan batalkan Auto Bid terlebih dahulu atau tunggu hingga harga melebihi limit Auto Bid Anda.', 'error');
+                return;
+            }
+            
             $.LoadingOverlay("show");
             let formData = new FormData(this);
             let url = $(this).attr('action');
@@ -423,9 +466,7 @@
 
                     $.each(res.logBids, function(index, value) {
                         var name = value.log_bid.member.nama.replace(/(.{2})(.+)(.{1})/g, (match, start, middle, end) => start + "*".repeat(middle.length) + end);
-                        
                         var nominal = thousandSeparator(value.nominal_bid);
-                        
                         var autoBidBadge = value.status_bid === 1 ? '<span class="badge bg-danger ms-1">AUTO BID</span>' : '';
                         
                         historyBidHtml += `<tr>
@@ -442,15 +483,57 @@
 
                 let myAutoBidValue = res.autoBid ?? myAutoBidOnLoad;
 
+                // ✅ BARU: Handle disable/enable manual bid
+                let shouldDisableManualBid = false;
+                
                 if (myAutoBidValue && myAutoBidValue > 0) {
                     myAutoBidOnLoad = myAutoBidValue;
                     $('#autoBidActiveBox').removeClass('d-none');
                     $('#auto_bid_active').val(thousandSeparator(myAutoBidValue));
                     $('#buttonAutoBid').text('UPDATE AUTO BID');
+                    
+                    // ✅ Disable manual bid jika currentPrice masih di bawah auto bid limit
+                    shouldDisableManualBid = currentMaxBid < myAutoBidValue;
                 } else {
                     $('#autoBidActiveBox').addClass('d-none');
                     $('#auto_bid_active').val('');
                     $('#buttonAutoBid').text('AUTO BID');
+                    shouldDisableManualBid = false;
+                }
+
+                // ✅ FIXED: Update status disable/enable input dan button
+                if (shouldDisableManualBid) {
+                    $('#nominal_bid').prop('disabled', true);
+                    $('#buttonNormalBid').prop('disabled', true);
+                    
+                    // Cek apakah alert sudah ada (dari blade atau ajax sebelumnya)
+                    const existingAlert = $('.alert-info.manual-bid-disabled');
+                    
+                    if (existingAlert.length === 0) {
+                        // Buat alert baru jika belum ada
+                        const alertHtml = `
+                            <div class="alert alert-info small mt-2 mb-0 manual-bid-disabled">
+                                Bid manual dinonaktifkan karena Auto Bid Anda masih aktif. 
+                                Bid manual akan otomatis aktif kembali jika harga melebihi limit Auto Bid Anda 
+                                (<strong class="auto-bid-limit-value">${currency} ${thousandSeparator(myAutoBidValue)}</strong>).
+                            </div>
+                        `;
+                        
+                        // Insert tepat setelah form normalBidForm, sebelum alert.bid
+                        $('#normalBidForm').after(alertHtml);
+                    } else {
+                        // Update hanya nilai auto bid limit di alert yang sudah ada
+                        existingAlert.find('.auto-bid-limit-value').text(`${currency} ${thousandSeparator(myAutoBidValue)}`);
+                        
+                        // ✅ IMPORTANT: Pastikan alert visible (tidak hidden)
+                        existingAlert.show();
+                    }
+                } else {
+                    $('#nominal_bid').prop('disabled', false);
+                    $('#buttonNormalBid').prop('disabled', false);
+                    
+                    // Hapus alert info jika ada
+                    $('.alert-info.manual-bid-disabled').remove();
                 }
 
                 const newExtraTime = moment(res.addedExtraTime);
@@ -466,6 +549,7 @@
             });
         }
 
+        // Update function cancelAutoBid untuk re-enable manual bid
         function cancelAutoBid() {
             swalWithBootstrapButtons.fire({
                 title: 'Batalkan Auto Bid?',
@@ -507,11 +591,16 @@
                             $('#autoBidActiveBox').addClass('d-none');
                             $('#auto_bid_active').val('');
                             $('#buttonAutoBid').text('AUTO BID');
+                            
+                            // ✅ BARU: Enable manual bid setelah cancel auto bid
+                            $('#nominal_bid').prop('disabled', false);
+                            $('#buttonNormalBid').prop('disabled', false);
+                            $('.alert-info.manual-bid-disabled').remove();
                         }
 
                         swalWithBootstrapButtons.fire(
                             'Berhasil!',
-                            'Auto Bid berhasil dibatalkan.',
+                            'Auto Bid berhasil dibatalkan. Bid manual sekarang aktif kembali.',
                             'success'
                         );
 
@@ -540,11 +629,16 @@
                 
                 if (duration <= 0) {
                     $('.countdown-label').html(`00 : 00 : 00`);
-                    $("#nominal_bid, #buttonNormalBid").prop('disabled', true);
+                    // ✅ Disable semua input ketika lelang berakhir
+                    $("#nominal_bid, #buttonNormalBid, #auto_bid, #buttonAutoBid").prop('disabled', true);
                     clearInterval(timerInterval);
                     timerInterval = null;
                 } else {
-                    $("#nominal_bid, #buttonNormalBid").prop('disabled', false); 
+                    // ✅ Hanya enable auto bid, manual bid tergantung status auto bid
+                    $("#auto_bid, #buttonAutoBid").prop('disabled', false);
+                    
+                    // Manual bid tetap cek status auto bid
+                    // (sudah dihandle di autoDetailBid)
                     
                     const hours = Math.floor(duration.asHours());
                     const minutes = duration.minutes();
@@ -560,14 +654,21 @@
             Swal.fire({
                 title: 'Panduan Auto Bid.',
                 html: `
-                    <ul style="text-align:left; padding-left: 20px;">
-                        <li>Auto Bid akan secara otomatis menaikkan bid Anda hingga mencapai nominal maksimum yang ditentukan.</li>
-                        <li>Auto Bid hanya bisa digunakan jika nominal lebih besar dari harga saat ini.</li>
-                        <li>Nominal Auto Bid harus sesuai dengan kelipatan BID yang berlaku pada lelang ini</li>
-                        <li>Jika ada peserta lain yang menawar lebih tinggi, Auto Bid Anda akan berhenti pada nominal maksimum Anda.</li>
-                        <li>Anda bisa membatalkan Auto Bid kapan saja dengan tombol CANCEL AUTO BID.</li>
-                        <li>Setelah Auto Bid diaktifkan, tombol AUTO BID akan berubah menjadi UPDATE AUTO BID.</li>
+                    <ol style="text-align:left; padding-left: 20px;">
+                        <li><span style="color:red;">Auto Bid</span> akan secara otomatis menaikkan bid Anda hingga mencapai nominal maksimum yang ditentukan.</li>
+                        <li><span style="color:red;">Auto Bid</span> hanya bisa digunakan jika nominal lebih besar dari harga saat ini.</li>
+                        <li>Nominal <span style="color:red;">Auto Bid</span> harus sesuai dengan kelipatan BID yang berlaku pada lelang ini.</li>
+                        <li>Sistem akan langsung menaikkan bid Anda saat peserta lain memasang bid (manual atau auto).</li>
+                        <li>Jika ada peserta lain dengan <span style="color:red;">Auto Bid</span> lebih tinggi, <span style="color:red;">Auto Bid</span> Anda akan berhenti pada nominal maksimum Anda.</li>
+                        <li>Jika nominal <span style="color:red;">Auto Bid</span> Anda sama dengan peserta lain, yang memasang <span style="color:red;">Auto Bid</span> lebih daholu akan menjadi pemenang.</li>
+                        <li>Manual Bid dapat memicu <span style="color:red;">Auto Bid</span> peserta lain untuk aktif secara otomatis.</li>
+                        <li>Anda bisa meng-update nominal <span style="color:red;">Auto Bid</span> kapan saja, baik untuk menaikkan atau menurunkan limit maksimum.</li>
+                        <li>Jika Anda sedang menjadi top bidder, meng-update <span style="color:red;">Auto Bid</span> tidak akan memicu kenaikan harga kecuali ada kompetitor dengan <span style="color:red;">auto bid</span> lebih tinggi atau sama.</li>
+                        <li>Anda bisa membatalkan <span style="color:red;">Auto Bid</span> kapan saja dengan menekan tombol CANCEL <span style="color:red;">AUTO BID</span>.</li>
+                        <li>Setelah <span style="color:red;">Auto Bid</span> diaktifkan, tombol <span style="color:red;">Auto Bid</span> akan berubah menjadi UPDATE <span style="color:red;">AUTO BID</span>.</li>
+                        <li>Sistem <span style="color:red;">Auto Bid</span> akan terus berjalan hingga mencapai limit maksimum Anda atau tidak ada peserta lain yang bersaing.</li>
                         <li>Pastikan nominal sudah benar sebelum submit!</li>
+                        <li>Jika Anda membutuhkan bantuan lebih lanjut, silakan hubungi <a href="https://wa.me/6282124425038" target="_blank" style="color:red;">Customer Support Onelito</a>.</li>
                     </ul>
                 `,
                 icon: 'info',

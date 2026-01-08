@@ -31,11 +31,6 @@ class Member extends Authenticatable
         return mt_rand(100000, 999999);
     }
 
-    public function setPasswordAttribute($password)
-    {
-        $this->attributes['password'] = Hash::make($password);
-    }
-
     public function province()
     {
         return $this->belongsTo(Province::class, 'provinsi');
