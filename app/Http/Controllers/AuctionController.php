@@ -584,7 +584,8 @@ class AuctionController extends Controller
                     $isCurrentWinner,
                     $isNewBidder,
                     $nominalBid,
-                    $auth->id_peserta
+                    $auth->id_peserta,
+                    $currentHighest?->id_peserta  // ✅ Pass actual top bidder ID
                 );
                 
                 if ($result['skip_engine']) {
@@ -818,14 +819,11 @@ class AuctionController extends Controller
         $isCurrentWinner, 
         $isNewBidder, 
         $nominalBid, 
-        $authId
+        $authId,
+        $actualTopBidderId  // ✅ NEW: Actual top bidder ID
     ) {
         $oldAutoBid = $logBid->auto_bid;
         $logBid->update(['auto_bid' => $autoBid]);
-
-        // ✅ FIXED: Cek apakah user adalah top bidder dengan nominal = currentPrice
-        // (Handle case: cancel auto bid → set auto bid lagi)
-        $isCurrentTopBidder = ($logBid->nominal_bid == $currentPrice);
 
         // Skip engine jika update winner's limit tanpa kompetitor
         if ($isCurrentWinner && !$isNewBidder && 
@@ -862,7 +860,7 @@ class AuctionController extends Controller
                 $kb,
                 $idIkan,
                 $logBid,
-                $isCurrentTopBidder  // ✅ Pass parameter baru
+                $actualTopBidderId  // ✅ Pass actual top bidder ID
             );
 
             // ✅ Jika newBid = null, berarti user sudah top bidder, skip update
@@ -1024,11 +1022,12 @@ class AuctionController extends Controller
         $kb,
         $idIkan,
         $logBid,
-        $isCurrentTopBidder  // ✅ NEW PARAMETER
+        $actualTopBidderId  // ✅ FIXED: Pass actual top bidder ID
     ) {
-        // ✅ CRITICAL FIX: Jika user sudah jadi top bidder dengan nominal = currentPrice
+        // ✅ CRITICAL FIX: Jika user adalah ACTUAL top bidder (bukan cuma nominal sama)
         // Jangan naikkan lagi, hanya update auto_bid limit
-        if ($isCurrentTopBidder && $logBid->nominal_bid == $currentPrice) {
+        if ($actualTopBidderId && $logBid->id_peserta == $actualTopBidderId && 
+            $logBid->nominal_bid == $currentPrice) {
             // Check apakah ada competitor yang bisa mengalahkan
             $hasStrongerCompetitor = LogBid::where('id_ikan_lelang', $idIkan)
                 ->where('id_peserta', '!=', $logBid->id_peserta)
