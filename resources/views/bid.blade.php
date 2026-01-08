@@ -660,7 +660,7 @@
                         <li>Nominal <span style="color:red;">Auto Bid</span> harus sesuai dengan kelipatan BID yang berlaku pada lelang ini.</li>
                         <li>Sistem akan langsung menaikkan bid Anda saat peserta lain memasang bid (manual atau auto).</li>
                         <li>Jika ada peserta lain dengan <span style="color:red;">Auto Bid</span> lebih tinggi, <span style="color:red;">Auto Bid</span> Anda akan berhenti pada nominal maksimum Anda.</li>
-                        <li>Jika nominal <span style="color:red;">Auto Bid</span> Anda sama dengan peserta lain, yang memasang <span style="color:red;">Auto Bid</span> lebih daholu akan menjadi pemenang.</li>
+                        <li>Jika nominal <span style="color:red;">Auto Bid</span> Anda sama dengan peserta lain, yang memasang <span style="color:red;">Auto Bid</span> lebih dahulu akan menjadi pemenang.</li>
                         <li>Manual Bid dapat memicu <span style="color:red;">Auto Bid</span> peserta lain untuk aktif secara otomatis.</li>
                         <li>Anda bisa meng-update nominal <span style="color:red;">Auto Bid</span> kapan saja, baik untuk menaikkan atau menurunkan limit maksimum.</li>
                         <li>Jika Anda sedang menjadi top bidder, meng-update <span style="color:red;">Auto Bid</span> tidak akan memicu kenaikan harga kecuali ada kompetitor dengan <span style="color:red;">auto bid</span> lebih tinggi atau sama.</li>
