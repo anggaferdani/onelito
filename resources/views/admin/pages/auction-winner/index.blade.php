@@ -142,7 +142,7 @@
                     { data : 'bidding.member.alamat', name: 'bidding.member.alamat'},
                     { data : 'bidding.member.city.city_name', name: 'bidding.member.city.city_name', defaultContent: ''},
                     { data : 'event.kategori_event' },
-                    { data : 'event.tgl_mulai' },
+                    { data : 'tgl_mulai_formatted', name: 'event.tgl_mulai' },
                     { data : 'action', orderable : false, searchable : false },
                 ]
             });

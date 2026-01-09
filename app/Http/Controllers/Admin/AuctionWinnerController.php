@@ -43,6 +43,11 @@ class AuctionWinnerController extends Controller
 
             return DataTables::of($winners)
             ->addIndexColumn()
+            ->addColumn('tgl_mulai_formatted', function($row) {
+                return $row->event && $row->event->tgl_mulai ? 
+                    \Carbon\Carbon::parse($row->event->tgl_mulai)->format('d-m-Y H:i') : 
+                    '';
+            })
             ->addColumn('action','admin.pages.auction-winner.dt-action')
             ->rawColumns(['action'])
             ->make(true);
