@@ -257,11 +257,11 @@
                         <div class="col-12 col-md-8">
                             <form method="" id="" action="" class="row g-0">
                                 @csrf
-                                <div class="col-9">
+                                <div class="col-6 col-md-8">
                                     <input type="text" id="" name="" value=""
                                         class="d-none form-control number-separator">
                                 </div>
-                                <div class="col-3">
+                                <div class="col-6 col-md-4">
                                     <button id="buttonHistoryBidding" type="button"
                                         class="btn btn-secondary w-100" data-bs-toggle="modal"
                                         data-bs-target="#exampleModal">HISTORY</button>
@@ -279,7 +279,7 @@
                             <div class="col-12 col-md-8">
                                 <form method="POST" id="normalBidForm" action="/auction/{{ $idIkan }}" class="row g-0">
                                     @csrf
-                                    <div class="col-9">
+                                    <div class="col-6 col-md-8">
                                         <input type="text" 
                                             id="nominal_bid" 
                                             name="nominal_bid" 
@@ -290,7 +290,7 @@
                                             style="border-top-right-radius: 0; border-bottom-right-radius: 0;"
                                             {{ $disableManualBid ?? false ? 'disabled' : '' }}>
                                     </div>
-                                    <div class="col-3">
+                                    <div class="col-6 col-md-4">
                                         <button id="buttonNormalBidSubmit" type="submit" hidden class="d-none"></button>
                                         <button id="buttonNormalBid" 
                                             type="button" 
@@ -327,12 +327,12 @@
                                     Informasi lebih detail, <a href="https://wa.me/6282124425038" target="_blank" class="text-danger">hubungi Cutomer Support Onelito</a>.
                                 </div>
                                 <form method="POST" id="autoBidForm" action="/auction/{{ $idIkan }}" class="row g-0">
-                                    <div class="col-9">
+                                    <div class="col-6 col-md-8">
                                         <input type="text" id="auto_bid" name="auto_bid" class="form-control"
                                             value="" placeholder="Nominal Max Auto BID"
                                             style="border-top-right-radius: 0; border-bottom-right-radius: 0;">
                                     </div>
-                                    <div class="col-3">
+                                    <div class="col-6 col-md-4">
                                         <button type="submit" id="buttonAutoBid"
                                             class="btn btn-primary w-100 h-100"
                                             style="border-top-left-radius: 0; border-bottom-left-radius: 0;">
@@ -343,7 +343,7 @@
 
                                 <div id="autoBidActiveBox" class="mt-2 {{ $autoBid > 0 ? '' : 'd-none' }}">
                                     <div class="row g-0">
-                                        <div class="col-9">
+                                        <div class="col-6 col-md-8">
                                             <input type="text"
                                                 id="auto_bid_active"
                                                 class="form-control number-separator border border-danger text-danger"
@@ -351,7 +351,7 @@
                                                 style="border-top-right-radius: 0; border-bottom-right-radius: 0;"
                                                 value="{{ $autoBid > 0 ? number_format($autoBid, 0, '.', '.') : '' }}">
                                         </div>
-                                        <div class="col-3">
+                                        <div class="col-6 col-md-4">
                                             <button type="button"
                                                 id="buttonCancelAutoBid"
                                                 onclick="cancelAutoBid()"
