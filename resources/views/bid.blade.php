@@ -79,113 +79,138 @@
                     <p style="font-size: larger">Auction Detail</p>
                     <hr>
                     <div class="row">
+                        <!-- Mobile (sm) - Single Column -->
                         <div class="col-12 d-md-none">
-                            <h3 class="fs-5">
-                                <table class="w-100">
+                            <table class="w-100">
+                                <tbody>
                                     <tr>
-                                        <td class="fw-semibold py-1" style="width: 35%;">Variety</td>
-                                        <td class="py-1">: {{ $auctionProduct->variety }}</td>
+                                        <td class="fw-semibold py-1 align-top" style="width: 30%;">Variety</td>
+                                        <td class="py-1 align-top" style="width: 5%;">:</td>
+                                        <td class="py-1">{{ $auctionProduct->variety }}</td>
                                     </tr>
                                     <tr>
-                                        <td class="fw-semibold py-1">Breeder</td>
-                                        <td class="py-1">: {{ $auctionProduct->breeder }}</td>
+                                        <td class="fw-semibold py-1 align-top">Breeder</td>
+                                        <td class="py-1 align-top">:</td>
+                                        <td class="py-1">{{ $auctionProduct->breeder }}</td>
                                     </tr>
                                     <tr>
-                                        <td class="fw-semibold py-1">Bloodline</td>
-                                        <td class="py-1">: {{ $auctionProduct->bloodline }}</td>
+                                        <td class="fw-semibold py-1 align-top">Bloodline</td>
+                                        <td class="py-1 align-top">:</td>
+                                        <td class="py-1">{{ $auctionProduct->bloodline }}</td>
                                     </tr>
                                     <tr>
-                                        <td class="fw-semibold py-1">Sex</td>
-                                        <td class="py-1">: {{ $auctionProduct->sex }}</td>
+                                        <td class="fw-semibold py-1 align-top">Sex</td>
+                                        <td class="py-1 align-top">:</td>
+                                        <td class="py-1">{{ $auctionProduct->sex }}</td>
                                     </tr>
                                     <tr>
-                                        <td class="fw-semibold py-1">DOB</td>
-                                        <td class="py-1">: {{ $auctionProduct->dob }}</td>
+                                        <td class="fw-semibold py-1 align-top">DOB</td>
+                                        <td class="py-1 align-top">:</td>
+                                        <td class="py-1">{{ $auctionProduct->dob }}</td>
                                     </tr>
                                     <tr>
-                                        <td class="fw-semibold py-1">Size</td>
-                                        <td class="py-1">: {{ $auctionProduct->size }}</td>
+                                        <td class="fw-semibold py-1 align-top">Size</td>
+                                        <td class="py-1 align-top">:</td>
+                                        <td class="py-1">{{ $auctionProduct->size }}</td>
                                     </tr>
-                                </table>
-                            </h3>
+                                </tbody>
+                            </table>
                         </div>
 
+                        <!-- Tablet (md) - 2 Columns -->
                         <div class="col-12 d-none d-md-block d-lg-none">
                             <div class="row">
                                 <div class="col-md-6">
-                                    <h3 class="fs-5">
-                                        <table class="w-100">
+                                    <table class="w-100">
+                                        <tbody>
                                             <tr>
-                                                <td class="fw-semibold py-2" style="width: 40%;">Variety</td>
-                                                <td class="py-2">: {{ $auctionProduct->variety }}</td>
+                                                <td class="fw-semibold py-1 align-top" style="width: 35%;">Variety</td>
+                                                <td class="py-1 align-top" style="width: 5%;">:</td>
+                                                <td class="py-1">{{ $auctionProduct->variety }}</td>
                                             </tr>
                                             <tr>
-                                                <td class="fw-semibold py-2">Breeder</td>
-                                                <td class="py-2">: {{ $auctionProduct->breeder }}</td>
+                                                <td class="fw-semibold py-1 align-top">Breeder</td>
+                                                <td class="py-1 align-top">:</td>
+                                                <td class="py-1">{{ $auctionProduct->breeder }}</td>
                                             </tr>
                                             <tr>
-                                                <td class="fw-semibold py-2">Bloodline</td>
-                                                <td class="py-2">: {{ $auctionProduct->bloodline }}</td>
+                                                <td class="fw-semibold py-1 align-top">Bloodline</td>
+                                                <td class="py-1 align-top">:</td>
+                                                <td class="py-1">{{ $auctionProduct->bloodline }}</td>
                                             </tr>
-                                        </table>
-                                    </h3>
+                                        </tbody>
+                                    </table>
                                 </div>
                                 <div class="col-md-6">
-                                    <h3 class="fs-5">
-                                        <table class="w-100">
+                                    <table class="w-100">
+                                        <tbody>
                                             <tr>
-                                                <td class="fw-semibold py-2" style="width: 40%;">Sex</td>
-                                                <td class="py-2">: {{ $auctionProduct->sex }}</td>
+                                                <td class="fw-semibold py-1 align-top" style="width: 35%;">Sex</td>
+                                                <td class="py-1 align-top" style="width: 5%;">:</td>
+                                                <td class="py-1">{{ $auctionProduct->sex }}</td>
                                             </tr>
                                             <tr>
-                                                <td class="fw-semibold py-2">DOB</td>
-                                                <td class="py-2">: {{ $auctionProduct->dob }}</td>
+                                                <td class="fw-semibold py-1 align-top">DOB</td>
+                                                <td class="py-1 align-top">:</td>
+                                                <td class="py-1">{{ $auctionProduct->dob }}</td>
                                             </tr>
                                             <tr>
-                                                <td class="fw-semibold py-2">Size</td>
-                                                <td class="py-2">: {{ $auctionProduct->size }}</td>
+                                                <td class="fw-semibold py-1 align-top">Size</td>
+                                                <td class="py-1 align-top">:</td>
+                                                <td class="py-1">{{ $auctionProduct->size }}</td>
                                             </tr>
-                                        </table>
-                                    </h3>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
 
+                        <!-- Desktop (lg and up) - 2 Columns -->
                         <div class="col-12 d-none d-lg-block">
                             <div class="row">
                                 <div class="col-lg-6">
                                     <h3>
                                         <table class="w-100">
-                                            <tr>
-                                                <td class="fw-semibold py-2" style="width: 40%;">Variety</td>
-                                                <td class="py-2">: {{ $auctionProduct->variety }}</td>
-                                            </tr>
-                                            <tr>
-                                                <td class="fw-semibold py-2">Breeder</td>
-                                                <td class="py-2">: {{ $auctionProduct->breeder }}</td>
-                                            </tr>
-                                            <tr>
-                                                <td class="fw-semibold py-2">Bloodline</td>
-                                                <td class="py-2">: {{ $auctionProduct->bloodline }}</td>
-                                            </tr>
+                                            <tbody>
+                                                <tr>
+                                                    <td class="fw-semibold py-1 align-top" style="width: 35%;">Variety</td>
+                                                    <td class="py-1 align-top" style="width: 5%;">:</td>
+                                                    <td class="py-1">{{ $auctionProduct->variety }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="fw-semibold py-1 align-top">Breeder</td>
+                                                    <td class="py-1 align-top">:</td>
+                                                    <td class="py-1">{{ $auctionProduct->breeder }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="fw-semibold py-1 align-top">Bloodline</td>
+                                                    <td class="py-1 align-top">:</td>
+                                                    <td class="py-1">{{ $auctionProduct->bloodline }}</td>
+                                                </tr>
+                                            </tbody>
                                         </table>
                                     </h3>
                                 </div>
                                 <div class="col-lg-6">
                                     <h3>
                                         <table class="w-100">
-                                            <tr>
-                                                <td class="fw-semibold py-2" style="width: 40%;">Sex</td>
-                                                <td class="py-2">: {{ $auctionProduct->sex }}</td>
-                                            </tr>
-                                            <tr>
-                                                <td class="fw-semibold py-2">DOB</td>
-                                                <td class="py-2">: {{ $auctionProduct->dob }}</td>
-                                            </tr>
-                                            <tr>
-                                                <td class="fw-semibold py-2">Size</td>
-                                                <td class="py-2">: {{ $auctionProduct->size }}</td>
-                                            </tr>
+                                            <tbody>
+                                                <tr>
+                                                    <td class="fw-semibold py-1 align-top" style="width: 35%;">Sex</td>
+                                                    <td class="py-1 align-top" style="width: 5%;">:</td>
+                                                    <td class="py-1">{{ $auctionProduct->sex }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="fw-semibold py-1 align-top">DOB</td>
+                                                    <td class="py-1 align-top">:</td>
+                                                    <td class="py-1">{{ $auctionProduct->dob }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="fw-semibold py-1 align-top">Size</td>
+                                                    <td class="py-1 align-top">:</td>
+                                                    <td class="py-1">{{ $auctionProduct->size }}</td>
+                                                </tr>
+                                            </tbody>
                                         </table>
                                     </h3>
                                 </div>
