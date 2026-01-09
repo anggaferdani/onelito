@@ -34,4 +34,9 @@ class AuctionWinner extends Model
     {
         return $this->belongsTo(Event::class, 'id_event');
     }
+
+    public function getMemberAttribute()
+    {
+        return $this->bidding ? $this->bidding->member : null;
+    }
 }

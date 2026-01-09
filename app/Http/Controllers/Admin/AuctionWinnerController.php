@@ -32,14 +32,14 @@ class AuctionWinnerController extends Controller
                     'id_pemenang_lelang',
                     'status_pembayaran',
                     'm_ikan_lelang.id_event as id_event',
-                't_log_bidding.id_peserta as id_peserta'
+                    't_log_bidding.id_peserta as id_peserta',
+                    't_pemenang_lelang.id_bidding'
                 )
-                ->with(['member.city', 'event'])
+                ->with(['bidding.member.city', 'event'])
                 ->where('t_pemenang_lelang.status_aktif', 1)
                 ->orderBy('m_ikan_lelang.id_event', 'desc')
                 ->get()
                 ->mapWithKeys(fn($q) => [$q['id_peserta'].$q['id_event'] => $q]);
-                ;
 
             return DataTables::of($winners)
             ->addIndexColumn()

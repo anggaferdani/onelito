@@ -137,14 +137,13 @@
                 }
                 },
                 columns : [
-                    { data : 'DT_RowIndex' , orderable : false,searchable :false},
-                    { data : 'member.nama', name: 'member.nama' },
-                    { data : 'member.alamat', name: 'member.alamat'},
-                    { data : 'member.city.city_name' ,name: 'member.city.city_name',  defaultContent: ''},
-                    { data : 'event.kategori_event'},
-                    { data : 'event.tgl_mulai'},
-                    // { data : 'event.tgl_akhir'},
-                    { data : 'action' , orderable : false,searchable :false},
+                    { data : 'DT_RowIndex', orderable : false, searchable : false },
+                    { data : 'bidding.member.nama', name: 'bidding.member.nama' },
+                    { data : 'bidding.member.alamat', name: 'bidding.member.alamat'},
+                    { data : 'bidding.member.city.city_name', name: 'bidding.member.city.city_name', defaultContent: ''},
+                    { data : 'event.kategori_event' },
+                    { data : 'event.tgl_mulai' },
+                    { data : 'action', orderable : false, searchable : false },
                 ]
             });
 
