@@ -10,7 +10,7 @@
     <link rel="icon" type="image/x-icon" href="{{ asset('img/onelito.ico') }}">
     <x-head.tinymce-config/>
     <link rel="stylesheet" href="{{ asset('library/new/dataTables.bootstrap5.min.css') }}">
-    <title>@yield('title')</title>
+    <title>@yield('title', 'Make Hobbyist Happy') | Onelito Koi</title>
 
     <!-- General CSS Files -->
     <link rel="stylesheet"

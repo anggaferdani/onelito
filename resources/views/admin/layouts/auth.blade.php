@@ -6,7 +6,7 @@
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no"
         name="viewport">
     <link rel="icon" type="image/x-icon" href="{{ asset('img/onelito.ico') }}">
-    <title>@yield('title')</title>
+    <title>@yield('title', 'Make Hobbyist Happy') | Onelito Koi</title>
 
     <!-- General CSS Files -->
     <link rel="stylesheet"

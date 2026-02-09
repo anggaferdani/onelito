@@ -1,5 +1,5 @@
 @extends('layout.main')
-
+@section('title', 'Onelito Store')
 @section('container')
     <style>
         .swal2-cancel {

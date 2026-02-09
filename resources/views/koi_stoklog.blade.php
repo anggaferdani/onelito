@@ -1,5 +1,5 @@
 @extends('layout.mainlog')
-
+@section('title', 'Koi Store')
 @section('container')
     <style>
         .card {

@@ -45,7 +45,7 @@
 
     @stack('styles')
 
-    <title>ONELITO KOI</title>
+    <title>@yield('title', 'Make Hobbyist Happy') | Onelito Koi</title>
 </head>
 
 <body>

@@ -1,5 +1,5 @@
 @extends('layout.main')
-
+@section('title', 'Koi Store')
 @section('container')
     <style>
         .cb-judul {

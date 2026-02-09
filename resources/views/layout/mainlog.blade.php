@@ -13,7 +13,7 @@
         integrity="sha512-1sCRPdkRXhBV2PBLUdRb4tMg1w2YPf37qatUFeS7zlBy7jJI8Lf4VHwWfZZfpXtYSLy85pkm9GaYVYMfw5BC1A=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-    <title>ONELITO KOI</title>
+    <title>@yield('title', 'Make Hobbyist Happy') | Onelito Koi</title>
     <style>
         /* body {
             -ms-overflow-style: none;

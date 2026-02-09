@@ -16,7 +16,7 @@
 
     <link rel="stylesheet" href="https://unpkg.com/flowbite@1.5.1/dist/flowbite.min.css" />
 
-    <title>ONELITO KOI</title>
+    <title>@yield('title') | Onelito Koi</title>
 
     <style>
         body {

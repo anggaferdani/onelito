@@ -1,5 +1,5 @@
 @extends('layout.mainlog')
-
+@section('title', 'Onelito Store')
 @section('container')
     <div class="container my-4">
         <style>

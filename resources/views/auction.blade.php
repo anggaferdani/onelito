@@ -1,5 +1,5 @@
 @extends('layout.main')
-
+@section('title', 'Auction')
 @section('container')
     <style>
         @media screen and (min-width: 601px) {
