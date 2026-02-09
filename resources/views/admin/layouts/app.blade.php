@@ -7,6 +7,7 @@
         name="viewport">
     <meta name="biteship-api-key" content="{{ env('BITESHIP_API_KEY') }}">
     <meta name="csrf-token" content="{{ csrf_token() }}" />
+    <link rel="icon" type="image/x-icon" href="{{ asset('img/onelito.ico') }}">
     <x-head.tinymce-config/>
     <link rel="stylesheet" href="{{ asset('library/new/dataTables.bootstrap5.min.css') }}">
     <title>@yield('title')</title>

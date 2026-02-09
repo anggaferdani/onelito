@@ -41,8 +41,8 @@ class SendAuctionReminderJob implements ShouldQueue
                 return;
             }
 
-            $reminderTime = Carbon::parse($event->tgl_akhir)->subHour();
-            // $reminderTime = Carbon::parse($event->tgl_akhir)->subMinutes(15);
+            // $reminderTime = Carbon::parse($event->tgl_akhir)->subHour();
+            $reminderTime = Carbon::parse($event->tgl_akhir)->subMinutes(15);
 
             if ($now->lt($reminderTime)) {
                 return;

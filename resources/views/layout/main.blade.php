@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-HJLT8TZL6Y"></script>
+    <link rel="icon" type="image/x-icon" href="{{ asset('img/onelito.ico') }}">
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}

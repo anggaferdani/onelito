@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no"
         name="viewport">
+    <link rel="icon" type="image/x-icon" href="{{ asset('img/onelito.ico') }}">
     <title>@yield('title')</title>
 
     <!-- General CSS Files -->
