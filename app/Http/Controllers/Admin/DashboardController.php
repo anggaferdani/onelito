@@ -32,7 +32,7 @@ class DashboardController extends Controller
                 ->whereHas('order', fn($q) => $q->where('status', Order::SENT))
                 ->where('status_aktif', 1)
                 ->groupBy(DB::raw('Date(created_at)'))
-                ->orderBy('created_at', 'DESC')->get()
+                ->orderBy(DB::raw('DATE(created_at)'), 'DESC')->get()
                 ->mapWithKeys(fn($i) => [$i['date'] => $i]);
 
         $thisMonthsProductSoldCharts = [];
@@ -100,7 +100,7 @@ class DashboardController extends Controller
                 ->whereHas('order', fn($q) => $q->where('status', Order::SENT))
                 ->where('status_aktif', 1)
                 ->groupBy(DB::raw('Date(created_at)'))
-                ->orderBy('created_at', 'DESC')->get()
+                ->orderBy(DB::raw('DATE(created_at)'), 'DESC')->get()
                 ->mapWithKeys(fn($i) => [$i['date'] => $i]);
 
         $thisMonthsProductSoldCharts = [];
@@ -137,7 +137,7 @@ class DashboardController extends Controller
                 ->whereHas('order', fn($q) => $q->where('status', Order::SENT))
                 ->where('status_aktif', 1)
                 ->groupBy(DB::raw('Date(created_at)'))
-                ->orderBy('created_at', 'DESC')->get()
+                ->orderBy(DB::raw('DATE(created_at)'), 'DESC')->get()
                 ->mapWithKeys(fn($i) => [$i['date'] => $i]);
 
         $thisMonthsProductSoldCharts = [];
