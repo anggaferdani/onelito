@@ -488,61 +488,75 @@ class AuthenticationController extends Controller
             $userFromGoogle = Socialite::driver('google')->user();
         } catch (\Exception $e) {
             report($e);
-            return redirect('/login')->withErrors(['google' => 'Google login failed. Please try again.']);
+            return redirect('/login')->withErrors([
+                'google' => 'Google login failed. Please try again.'
+            ]);
         }
 
         $userToLogin = Member::where('google_id', $userFromGoogle->getId())->first();
 
         if (!$userToLogin) {
             $userToLogin = Member::where('email', $userFromGoogle->getEmail())
-                                ->where('status_aktif', 1)
-                                ->first();
+                ->where('status_aktif', 1)
+                ->where('status_hapus', 0)
+                ->first();
 
             if ($userToLogin) {
                 $userToLogin->google_id = $userFromGoogle->getId();
                 $userToLogin->save();
             } else {
-                $fullName = $userFromGoogle->getName();
+                $fullName  = $userFromGoogle->getName();
                 $nameParts = explode(' ', $fullName, 2);
 
                 return redirect()->route('registration', [
                     'google_id' => $userFromGoogle->getId(),
                     'firstName' => $nameParts[0],
-                    'lastName' => $nameParts[1] ?? '',
-                    'email' => $userFromGoogle->getEmail(),
+                    'lastName'  => $nameParts[1] ?? '',
+                    'email'     => $userFromGoogle->getEmail(),
                 ]);
             }
         }
 
+        if ($userToLogin->status_aktif == 0 || $userToLogin->status_hapus == 1) {
+            return redirect('/login')->withErrors([
+                'email' => 'Akun anda sudah tidak aktif.'
+            ]);
+        }
 
         if (empty($userToLogin->verification_token)) {
             $userToLogin->verification_token = Member::generateVerificationToken();
             $userToLogin->save();
         }
 
-        // Jika nomor belum diverifikasi
         if ($userToLogin->status_phone_number_verification == 0) {
+
             if (
                 $userToLogin->verification_code_expires_at &&
                 \Carbon\Carbon::now()->lte($userToLogin->verification_code_expires_at)
             ) {
-                return redirect()->route('phone-number-verification', ['token' => $userToLogin->verification_token]);
-            } else {
-                $verificationCode = Member::generateVerificationCode();
-                $verificationToken = Member::generateVerificationToken();
-
-                $userToLogin->verification_code = $verificationCode;
-                $userToLogin->verification_token = $verificationToken;
-                $userToLogin->verification_code_expires_at = \Carbon\Carbon::now()->addMinutes(10);
-                $userToLogin->save();
-
-                $this->sendVerificationCodeViaQontak($userToLogin, $verificationCode);
-
-                return redirect()->route('phone-number-verification', ['token' => $userToLogin->verification_token]);
+                return redirect()->route('phone-number-verification', [
+                    'token' => $userToLogin->verification_token
+                ]);
             }
+
+            $verificationCode  = Member::generateVerificationCode();
+            $verificationToken = Member::generateVerificationToken();
+
+            $userToLogin->verification_code = $verificationCode;
+            $userToLogin->verification_token = $verificationToken;
+            $userToLogin->verification_code_expires_at = now()->addMinutes(10);
+            $userToLogin->save();
+
+            $this->sendVerificationCodeViaQontak($userToLogin, $verificationCode);
+
+            return redirect()->route('phone-number-verification', [
+                'token' => $verificationToken
+            ]);
         }
 
         Auth::guard('member')->login($userToLogin);
+        request()->session()->regenerate();
+
         return redirect('/');
     }
 
