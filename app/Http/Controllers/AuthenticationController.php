@@ -72,22 +72,27 @@ class AuthenticationController extends Controller
         }
 
         if ($authenticated) {
-            if ($user->status_phone_number_verification == 1) {
-                Auth::guard('member')->login($user);
-                $this->request->session()->regenerate();
-                $this->recordLoginHistory($user);
-                return redirect()->intended('/');
-            }
 
-            if ($user->status_aktif == 0 && $user->status_hapus == 1) {
+            if ($user->status_aktif == 0 || $user->status_hapus == 1) {
                 return back()->withErrors([
-                    'email' => 'Email yang anda masukan tidak aktif.',
+                    'email' => 'Akun anda sudah tidak aktif.',
                 ])->onlyInput('email');
             }
 
-            return redirect()->route('confirm-phone-number', ['email' => $user->email, 'no_hp' => $user->no_hp])->withErrors([
-                'email' => 'Segera verifikasi nomor telepon anda.',
-            ])->onlyInput('email');
+            if ($user->status_phone_number_verification != 1) {
+                return redirect()->route('confirm-phone-number', [
+                    'email' => $user->email,
+                    'no_hp' => $user->no_hp
+                ])->withErrors([
+                    'email' => 'Segera verifikasi nomor telepon anda.',
+                ])->onlyInput('email');
+            }
+
+            Auth::guard('member')->login($user);
+            $this->request->session()->regenerate();
+            $this->recordLoginHistory($user);
+
+            return redirect()->intended('/');
         }
 
         return back()->withErrors([
