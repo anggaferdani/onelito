@@ -260,21 +260,31 @@ class AuthenticationController extends Controller
         $google_id = $data['google_id'] ?? null;
 
         try {
+            $google_id = $data['google_id'] ?? null;
+
             if ($google_id) {
-                $member = Member::where('google_id', $google_id)->first();
-                if ($member) {
-                    $member->update($data);
-                } else {
-                    $member = Member::create($data);
+
+                $oldMember = Member::where('google_id', $google_id)->first();
+
+                if ($oldMember) {
+                    if ($oldMember->status_aktif == 1 && $oldMember->status_hapus == 0) {
+                        return redirect()->back()->withErrors([
+                            'email' => 'Akun dengan Google ini masih aktif.'
+                        ]);
+                    }
+
+                    $oldMember->google_id = null;
+                    $oldMember->save();
                 }
-            } else {
-                $member = Member::create($data);
             }
 
+            $member = Member::create($data);
 
             $this->sendVerificationCodeViaQontak($member, $verificationCode);
 
-            return redirect()->route('phone-number-verification', ['token' => $verificationToken]);
+            return redirect()->route('phone-number-verification', [
+                'token' => $verificationToken
+            ]);
 
         } catch (\Exception $e) {
             return redirect()->back()->with([
@@ -493,46 +503,63 @@ class AuthenticationController extends Controller
             ]);
         }
 
+        // 1. Cari berdasarkan google_id (tanpa filter status)
         $userToLogin = Member::where('google_id', $userFromGoogle->getId())->first();
 
+        // 2. Kalau belum ada, cari berdasarkan email (tanpa filter status)
         if (!$userToLogin) {
-            $userToLogin = Member::where('email', $userFromGoogle->getEmail())
-                ->where('status_aktif', 1)
-                ->where('status_hapus', 0)
-                ->first();
-
-            if ($userToLogin) {
-                $userToLogin->google_id = $userFromGoogle->getId();
-                $userToLogin->save();
-            } else {
-                $fullName  = $userFromGoogle->getName();
-                $nameParts = explode(' ', $fullName, 2);
-
-                return redirect()->route('registration', [
-                    'google_id' => $userFromGoogle->getId(),
-                    'firstName' => $nameParts[0],
-                    'lastName'  => $nameParts[1] ?? '',
-                    'email'     => $userFromGoogle->getEmail(),
-                ]);
-            }
+            $userToLogin = Member::where('email', $userFromGoogle->getEmail())->first();
         }
 
-        if ($userToLogin->status_aktif == 0 || $userToLogin->status_hapus == 1) {
-            return redirect('/login')->withErrors([
-                'email' => 'Akun anda sudah tidak aktif.'
+        // 3. Kalau akun ADA tapi sudah dihapus / non-aktif → DAFTAR ULANG
+        if (
+            $userToLogin &&
+            ($userToLogin->status_aktif == 0 || $userToLogin->status_hapus == 1)
+        ) {
+            $fullName  = $userFromGoogle->getName();
+            $nameParts = explode(' ', $fullName, 2);
+
+            return redirect()->route('registration', [
+                'google_id' => $userFromGoogle->getId(),
+                'firstName' => $nameParts[0],
+                'lastName'  => $nameParts[1] ?? '',
+                'email'     => $userFromGoogle->getEmail(),
+            ])->withErrors([
+                'email' => 'Akun lama anda sudah dihapus, silakan daftar kembali.'
             ]);
         }
 
+        // 4. Kalau user TIDAK ADA SAMA SEKALI → DAFTAR BARU
+        if (!$userToLogin) {
+            $fullName  = $userFromGoogle->getName();
+            $nameParts = explode(' ', $fullName, 2);
+
+            return redirect()->route('registration', [
+                'google_id' => $userFromGoogle->getId(),
+                'firstName' => $nameParts[0],
+                'lastName'  => $nameParts[1] ?? '',
+                'email'     => $userFromGoogle->getEmail(),
+            ]);
+        }
+
+        // 5. User aktif → pastikan google_id ter-link
+        if (empty($userToLogin->google_id)) {
+            $userToLogin->google_id = $userFromGoogle->getId();
+            $userToLogin->save();
+        }
+
+        // 6. Pastikan verification token ada
         if (empty($userToLogin->verification_token)) {
             $userToLogin->verification_token = Member::generateVerificationToken();
             $userToLogin->save();
         }
 
+        // 7. Cek verifikasi nomor HP
         if ($userToLogin->status_phone_number_verification == 0) {
 
             if (
                 $userToLogin->verification_code_expires_at &&
-                \Carbon\Carbon::now()->lte($userToLogin->verification_code_expires_at)
+                now()->lte($userToLogin->verification_code_expires_at)
             ) {
                 return redirect()->route('phone-number-verification', [
                     'token' => $userToLogin->verification_token
@@ -554,6 +581,7 @@ class AuthenticationController extends Controller
             ]);
         }
 
+        // 8. LOGIN
         Auth::guard('member')->login($userToLogin);
         request()->session()->regenerate();
 
