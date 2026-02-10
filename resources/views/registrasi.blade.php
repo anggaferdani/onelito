@@ -48,7 +48,7 @@
     </style>
 
 
-    <title>ONELITO KOI</title>
+    <title>Register | Onelito Koi</title>
 </head>
 
 <body>
