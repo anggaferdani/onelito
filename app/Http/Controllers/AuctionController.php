@@ -26,19 +26,22 @@ class AuctionController extends Controller
         $auth = Auth::guard('member')->user();
 
         $now = Carbon::now();
+
         $nowAkhir = Carbon::now()->subDays(2)->endOfDay();
 
-        $currentAuctions = Event::when($auth !== null, function ($q) use ($auth) {
-            // ... (logika query with Anda sudah benar)
-        }, function ($q) {
-            // ... (logika query with Anda sudah benar)
+        $currentAuctions = Event::where(function ($query) use ($auth) {
+            $query->where('testing', 0);
+
+            if ($auth && $auth->testing == 1) {
+                $query->orWhere('testing', 1);
+            }
         })
-            ->where('tgl_mulai', '<=', $now)
-            ->where('tgl_akhir', '>=', $nowAkhir)
-            ->where('status_aktif', 1)
-            ->where('status_tutup', 0)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        ->where('tgl_mulai', '<=', $now)
+        ->where('tgl_akhir', '>=', $nowAkhir)
+        ->where('status_aktif', 1)
+        ->where('status_tutup', 0)
+        ->orderBy('created_at', 'desc')
+        ->get();
 
         $currentProducts = $currentAuctions
             ->pluck('auctionProducts')
@@ -49,30 +52,24 @@ class AuctionController extends Controller
         $currentTotalBid = 0;
         $currentTotalPrize = 0;
         if (count($currentProducts) > 0) {
-            $now = Carbon::now(); // Menggunakan objek Carbon
+            $now = Carbon::now();
 
             foreach ($currentProducts as $product) {
                 $currentTotalBid += $product->bid_details_count ?? 0;
                 $currentTotalPrize += $product->maxBid->nominal_bid ?? 0;
 
-                // ===== PERUBAHAN DI SINI =====
-                // Biarkan variabel ini sebagai objek Carbon, jangan diubah ke string
                 $product->tgl_akhir_extra_time = Carbon::createFromDate($product->event->tgl_akhir)
-                    ->addMinutes($product->extra_time ?? 0); // HAPUS ->toDateTimeString()
+                    ->addMinutes($product->extra_time ?? 0);
 
                 if ($product->maxBid !== null && $product->maxBid->updated_at >= $product->event->tgl_akhir) {
-                    // Buat objek Carbon baru untuk perbandingan
                     $addedExtraTime2 = Carbon::createFromDate($product->maxBid->updated_at)
-                        ->addMinutes($product->extra_time ?? 0); // HAPUS ->toDateTimeString()
+                        ->addMinutes($product->extra_time ?? 0);
 
-                    // Objek Carbon bisa dibandingkan secara langsung
                     if ($product->tgl_akhir_extra_time < $addedExtraTime2) {
                         $product->tgl_akhir_extra_time = $addedExtraTime2;
                     }
                 }
             }
-            // ===================================
-
             $auctionProducts = $currentProducts->where('tgl_akhir_extra_time', '>', $now);
 
             $currentAuction = $currentAuctions->first();
