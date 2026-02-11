@@ -9,7 +9,18 @@ $personalNotifications = Notification::where('peserta_id', $auth->id_peserta)
     ->whereNull('system_notification_id')
     ->get();
 
-$systemNotifications = SystemNotification::where('status', 1)->get();
+$systemNotifications = SystemNotification::where('status', 1)
+    ->where(function ($query) use ($auth) {
+
+        $query->where('testing', 0);
+
+        if ($auth && $auth->testing == 1) {
+            $query->orWhere('testing', 1);
+        }
+
+    })
+    ->get();
+
 
 $readSystemIds = Notification::where('peserta_id', $auth->id_peserta)
     ->whereNotNull('system_notification_id')
