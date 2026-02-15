@@ -15,8 +15,10 @@
                 <input  type="text" id="title" class="form-control" name="title" placeholder="">
             </div>
             <div class="form-group">
-                <label for="banner">Banner</label>
-                <input type="file" name="banner" id="banner" class="form-control" required>
+                <label for="banner">Banner <span class="text-danger">*</span></label>
+                <input type="file" name="banner" id="banner" class="form-control" 
+                      accept=".jpg,.jpeg,.png,.webp" required>
+                <small class="form-text text-muted">Format: JPG, JPEG, PNG, WEBP. Maksimal 2MB</small>
             </div>
         </div>
         <div class="modal-footer">

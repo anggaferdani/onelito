@@ -252,6 +252,69 @@
                 }
             });
         });
+
+        // Validasi format file untuk form create
+        $('#banner').on('change', function() {
+            const file = this.files[0];
+            const allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+            
+            if (file) {
+                const fileName = file.name;
+                const fileExtension = fileName.split('.').pop().toLowerCase();
+                
+                if (!allowedExtensions.includes(fileExtension)) {
+                    swal({
+                        icon: 'error',
+                        title: 'Format File Tidak Valid',
+                        text: 'Hanya file dengan format JPG, JPEG, PNG, atau WEBP yang diperbolehkan.',
+                    });
+                    $(this).val(''); // Reset input file
+                    return false;
+                }
+                
+                // Validasi ukuran file (max 2MB)
+                if (file.size > 2048000) {
+                    swal({
+                        icon: 'error',
+                        title: 'Ukuran File Terlalu Besar',
+                        text: 'Ukuran file maksimal 2MB.',
+                    });
+                    $(this).val('');
+                    return false;
+                }
+            }
+        });
+
+        // Validasi format file untuk form edit
+        $('#edit_banner').on('change', function() {
+            const file = this.files[0];
+            const allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+            
+            if (file) {
+                const fileName = file.name;
+                const fileExtension = fileName.split('.').pop().toLowerCase();
+                
+                if (!allowedExtensions.includes(fileExtension)) {
+                    swal({
+                        icon: 'error',
+                        title: 'Format File Tidak Valid',
+                        text: 'Hanya file dengan format JPG, JPEG, PNG, atau WEBP yang diperbolehkan.',
+                    });
+                    $(this).val('');
+                    return false;
+                }
+                
+                if (file.size > 2048000) {
+                    swal({
+                        icon: 'error',
+                        title: 'Ukuran File Terlalu Besar',
+                        text: 'Ukuran file maksimal 2MB.',
+                    });
+                    $(this).val('');
+                    return false;
+                }
+            }
+        });
     </script>
 
 

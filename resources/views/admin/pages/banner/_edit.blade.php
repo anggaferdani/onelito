@@ -17,12 +17,11 @@
             </div>
             <div class="form-group">
                 <label for="edit_banner">Banner</label>
-                <input type="file" name="edit_banner" id="edit_banner" class="form-control">
+                <input type="file" name="edit_banner" id="edit_banner" class="form-control"
+                      accept=".jpg,.jpeg,.png,.webp">
+                <small class="form-text text-muted">Format: JPG, JPEG, PNG, WEBP. Maksimal 2MB</small>
                 <br>
-                <img id="edit_banner2" src="" style="
-                    width: 800px;
-                    height: 200px;
-                    object-fit: cover;">
+                <img id="edit_banner2" src="" style="width: 800px; height: 200px; object-fit: cover;">
             </div>
         </div>
         <div class="modal-footer">
