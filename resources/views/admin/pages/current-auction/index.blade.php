@@ -139,16 +139,7 @@
                     var historyBidHtml = 'Belum ada data bidding';
 
                     if (res.log_bids !== null && res.log_bids.length > 0) {
-                        historyBidHtml = `<table class="table table-dark table-hover">
-                            <thead>
-                                <tr>
-                                    <th scope="col" class="text-danger">Nama</th>
-                                    <th scope="col" class="text-danger">Nominal Bidding</th>
-                                    <th scope="col" class="text-danger">Waktu</th>
-                                    <th scope="col" class="text-danger">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>`;
+                        historyBidHtml = '';
 
                         $.each(res.log_bids, function(index, value) {
                             var name = value.log_bid.member.nama.replace(/(.{2})(.+)(.{1})/g, (match, start, middle, end) => start + "*".repeat(middle.length) + end);
@@ -156,20 +147,25 @@
                             var currency = res.auction_product.currency ? res.auction_product.currency.symbol : 'Rp';
                             var autoBidBadge = value.status_bid === 1 ? '<span class="badge bg-danger ms-1">AUTO BID</span>' : '';
 
-                            var actionBtn = '';
                             if (index === 0) {
-                                actionBtn = `<button id="cancelBidding" data-id="${value.id_bidding_detail}" type="button" onclick="cancelLastBidding(this, 'confirm')" class="btn btn-danger mb-3">Cancel bid</button>`;
+                                historyBidHtml += `
+                                <tr>
+                                    <td>${name}</td>
+                                    <td>${currency} ${nominal} ${autoBidBadge}</td>
+                                    <td>${value.bid_time}</td>
+                                    <td><button id="cancelBidding" data-id="${value.id_bidding_detail}" type="button" onclick="cancelLastBidding(this, 'confirm')" class="btn btn-danger mb-3">Cancel bid</button></td>
+                                </tr>`
                             }
-
-                            historyBidHtml += `<tr>
-                                <td>${name}</td>
-                                <td>${currency} ${nominal} ${autoBidBadge}</td>
-                                <td>${value.bid_time}</td>
-                                <td>${actionBtn}</td>
-                            </tr>`;
+                            if (index > 0) {
+                                historyBidHtml += `
+                                <tr>
+                                    <td>${name}</td>
+                                    <td>${currency} ${nominal} ${autoBidBadge}</td>
+                                    <td>${value.bid_time}</td>
+                                    <td>&nbsp;</td>
+                                </tr>`
+                            }
                         });
-
-                        historyBidHtml += `</tbody></table>`;
                     }
 
                     $('#modalShow tbody').html(historyBidHtml);
@@ -180,7 +176,6 @@
                 }
             })
         })
-
 
         $(document).on('click','button#btn-edit',function() {
             let id = $(this).data('id');

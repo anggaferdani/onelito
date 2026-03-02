@@ -73,17 +73,19 @@ class CurrentAuctionController extends Controller
 
     public function show($id)
     {
-        $auctionProduct = EventFish::with(['photo', 'event'])->findOrFail($id);
+        $auctionProduct = EventFish::with(['photo', 'event', 'currency'])->findOrFail($id);
 
         $logBids = LogBidDetail::with('logBid.member')
-        ->distinct('nominal_bid')
-        ->selectRaw('t_log_bidding_detail.*, DATE_FORMAT(CONVERT_TZ(created_at, "+00:00", "+07:00"), "%e %b %H:%i:%s") as bid_time')
+        ->selectRaw('t_log_bidding_detail.*, DATE_FORMAT(CONVERT_TZ(t_log_bidding_detail.created_at, "+00:00", "+07:00"), "%e %b %H:%i:%s") as bid_time')
         ->whereHas('logBid', function($q) use ($id){
-            $q->where('id_ikan_lelang', $id);
+            $q->where('id_ikan_lelang', $id)
+            ->where('status_aktif', 1);
         })
         ->where('status_aktif', 1)
-        ->orderBy('nominal_bid', 'desc')
-        ->orderBy('updated_at', 'desc')->limit(10)->get();
+        ->orderBy('t_log_bidding_detail.nominal_bid', 'desc')
+        ->orderBy('t_log_bidding_detail.id_bidding_detail', 'desc')
+        ->limit(10)
+        ->get();
 
         if($auctionProduct){
             return response()->json([
