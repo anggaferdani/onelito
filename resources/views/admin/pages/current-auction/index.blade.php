@@ -145,7 +145,7 @@
                             var name = value.log_bid.member.nama.replace(/(.{2})(.+)(.{1})/g, (match, start, middle, end) => start + "*".repeat(middle.length) + end);
                             var nominal = thousandSeparator(value.nominal_bid);
                             var currency = res.auction_product.currency ? res.auction_product.currency.symbol : 'Rp';
-                            var autoBidBadge = value.status_bid === 1 ? '<span class="badge bg-danger ms-1">AUTO BID</span>' : '';
+                            var autoBidBadge = value.status_bid === 1 ? '<span class="badge bg-danger ms-1 text-center">AUTO BID</span>' : '';
 
                             if (index === 0) {
                                 historyBidHtml += `
