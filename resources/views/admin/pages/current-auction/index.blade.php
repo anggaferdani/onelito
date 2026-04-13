@@ -142,7 +142,7 @@
                         historyBidHtml = '';
 
                         $.each(res.log_bids, function(index, value) {
-                            var name = value.log_bid.member.nama.replace(/(.{2})(.+)(.{1})/g, (match, start, middle, end) => start + "*".repeat(middle.length) + end);
+                            var name = value.log_bid.member.nama;
                             var nominal = thousandSeparator(value.nominal_bid);
                             var currency = res.auction_product.currency ? res.auction_product.currency.symbol : 'Rp';
                             var autoBidBadge = value.status_bid === 1 ? '<span class="badge bg-danger ms-1 text-white">AUTO BID</span>' : '';
