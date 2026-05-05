@@ -635,7 +635,7 @@ class AuthenticationController extends Controller
         ]);
 
         $member = Member::findOrFail(Auth::guard('member')->user()->id_peserta);
-        $member->password = $this->request->password;
+        $member->password = Hash::make($this->request->password);
         $member->save();
 
         return back()->with("status", "Password changed successfully!");
@@ -709,7 +709,7 @@ class AuthenticationController extends Controller
                         ->with(['message' => 'User Not Found']);
                 }
 
-                $user->password = $this->request->password;
+                $user->password = Hash::make($this->request->password);
                 $user->save();
 
                 return redirect('login')->with("password", "Password berhasil diubah, silahkan login menggunakan password baru");

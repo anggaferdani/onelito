@@ -10,6 +10,7 @@ use App\Models\Member;
 use App\Models\Province;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Excel;
@@ -156,7 +157,7 @@ class MemberController extends Controller
 
         if ($action === 'reset-password') {
 
-            $member->password = 'ikankoi123';
+            $member->password = Hash::make('ikankoi123');
             $member->save();
 
             return response()->json([
