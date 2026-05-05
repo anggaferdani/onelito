@@ -69,7 +69,7 @@
         <br>
         <br>
         <br>
-        <form method="POST" id="reqreset" action="/ls/reset?token={{ Request::get('click') }}">
+        <form method="POST" id="reqreset" action="/ls/reset?token={{ urlencode(Request::get('click')) }}">
             @csrf
             <div class="row">
                 <div class="col-md-12">

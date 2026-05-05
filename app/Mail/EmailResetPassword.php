@@ -42,7 +42,7 @@ class EmailResetPassword extends Mailable
 
         $crypt = Crypt::encrypt($payload);
 
-        $url = config('app.url') . "/ls/reset?click=$crypt";
+        $url = config('app.url') . "/ls/reset?click=" . urlencode($crypt);
 
         return $this
         ->subject('Reset Password')
