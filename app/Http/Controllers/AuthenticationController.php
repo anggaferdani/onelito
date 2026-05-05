@@ -654,7 +654,10 @@ class AuthenticationController extends Controller
 
         $email = $this->request->input('email');
 
-        $user = Member::where('email', $email)->first();
+        $user = Member::where('email', $email)
+            ->where('status_aktif', 1)
+            ->where('status_hapus', 0)
+            ->first();
 
         if ($user === null) {
             return back()->withErrors("Email belum terdaftar");
@@ -702,7 +705,10 @@ class AuthenticationController extends Controller
             $data = Crypt::decrypt($token);
             if ($data) {
                 $user = Member::where('email', $data['email'])
-                    ->where('id_peserta', $data['id'])->first();
+                    ->where('id_peserta', $data['id'])
+                    ->where('status_aktif', 1)
+                    ->where('status_hapus', 0)
+                    ->first();
 
                 if (!$user) {
                     return redirect()->back()

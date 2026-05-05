@@ -32,7 +32,10 @@ class EmailResetPassword extends Mailable
      */
     public function build()
     {
-        $user = Member::where('email', $this->email)->first();
+        $user = Member::where('email', $this->email)
+            ->where('status_aktif', 1)
+            ->where('status_hapus', 0)
+            ->first();
 
         $payload = array(
             'id'        => $user->id_peserta,
