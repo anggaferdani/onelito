@@ -660,7 +660,7 @@ class AuctionController extends Controller
 
             $winner->update([
                 'nominal_bid' => $newPrice,
-                'waktu_bid' => now()
+                'waktu_bid' => $isTie ? $winner->waktu_bid : now(),
             ]);
 
             LogBidDetail::create([
@@ -673,7 +673,6 @@ class AuctionController extends Controller
             if ($isTie && $challenger) {
                 $challenger->update([
                     'nominal_bid' => $newPrice,
-                    'waktu_bid' => now()
                 ]);
 
                 LogBidDetail::create([
@@ -704,7 +703,7 @@ class AuctionController extends Controller
                 $processedBidders[] = $challenger->id_peserta;
             }
 
-            if ($newPrice >= $winner->auto_bid || !$challenger) {
+            if ($newPrice >= $winner->auto_bid) {
                 break;
             }
 
@@ -998,7 +997,6 @@ class AuctionController extends Controller
         foreach ($tiedAutoBidders as $tiedBidder) {
             $tiedBidder->update([
                 'nominal_bid' => $nominalBid,
-                'waktu_bid' => now()
             ]);
 
             LogBidDetail::create([
