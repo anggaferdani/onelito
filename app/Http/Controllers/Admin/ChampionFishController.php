@@ -8,8 +8,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Yajra\DataTables\Facades\DataTables;
-use Intervention\Image\ImageManager;
-
 class ChampionFishController extends Controller
 {
     public function index()
@@ -38,24 +36,32 @@ class ChampionFishController extends Controller
         ]);
     }
 
-    private function processImage($file, int $width, int $height): array
+    private function processImage(\Illuminate\Http\UploadedFile $file, int $width, int $height): array
     {
-        if (extension_loaded('imagick')) {
-            $manager = new ImageManager(new \Intervention\Image\Drivers\Imagick\Driver());
-            $filename = Str::uuid() . '.webp';
-            $image = $manager->read($file)->resize($width, $height)->toWebp(80);
-            return ['filename' => $filename, 'content' => (string) $image];
+        $sourcePath = $file->getRealPath();
+        $mime = mime_content_type($sourcePath);
+
+        $src = match($mime) {
+            'image/jpeg' => imagecreatefromjpeg($sourcePath),
+            'image/png'  => imagecreatefrompng($sourcePath),
+            'image/webp' => imagecreatefromwebp($sourcePath),
+            default      => null,
+        };
+
+        if (!$src) {
+            $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+            return ['filename' => $filename, 'content' => file_get_contents($sourcePath)];
         }
 
-        if (extension_loaded('gd')) {
-            $manager = new ImageManager(new \Intervention\Image\Drivers\Gd\Driver());
-            $filename = Str::uuid() . '.webp';
-            $image = $manager->read($file)->resize($width, $height)->toWebp(80);
-            return ['filename' => $filename, 'content' => (string) $image];
-        }
+        $resized = imagescale($src, $width, $height);
+        imagedestroy($src);
 
-        $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
-        return ['filename' => $filename, 'content' => file_get_contents($file->getRealPath())];
+        ob_start();
+        imagewebp($resized, null, 80);
+        $content = ob_get_clean();
+        imagedestroy($resized);
+
+        return ['filename' => Str::uuid() . '.webp', 'content' => $content];
     }
 
     public function store()
