@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use Yajra\DataTables\Facades\DataTables;
 use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\Drivers\Imagick\Driver;
 
 class BannerController extends Controller
 {
