@@ -8,7 +8,6 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use Yajra\DataTables\Facades\DataTables;
 use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Imagick\Driver;
 
 class BannerController extends Controller
 {
@@ -36,6 +35,26 @@ class BannerController extends Controller
         ]);
     }
 
+    private function processImage($file): array
+    {
+        if (extension_loaded('imagick')) {
+            $manager = new ImageManager(new \Intervention\Image\Drivers\Imagick\Driver());
+            $filename = Str::uuid() . '.webp';
+            $image = $manager->read($file)->resize(700, 150)->toWebp(80);
+            return ['filename' => $filename, 'content' => (string) $image];
+        }
+
+        if (extension_loaded('gd')) {
+            $manager = new ImageManager(new \Intervention\Image\Drivers\Gd\Driver());
+            $filename = Str::uuid() . '.webp';
+            $image = $manager->read($file)->resize(700, 150)->toWebp(80);
+            return ['filename' => $filename, 'content' => (string) $image];
+        }
+
+        $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+        return ['filename' => $filename, 'content' => file_get_contents($file->getRealPath())];
+    }
+
     public function store()
     {
         $this->request->validate([
@@ -46,18 +65,10 @@ class BannerController extends Controller
 
         if ($this->request->hasFile('banner')) {
             $file = $this->request->file('banner');
+            $result = $this->processImage($file);
+            $path = 'foto_banner/' . $result['filename'];
 
-            $filename = Str::uuid() . '.webp';
-            $path = 'foto_banner/' . $filename;
-
-            $manager = new ImageManager(new Driver());
-            $image = $manager
-                ->read($file)
-                ->resize(700, 150)
-                ->toWebp(80);
-
-            Storage::disk('public')->put($path, (string) $image);
-
+            Storage::disk('public')->put($path, $result['content']);
             $data['banner'] = $path;
         }
 
@@ -91,17 +102,10 @@ class BannerController extends Controller
                 Storage::disk('public')->delete($banner->banner);
             }
 
-            $filename = Str::uuid() . '.webp';
-            $path = 'foto_banner/' . $filename;
+            $result = $this->processImage($this->request->file('banner'));
+            $path = 'foto_banner/' . $result['filename'];
 
-            $manager = new ImageManager(new Driver());
-            $image = $manager
-                ->read($this->request->file('banner'))
-                ->resize(700, 150)
-                ->toWebp(80);
-
-            Storage::disk('public')->put($path, (string) $image);
-
+            Storage::disk('public')->put($path, $result['content']);
             $data['banner'] = $path;
         }
 

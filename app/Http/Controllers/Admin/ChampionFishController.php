@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Yajra\DataTables\Facades\DataTables;
 use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Imagick\Driver;
 
 class ChampionFishController extends Controller
 {
@@ -39,6 +38,26 @@ class ChampionFishController extends Controller
         ]);
     }
 
+    private function processImage($file, int $width, int $height): array
+    {
+        if (extension_loaded('imagick')) {
+            $manager = new ImageManager(new \Intervention\Image\Drivers\Imagick\Driver());
+            $filename = Str::uuid() . '.webp';
+            $image = $manager->read($file)->resize($width, $height)->toWebp(80);
+            return ['filename' => $filename, 'content' => (string) $image];
+        }
+
+        if (extension_loaded('gd')) {
+            $manager = new ImageManager(new \Intervention\Image\Drivers\Gd\Driver());
+            $filename = Str::uuid() . '.webp';
+            $image = $manager->read($file)->resize($width, $height)->toWebp(80);
+            return ['filename' => $filename, 'content' => (string) $image];
+        }
+
+        $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+        return ['filename' => $filename, 'content' => file_get_contents($file->getRealPath())];
+    }
+
     public function store()
     {
         $this->request->validate([
@@ -52,19 +71,10 @@ class ChampionFishController extends Controller
         $data['status_aktif'] = 1;
 
         if ($this->request->hasFile('path_foto')) {
-            $file = $this->request->file('path_foto');
+            $result = $this->processImage($this->request->file('path_foto'), 300, 300);
+            $path = 'foto_champion_koi/' . $result['filename'];
 
-            $filename = Str::uuid() . '.webp';
-            $path = 'foto_champion_koi/' . $filename;
-
-            $manager = new ImageManager(new Driver());
-            $image = $manager
-                ->read($file)
-                ->resize(300, 300)
-                ->toWebp(80);
-
-            Storage::disk('public')->put($path, (string) $image);
-
+            Storage::disk('public')->put($path, $result['content']);
             $data['foto_ikan'] = $path;
         }
 
@@ -100,17 +110,10 @@ class ChampionFishController extends Controller
                 Storage::disk('public')->delete($fish->foto_ikan);
             }
 
-            $filename = Str::uuid() . '.webp';
-            $path = 'foto_champion_koi/' . $filename;
+            $result = $this->processImage($this->request->file('path_foto'), 300, 300);
+            $path = 'foto_champion_koi/' . $result['filename'];
 
-            $manager = new ImageManager(new Driver());
-            $image = $manager
-                ->read($this->request->file('path_foto'))
-                ->resize(300, 300)
-                ->toWebp(80);
-
-            Storage::disk('public')->put($path, (string) $image);
-
+            Storage::disk('public')->put($path, $result['content']);
             $data['foto_ikan'] = $path;
         }
 
