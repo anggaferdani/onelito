@@ -33,34 +33,6 @@ class BannerController extends Controller
         ]);
     }
 
-    private function processImage(\Illuminate\Http\UploadedFile $file, int $width = 700, int $height = 150): array
-    {
-        $sourcePath = $file->getRealPath();
-        $mime = mime_content_type($sourcePath);
-
-        $src = match($mime) {
-            'image/jpeg' => imagecreatefromjpeg($sourcePath),
-            'image/png'  => imagecreatefrompng($sourcePath),
-            'image/webp' => imagecreatefromwebp($sourcePath),
-            default      => null,
-        };
-
-        if (!$src) {
-            $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
-            return ['filename' => $filename, 'content' => file_get_contents($sourcePath)];
-        }
-
-        $resized = imagescale($src, $width, $height);
-        imagedestroy($src);
-
-        ob_start();
-        imagewebp($resized, null, 80);
-        $content = ob_get_clean();
-        imagedestroy($resized);
-
-        return ['filename' => Str::uuid() . '.webp', 'content' => $content];
-    }
-
     public function store()
     {
         $this->request->validate([
@@ -71,10 +43,10 @@ class BannerController extends Controller
 
         if ($this->request->hasFile('banner')) {
             $file = $this->request->file('banner');
-            $result = $this->processImage($file);
-            $path = 'foto_banner/' . $result['filename'];
+            $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+            $path = 'foto_banner/' . $filename;
 
-            Storage::disk('public')->put($path, $result['content']);
+            Storage::disk('public')->put($path, file_get_contents($file->getRealPath()));
             $data['banner'] = $path;
         }
 
@@ -108,10 +80,11 @@ class BannerController extends Controller
                 Storage::disk('public')->delete($banner->banner);
             }
 
-            $result = $this->processImage($this->request->file('banner'));
-            $path = 'foto_banner/' . $result['filename'];
+            $file = $this->request->file('banner');
+            $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+            $path = 'foto_banner/' . $filename;
 
-            Storage::disk('public')->put($path, $result['content']);
+            Storage::disk('public')->put($path, file_get_contents($file->getRealPath()));
             $data['banner'] = $path;
         }
 
