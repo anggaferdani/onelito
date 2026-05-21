@@ -498,6 +498,7 @@ class AuctionController extends Controller
             $autoBid = request()->input('auto_bid');
 
             $currentHighest = LogBid::where('id_ikan_lelang', $idIkan)
+                ->where('status_aktif', 1)
                 ->lockForUpdate()
                 ->orderBy('nominal_bid', 'desc')
                 ->orderBy('waktu_bid', 'asc')
@@ -524,17 +525,26 @@ class AuctionController extends Controller
             }
 
             $logBid = LogBid::lockForUpdate()
-                ->firstOrCreate(
-                    [
-                        'id_peserta' => $auth->id_peserta,
-                        'id_ikan_lelang' => $idIkan
-                    ],
-                    [
-                        'nominal_bid' => $auctionProduct->ob,
-                        'waktu_bid' => now(),
-                        'status_aktif' => 1
-                    ]
-                );
+                ->where('id_peserta', $auth->id_peserta)
+                ->where('id_ikan_lelang', $idIkan)
+                ->first();
+
+            if (!$logBid) {
+                $logBid = LogBid::create([
+                    'id_peserta' => $auth->id_peserta,
+                    'id_ikan_lelang' => $idIkan,
+                    'nominal_bid' => $auctionProduct->ob,
+                    'waktu_bid' => now(),
+                    'status_aktif' => 1,
+                ]);
+            } elseif ($logBid->status_aktif == 0) {
+                $logBid->update([
+                    'status_aktif' => 1,
+                    'nominal_bid' => $auctionProduct->ob,
+                    'waktu_bid' => now(),
+                    'auto_bid' => null,
+                ]);
+            }
 
             $isNewBidder = $logBid->wasRecentlyCreated;
             $isCurrentWinner = $currentHighest &&
@@ -628,6 +638,7 @@ class AuctionController extends Controller
 
             $autoBidders = LogBid::where('id_ikan_lelang', $idIkan)
                 ->where('id_peserta', '!=', $triggeredBy)
+                ->where('status_aktif', 1)
                 ->whereNotNull('auto_bid')
                 ->where('auto_bid', '>=', $currentPrice)
                 ->whereNotIn('id_peserta', $processedBidders)
@@ -991,6 +1002,7 @@ class AuctionController extends Controller
 
         $tiedAutoBidders = LogBid::where('id_ikan_lelang', $idIkan)
             ->where('id_peserta', '!=', $authId)
+            ->where('status_aktif', 1)
             ->whereNotNull('auto_bid')
             ->where('auto_bid', $nominalBid)
             ->lockForUpdate()
