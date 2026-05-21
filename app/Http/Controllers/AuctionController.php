@@ -678,21 +678,23 @@ class AuctionController extends Controller
                 LogBidDetail::create([
                     'id_bidding' => $challenger->id_bidding,
                     'nominal_bid' => $newPrice,
-                    'status_aktif' => 1,
+                    'status_aktif' => 0,
                     'status_bid' => 1,
                 ]);
             } elseif (!$isTie && $challenger) {
-                $challenger->update([
-                    'nominal_bid' => $challenger->auto_bid,
-                    'waktu_bid' => now()
-                ]);
+                if ($challenger->nominal_bid != $challenger->auto_bid) {
+                    $challenger->update([
+                        'nominal_bid' => $challenger->auto_bid,
+                        'waktu_bid' => now()
+                    ]);
 
-                LogBidDetail::create([
-                    'id_bidding' => $challenger->id_bidding,
-                    'nominal_bid' => $challenger->auto_bid,
-                    'status_aktif' => 1,
-                    'status_bid' => 1,
-                ]);
+                    LogBidDetail::create([
+                        'id_bidding' => $challenger->id_bidding,
+                        'nominal_bid' => $challenger->auto_bid,
+                        'status_aktif' => 1,
+                        'status_bid' => 1,
+                    ]);
+                }
             }
 
             $currentPrice = $newPrice;
