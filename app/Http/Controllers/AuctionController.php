@@ -876,17 +876,19 @@ class AuctionController extends Controller
 
             if ($result['newBid'] !== null) {
                 foreach ($result['beatenBidders'] ?? [] as $beatenBidder) {
-                    $beatenBidder->update([
-                        'nominal_bid' => $beatenBidder->auto_bid,
-                        'waktu_bid' => now()
-                    ]);
+                    if ($beatenBidder->nominal_bid != $beatenBidder->auto_bid) {
+                        $beatenBidder->update([
+                            'nominal_bid' => $beatenBidder->auto_bid,
+                            'waktu_bid' => now()
+                        ]);
 
-                    LogBidDetail::create([
-                        'id_bidding' => $beatenBidder->id_bidding,
-                        'nominal_bid' => $beatenBidder->auto_bid,
-                        'status_aktif' => 1,
-                        'status_bid' => 1,
-                    ]);
+                        LogBidDetail::create([
+                            'id_bidding' => $beatenBidder->id_bidding,
+                            'nominal_bid' => $beatenBidder->auto_bid,
+                            'status_aktif' => 1,
+                            'status_bid' => 1,
+                        ]);
+                    }
                 }
 
                 $logBid->update([
@@ -897,7 +899,7 @@ class AuctionController extends Controller
                 LogBidDetail::create([
                     'id_bidding' => $logBid->id_bidding,
                     'nominal_bid' => $result['newBid'],
-                    'status_aktif' => empty($result['tiedBidders']) ? 1 : 0,
+                    'status_aktif' => count($result['tiedBidders']) === 0 ? 1 : 0,
                     'status_bid' => 1,
                 ]);
 
