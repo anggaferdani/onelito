@@ -600,6 +600,7 @@ class AuctionController extends Controller
 
             if ($manualBidDetailId !== null) {
                 $finalWinner = LogBid::where('id_ikan_lelang', $idIkan)
+                    ->where('status_aktif', 1)
                     ->orderBy('nominal_bid', 'desc')
                     ->orderBy('waktu_bid', 'asc')
                     ->first();
@@ -839,6 +840,7 @@ class AuctionController extends Controller
 
             $hasCompetitorHigher = LogBid::where('id_ikan_lelang', $idIkan)
                 ->where('id_peserta', '!=', $authId)
+                ->where('status_aktif', 1)
                 ->whereNotNull('auto_bid')
                 ->where('auto_bid', '>=', $autoBid)
                 ->exists();
@@ -855,6 +857,7 @@ class AuctionController extends Controller
         if ($autoBid >= $currentPrice) {
             $highestCompetitor = LogBid::where('id_ikan_lelang', $idIkan)
                 ->where('id_peserta', '!=', $authId)
+                ->where('status_aktif', 1)
                 ->whereNotNull('auto_bid')
                 ->orderBy('auto_bid', 'desc')
                 ->orderBy('waktu_bid', 'asc')
@@ -894,14 +897,13 @@ class AuctionController extends Controller
                 LogBidDetail::create([
                     'id_bidding' => $logBid->id_bidding,
                     'nominal_bid' => $result['newBid'],
-                    'status_aktif' => 1,
+                    'status_aktif' => empty($result['tiedBidders']) ? 1 : 0,
                     'status_bid' => 1,
                 ]);
 
                 foreach ($result['tiedBidders'] as $tiedBidder) {
                     $tiedBidder->update([
                         'nominal_bid' => $result['newBid'],
-                        'waktu_bid' => now()
                     ]);
 
                     LogBidDetail::create([
@@ -1041,6 +1043,7 @@ class AuctionController extends Controller
             $logBid->nominal_bid == $currentPrice) {
             $hasStrongerCompetitor = LogBid::where('id_ikan_lelang', $idIkan)
                 ->where('id_peserta', '!=', $logBid->id_peserta)
+                ->where('status_aktif', 1)
                 ->whereNotNull('auto_bid')
                 ->where('auto_bid', '>', $currentPrice)
                 ->exists();
@@ -1069,6 +1072,7 @@ class AuctionController extends Controller
         if ($autoBid == $competitorAutoBid) {
             $tiedBidders = LogBid::where('id_ikan_lelang', $idIkan)
                 ->where('id_peserta', '!=', $logBid->id_peserta)
+                ->where('status_aktif', 1)
                 ->whereNotNull('auto_bid')
                 ->where('auto_bid', $autoBid)
                 ->lockForUpdate()
@@ -1086,6 +1090,7 @@ class AuctionController extends Controller
 
             $tiedBidders = LogBid::where('id_ikan_lelang', $idIkan)
                 ->where('id_peserta', '!=', $logBid->id_peserta)
+                ->where('status_aktif', 1)
                 ->whereNotNull('auto_bid')
                 ->where('auto_bid', $newBid)
                 ->lockForUpdate()
@@ -1093,6 +1098,7 @@ class AuctionController extends Controller
 
             $beatenBidders = LogBid::where('id_ikan_lelang', $idIkan)
                 ->where('id_peserta', '!=', $logBid->id_peserta)
+                ->where('status_aktif', 1)
                 ->whereNotNull('auto_bid')
                 ->where('auto_bid', $competitorAutoBid)
                 ->lockForUpdate()
