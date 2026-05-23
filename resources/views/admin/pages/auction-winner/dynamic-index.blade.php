@@ -1,6 +1,6 @@
 @extends('admin.layouts.app')
 
-@section('title', 'Pemenang Lelang Live Auction')
+@section('title', 'New Pemenang Auction')
 
 @push('style')
     <link rel="stylesheet" href="{{ asset('library/datatables/media/css/jquery.dataTables.min.css') }}">
@@ -11,10 +11,10 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Pemenang Lelang Live Auction</h1>
+                <h1>New Pemenang Auction</h1>
                 <div class="section-header-breadcrumb">
                     <div class="breadcrumb-item active"><a href="#">Dashboard</a></div>
-                    <div class="breadcrumb-item">Pemenang Live Auction</div>
+                    <div class="breadcrumb-item">New Pemenang Auction</div>
                 </div>
             </div>
 
