@@ -110,6 +110,7 @@
                                     <th>No. Ikan</th>
                                     <th>Variety</th>
                                     <th>Nominal Bid</th>
+                                    <th>Tipe Bid</th>
                                     <th>Waktu Bid</th>
                                 </tr>
                             </thead>
@@ -162,7 +163,7 @@
                 $('#du-kota').text('');
                 $('#du-event-name').text('');
                 $('#du-event-tgl').text('');
-                $('#du-fish-body').html('<tr><td colspan="5" class="text-center text-muted">Memuat...</td></tr>');
+                $('#du-fish-body').html('<tr><td colspan="6" class="text-center text-muted">Memuat...</td></tr>');
 
                 $('#modalDetailUser').modal('show');
 
@@ -177,14 +178,16 @@
 
                     var rows = '';
                     if (res.fishes.length === 0) {
-                        rows = '<tr><td colspan="5" class="text-center text-muted">Tidak ada ikan.</td></tr>';
+                        rows = '<tr><td colspan="6" class="text-center text-muted">Tidak ada ikan.</td></tr>';
                     } else {
                         $.each(res.fishes, function (i, fish) {
+                            var tipeBadge = fish.is_auto ? '<span class="badge badge-warning">Auto Bid</span>' : '';
                             rows += '<tr>'
                                 + '<td>' + (i + 1) + '</td>'
                                 + '<td>' + fish.no_ikan + '</td>'
                                 + '<td>' + fish.variety + '</td>'
                                 + '<td><strong>' + fish.nominal_bid + '</strong></td>'
+                                + '<td>' + tipeBadge + '</td>'
                                 + '<td>' + fish.waktu_bid + '</td>'
                                 + '</tr>';
                         });
