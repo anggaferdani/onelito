@@ -310,6 +310,7 @@ Route::group(['prefix' => 'admin', 'middleware' => 'auth:admin'], function () {
     Route::get('/charts/sum-auction-participant', [Admin\DashboardController::class, 'auctionParticipantChart']);
     Route::get('/auction-winners-info', [Admin\AuctionWinnerController::class, 'info'])->name('admin.auction_winner.info');
     Route::patch('/auction-winners-update', [Admin\AuctionWinnerController::class, 'winnerUpdate'])->name('admin.auction_winner.winner_update');
+    Route::get('/dynamic-winners', [Admin\AuctionWinnerController::class, 'dynamicIndex'])->name('admin.dynamic_winners.index');
     Route::get('/members/excels', [Admin\MemberController::class, 'excels'])->name('admin.member.excels');
 
 

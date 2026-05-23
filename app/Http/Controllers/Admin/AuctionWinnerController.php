@@ -97,6 +97,36 @@ class AuctionWinnerController extends Controller
         ]);
     }
 
+    public function dynamicIndex()
+    {
+        if ($this->request->ajax()) {
+            $fishes = EventFish::with(['maxBid.member', 'event'])
+                ->whereHas('event', fn($q) => $q->where('tgl_akhir', '<', Carbon::now()))
+                ->whereHas('maxBid')
+                ->where('status_aktif', 1)
+                ->orderBy('id_ikan', 'desc');
+
+            return DataTables::of($fishes)
+                ->addIndexColumn()
+                ->addColumn('no_ikan', fn($row) => $row->no_ikan ?? '-')
+                ->addColumn('variety', fn($row) => $row->variety ?? '-')
+                ->addColumn('pemenang', fn($row) => $row->maxBid?->member?->nama ?? '-')
+                ->addColumn('no_hp', fn($row) => $row->maxBid?->member?->no_hp ?? '-')
+                ->addColumn('nominal', fn($row) => $row->maxBid
+                    ? 'Rp. ' . number_format($row->maxBid->nominal_bid, 0, '.', '.')
+                    : '-')
+                ->addColumn('event_name', fn($row) => $row->event?->kategori_event ?? '-')
+                ->addColumn('tgl_akhir', fn($row) => $row->event
+                    ? Carbon::parse($row->event->tgl_akhir)->format('d M Y H:i')
+                    : '-')
+                ->make(true);
+        }
+
+        return view('admin.pages.auction-winner.dynamic-index', [
+            'type_menu' => 'manage-auction-winner',
+        ]);
+    }
+
     public function store()
     {
         $data = $this->request->only(['id_bidding']);
