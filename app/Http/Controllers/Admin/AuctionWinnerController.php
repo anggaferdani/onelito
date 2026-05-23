@@ -102,15 +102,20 @@ class AuctionWinnerController extends Controller
     public function dynamicIndex()
     {
         if ($this->request->ajax()) {
-            $fishes = EventFish::with(['bids.member', 'bids.latestDetail', 'event'])
+            $fishes = EventFish::with(['bids.member', 'bids.latestDetail', 'bids.details', 'event'])
                 ->whereHas('event', fn($q) => $q->where('tgl_akhir', '<', Carbon::now()))
                 ->whereHas('bids')
                 ->where('status_aktif', 1)
                 ->orderBy('id_ikan', 'desc');
 
-            $winner = fn($row) => $row->bids
-                ->sortBy([['nominal_bid', 'desc'], ['waktu_bid', 'asc'], ['id_bidding', 'asc']])
-                ->first();
+            $winner = function($row) {
+                $maxNominal = $row->bids->max('nominal_bid');
+                if (!$maxNominal) return null;
+                return $row->bids
+                    ->filter(fn($bid) => $bid->nominal_bid == $maxNominal)
+                    ->sortBy(fn($bid) => $bid->details->where('status_aktif', 1)->where('nominal_bid', $maxNominal)->min('id_bidding_detail') ?? PHP_INT_MAX)
+                    ->first();
+            };
 
             return DataTables::of($fishes)
                 ->addIndexColumn()
@@ -148,15 +153,20 @@ class AuctionWinnerController extends Controller
     public function winnerPerUser()
     {
         if ($this->request->ajax()) {
-            $fishes = EventFish::with(['bids.member', 'event'])
+            $fishes = EventFish::with(['bids.member', 'bids.details', 'event'])
                 ->whereHas('event', fn($q) => $q->where('tgl_akhir', '<', Carbon::now()))
                 ->whereHas('bids')
                 ->where('status_aktif', 1)
                 ->get();
 
-            $getWinner = fn($fish) => $fish->bids
-                ->sortBy([['nominal_bid', 'desc'], ['waktu_bid', 'asc'], ['id_bidding', 'asc']])
-                ->first();
+            $getWinner = function($fish) {
+                $maxNominal = $fish->bids->max('nominal_bid');
+                if (!$maxNominal) return null;
+                return $fish->bids
+                    ->filter(fn($bid) => $bid->nominal_bid == $maxNominal)
+                    ->sortBy(fn($bid) => $bid->details->where('status_aktif', 1)->where('nominal_bid', $maxNominal)->min('id_bidding_detail') ?? PHP_INT_MAX)
+                    ->first();
+            };
 
             $grouped = $fishes
                 ->filter(fn($fish) => $getWinner($fish) !== null)
@@ -204,20 +214,25 @@ class AuctionWinnerController extends Controller
         $member = Member::with(['city', 'province', 'district', 'subdistrict'])->findOrFail($idPeserta);
         $event  = Event::findOrFail($idEvent);
 
-        $fishes = EventFish::with(['bids.latestDetail', 'photo'])
+        $resolveWinner = function($bids) {
+            $maxNominal = $bids->max('nominal_bid');
+            if (!$maxNominal) return null;
+            return $bids
+                ->filter(fn($bid) => $bid->nominal_bid == $maxNominal)
+                ->sortBy(fn($bid) => $bid->details->where('status_aktif', 1)->where('nominal_bid', $maxNominal)->min('id_bidding_detail') ?? PHP_INT_MAX)
+                ->first();
+        };
+
+        $fishes = EventFish::with(['bids.latestDetail', 'bids.details', 'photo'])
             ->where('id_event', $idEvent)
             ->where('status_aktif', 1)
             ->get()
-            ->filter(function ($fish) use ($idPeserta) {
-                $winnerBid = $fish->bids
-                    ->sortBy([['nominal_bid', 'desc'], ['waktu_bid', 'asc'], ['id_bidding', 'asc']])
-                    ->first();
+            ->filter(function ($fish) use ($idPeserta, $resolveWinner) {
+                $winnerBid = $resolveWinner($fish->bids);
                 return $winnerBid?->id_peserta == $idPeserta;
             })
-            ->map(function ($fish) {
-                $winnerBid = $fish->bids
-                    ->sortBy([['nominal_bid', 'desc'], ['waktu_bid', 'asc'], ['id_bidding', 'asc']])
-                    ->first();
+            ->map(function ($fish) use ($resolveWinner) {
+                $winnerBid = $resolveWinner($fish->bids);
                 return [
                     'no_ikan'     => $fish->no_ikan ?? '-',
                     'variety'     => $fish->variety ?? '-',
@@ -260,6 +275,7 @@ class AuctionWinnerController extends Controller
             'bids.member.district',
             'bids.member.subdistrict',
             'bids.latestDetail',
+            'bids.details',
             'photo',
             'event',
         ])
@@ -267,9 +283,13 @@ class AuctionWinnerController extends Controller
             ->where('status_aktif', 1)
             ->firstOrFail();
 
-        $winnerBid = $fish->bids
-            ->sortBy([['nominal_bid', 'desc'], ['waktu_bid', 'asc'], ['id_bidding', 'asc']])
-            ->first();
+        $maxNominal = $fish->bids->max('nominal_bid');
+        $winnerBid = $maxNominal
+            ? $fish->bids
+                ->filter(fn($bid) => $bid->nominal_bid == $maxNominal)
+                ->sortBy(fn($bid) => $bid->details->where('status_aktif', 1)->where('nominal_bid', $maxNominal)->min('id_bidding_detail') ?? PHP_INT_MAX)
+                ->first()
+            : null;
 
         $history = LogBidDetail::with('logBid.member')
             ->whereHas('logBid', fn($q) => $q->where('id_ikan_lelang', $idIkan)->where('status_aktif', 1))
