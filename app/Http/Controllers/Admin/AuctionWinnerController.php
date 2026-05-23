@@ -204,21 +204,31 @@ class AuctionWinnerController extends Controller
         $member = Member::with(['city', 'province', 'district', 'subdistrict'])->findOrFail($idPeserta);
         $event  = Event::findOrFail($idEvent);
 
-        $fishes = EventFish::with(['maxBid.latestDetail', 'photo'])
+        $fishes = EventFish::with(['bids.latestDetail', 'photo'])
             ->where('id_event', $idEvent)
             ->where('status_aktif', 1)
             ->get()
-            ->filter(fn($fish) => $fish->maxBid?->id_peserta == $idPeserta)
-            ->map(fn($fish) => [
-                'no_ikan'     => $fish->no_ikan ?? '-',
-                'variety'     => $fish->variety ?? '-',
-                'nominal_bid' => 'Rp. ' . number_format($fish->maxBid->nominal_bid, 0, '.', '.'),
-                'waktu_bid'   => $fish->maxBid->waktu_bid
-                    ? Carbon::parse($fish->maxBid->waktu_bid)->format('d M Y H:i:s')
-                    : '-',
-                'is_auto'     => $fish->maxBid->latestDetail?->status_bid === 1,
-                'photo_url'   => $fish->photo?->path_foto ? '/storage/' . $fish->photo->path_foto : null,
-            ]);
+            ->filter(function ($fish) use ($idPeserta) {
+                $winnerBid = $fish->bids
+                    ->sortBy([['nominal_bid', 'desc'], ['waktu_bid', 'asc']])
+                    ->first();
+                return $winnerBid?->id_peserta == $idPeserta;
+            })
+            ->map(function ($fish) {
+                $winnerBid = $fish->bids
+                    ->sortBy([['nominal_bid', 'desc'], ['waktu_bid', 'asc']])
+                    ->first();
+                return [
+                    'no_ikan'     => $fish->no_ikan ?? '-',
+                    'variety'     => $fish->variety ?? '-',
+                    'nominal_bid' => 'Rp. ' . number_format($winnerBid->nominal_bid, 0, '.', '.'),
+                    'waktu_bid'   => $winnerBid->waktu_bid
+                        ? Carbon::parse($winnerBid->waktu_bid)->format('d M Y H:i:s')
+                        : '-',
+                    'is_auto'     => $winnerBid->latestDetail?->status_bid === 1,
+                    'photo_url'   => $fish->photo?->path_foto ? '/storage/' . $fish->photo->path_foto : null,
+                ];
+            });
 
         return response()->json([
             'member' => [
