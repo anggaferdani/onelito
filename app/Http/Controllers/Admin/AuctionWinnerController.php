@@ -116,7 +116,7 @@ class AuctionWinnerController extends Controller
                 ->addColumn('nominal', fn($row) => $row->maxBid
                     ? 'Rp. ' . number_format($row->maxBid->nominal_bid, 0, '.', '.')
                     : '-')
-                ->addColumn('tipe_bid', fn($row) => ($row->maxBid?->latestDetail?->status_bid === 0)
+                ->addColumn('tipe_bid', fn($row) => ($row->maxBid?->latestDetail?->status_bid === 1)
                     ? '<span class="badge badge-warning">Auto Bid</span>'
                     : '')
                 ->addColumn('event_name', fn($row) => $row->event?->kategori_event ?? '-')
@@ -202,7 +202,7 @@ class AuctionWinnerController extends Controller
                 'waktu_bid'   => $fish->maxBid->waktu_bid
                     ? Carbon::parse($fish->maxBid->waktu_bid)->format('d M Y H:i:s')
                     : '-',
-                'is_auto'     => $fish->maxBid->latestDetail?->status_bid === 0,
+                'is_auto'     => $fish->maxBid->latestDetail?->status_bid === 1,
             ]);
 
         return response()->json([
@@ -240,7 +240,7 @@ class AuctionWinnerController extends Controller
                 'nominal_bid' => 'Rp. ' . number_format($bid->nominal_bid, 0, '.', '.'),
                 'waktu_bid'   => $bid->waktu_bid ? Carbon::parse($bid->waktu_bid)->format('d M Y H:i:s') : '-',
                 'is_winner'   => $fish->maxBid && $fish->maxBid->id_bidding === $bid->id_bidding,
-                'is_auto'     => $bid->latestDetail?->status_bid === 0,
+                'is_auto'     => $bid->latestDetail?->status_bid === 1,
             ]);
 
         $winner = $fish->maxBid?->member;
@@ -258,7 +258,7 @@ class AuctionWinnerController extends Controller
                 'email'    => $winner->email ?? '-',
                 'kota'     => $winner->city?->name ?? '-',
                 'nominal'  => 'Rp. ' . number_format($fish->maxBid->nominal_bid, 0, '.', '.'),
-                'is_auto'  => $fish->maxBid->latestDetail?->status_bid === 0,
+                'is_auto'  => $fish->maxBid->latestDetail?->status_bid === 1,
             ] : null,
             'history' => $history,
         ]);
