@@ -104,9 +104,10 @@ class AuctionWinnerController extends Controller
         if ($this->request->ajax()) {
             $fishes = EventFish::with(['maxBid.member', 'maxBid.latestDetail', 'event'])
                 ->whereHas('event', fn($q) => $q->where('tgl_akhir', '<', Carbon::now()))
-                ->whereHas('maxBid')
                 ->where('status_aktif', 1)
-                ->orderBy('id_ikan', 'desc');
+                ->orderBy('id_ikan', 'desc')
+                ->get()
+                ->filter(fn($fish) => $fish->maxBid !== null);
 
             return DataTables::of($fishes)
                 ->addIndexColumn()
@@ -143,9 +144,9 @@ class AuctionWinnerController extends Controller
         if ($this->request->ajax()) {
             $fishes = EventFish::with(['maxBid.member', 'event'])
                 ->whereHas('event', fn($q) => $q->where('tgl_akhir', '<', Carbon::now()))
-                ->whereHas('maxBid')
                 ->where('status_aktif', 1)
-                ->get();
+                ->get()
+                ->filter(fn($fish) => $fish->maxBid !== null);
 
             $grouped = $fishes
                 ->groupBy(fn($fish) => $fish->maxBid->id_peserta . '_' . $fish->id_event)
