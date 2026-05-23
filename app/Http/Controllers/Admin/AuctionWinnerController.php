@@ -8,6 +8,7 @@ use App\Models\AuctionWinner;
 use App\Models\Cart;
 use App\Models\Event;
 use App\Models\EventFish;
+use App\Models\LogBid;
 use App\Models\Member;
 use App\Models\OrderDetail;
 use Carbon\Carbon;
@@ -119,11 +120,58 @@ class AuctionWinnerController extends Controller
                 ->addColumn('tgl_akhir', fn($row) => $row->event
                     ? Carbon::parse($row->event->tgl_akhir)->format('d M Y H:i')
                     : '-')
+                ->addColumn('aksi', fn($row) =>
+                    '<button class="btn btn-sm btn-primary btn-detail" data-id="' . $row->id_ikan . '">
+                        <i class="fas fa-eye"></i> Detail
+                    </button>'
+                )
+                ->rawColumns(['aksi'])
                 ->make(true);
         }
 
         return view('admin.pages.auction-winner.dynamic-index', [
             'type_menu' => 'manage-dynamic-winner',
+        ]);
+    }
+
+    public function dynamicWinnerDetail($idIkan)
+    {
+        $fish = EventFish::with(['maxBid.member.city', 'event'])
+            ->where('id_ikan', $idIkan)
+            ->where('status_aktif', 1)
+            ->firstOrFail();
+
+        $history = LogBid::with('member')
+            ->where('id_ikan_lelang', $idIkan)
+            ->where('status_aktif', 1)
+            ->orderBy('nominal_bid', 'desc')
+            ->orderBy('waktu_bid', 'asc')
+            ->get()
+            ->map(fn($bid) => [
+                'nama'        => $bid->member?->nama ?? '-',
+                'no_hp'       => $bid->member?->no_hp ?? '-',
+                'nominal_bid' => 'Rp. ' . number_format($bid->nominal_bid, 0, '.', '.'),
+                'waktu_bid'   => $bid->waktu_bid ? Carbon::parse($bid->waktu_bid)->format('d M Y H:i:s') : '-',
+                'is_winner'   => $fish->maxBid && $fish->maxBid->id_bidding === $bid->id_bidding,
+            ]);
+
+        $winner = $fish->maxBid?->member;
+
+        return response()->json([
+            'fish' => [
+                'no_ikan'    => $fish->no_ikan ?? '-',
+                'variety'    => $fish->variety ?? '-',
+                'event_name' => $fish->event?->kategori_event ?? '-',
+                'tgl_akhir'  => $fish->event ? Carbon::parse($fish->event->tgl_akhir)->format('d M Y H:i') : '-',
+            ],
+            'winner' => $winner ? [
+                'nama'     => $winner->nama ?? '-',
+                'no_hp'    => $winner->no_hp ?? '-',
+                'email'    => $winner->email ?? '-',
+                'kota'     => $winner->city?->name ?? '-',
+                'nominal'  => 'Rp. ' . number_format($fish->maxBid->nominal_bid, 0, '.', '.'),
+            ] : null,
+            'history' => $history,
         ]);
     }
 
