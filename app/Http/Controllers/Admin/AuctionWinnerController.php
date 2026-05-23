@@ -123,7 +123,7 @@ class AuctionWinnerController extends Controller
         }
 
         return view('admin.pages.auction-winner.dynamic-index', [
-            'type_menu' => 'manage-auction-winner',
+            'type_menu' => 'manage-dynamic-winner',
         ]);
     }
 
