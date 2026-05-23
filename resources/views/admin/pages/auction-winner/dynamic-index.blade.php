@@ -146,7 +146,6 @@
                                     <th>Nominal</th>
                                     <th>Waktu Bid</th>
                                     <th>Tipe</th>
-                                    <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody id="detail-history-body"></tbody>
@@ -217,7 +216,7 @@
                 $('#detail-winner-kodepos').text('');
                 $('#detail-winner-nominal').text('');
                 $('#detail-winner-tipe').html('');
-                $('#detail-history-body').html('<tr><td colspan="7" class="text-center text-muted">Memuat...</td></tr>');
+                $('#detail-history-body').html('<tr><td colspan="6" class="text-center text-muted">Memuat...</td></tr>');
                 $('#detail-winner-section').removeClass('d-none');
                 $('#detail-no-winner').addClass('d-none');
 
@@ -257,11 +256,10 @@
 
                     var rows = '';
                     if (res.history.length === 0) {
-                        rows = '<tr><td colspan="7" class="text-center text-muted">Belum ada history bidding.</td></tr>';
+                        rows = '<tr><td colspan="6" class="text-center text-muted">Belum ada history bidding.</td></tr>';
                     } else {
                         $.each(res.history, function (i, bid) {
-                            var tipeBadge  = bid.is_auto ? '<span class="badge badge-warning">Auto Bid</span>' : '';
-                            var winnerBadge = bid.is_winner ? '<span class="badge badge-success">Pemenang</span>' : '';
+                            var tipeBadge = bid.is_auto ? '<span class="badge badge-warning">Auto Bid</span>' : '';
                             rows += '<tr' + (bid.is_winner ? ' class="table-success"' : '') + '>'
                                 + '<td>' + (i + 1) + '</td>'
                                 + '<td>' + bid.nama + '</td>'
@@ -269,7 +267,6 @@
                                 + '<td><strong>' + bid.nominal_bid + '</strong></td>'
                                 + '<td>' + bid.waktu_bid + '</td>'
                                 + '<td>' + tipeBadge + '</td>'
-                                + '<td>' + winnerBadge + '</td>'
                                 + '</tr>';
                         });
                     }
