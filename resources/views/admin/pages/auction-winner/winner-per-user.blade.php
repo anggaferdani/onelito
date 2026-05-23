@@ -52,7 +52,7 @@
 
     {{-- Modal Detail --}}
     <div class="modal fade" id="modalDetailUser" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Detail Pemenang &mdash; <span id="du-nama"></span></h5>
@@ -65,29 +65,31 @@
                     {{-- Info Member --}}
                     <h6 class="font-weight-bold mb-3">Data Member</h6>
                     <div class="row mb-3">
-                        <div class="col-md-6">
-                            <table class="table table-sm table-borderless mb-0">
-                                <tr>
-                                    <td class="text-muted" width="100">Nama</td>
-                                    <td>: <strong id="du-nama-detail"></strong></td>
-                                </tr>
-                                <tr>
-                                    <td class="text-muted">No. HP</td>
-                                    <td>: <span id="du-hp"></span></td>
-                                </tr>
-                            </table>
+                        <div class="col-md-2 text-center mb-3 mb-md-0">
+                            <img id="du-profile-pic" src="" alt="Foto"
+                                class="img-fluid rounded-circle shadow-sm"
+                                style="width:80px;height:80px;object-fit:cover;">
                         </div>
-                        <div class="col-md-6">
-                            <table class="table table-sm table-borderless mb-0">
-                                <tr>
-                                    <td class="text-muted" width="100">Email</td>
-                                    <td>: <span id="du-email"></span></td>
-                                </tr>
-                                <tr>
-                                    <td class="text-muted">Kota</td>
-                                    <td>: <span id="du-kota"></span></td>
-                                </tr>
-                            </table>
+                        <div class="col-md-10">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <table class="table table-sm table-borderless mb-0">
+                                        <tr><td class="text-muted" width="100">Nama</td><td>: <strong id="du-nama-detail"></strong></td></tr>
+                                        <tr><td class="text-muted">No. HP</td><td>: <span id="du-hp"></span></td></tr>
+                                        <tr><td class="text-muted">Email</td><td>: <span id="du-email"></span></td></tr>
+                                        <tr><td class="text-muted">Alamat</td><td>: <span id="du-alamat"></span></td></tr>
+                                    </table>
+                                </div>
+                                <div class="col-md-6">
+                                    <table class="table table-sm table-borderless mb-0">
+                                        <tr><td class="text-muted" width="100">Kelurahan</td><td>: <span id="du-kelurahan"></span></td></tr>
+                                        <tr><td class="text-muted">Kecamatan</td><td>: <span id="du-kecamatan"></span></td></tr>
+                                        <tr><td class="text-muted">Kota</td><td>: <span id="du-kota"></span></td></tr>
+                                        <tr><td class="text-muted">Provinsi</td><td>: <span id="du-provinsi"></span></td></tr>
+                                        <tr><td class="text-muted">Kode Pos</td><td>: <span id="du-kodepos"></span></td></tr>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -106,6 +108,7 @@
                         <table class="table table-sm table-striped">
                             <thead>
                                 <tr>
+                                    <th>Foto</th>
                                     <th>#</th>
                                     <th>No. Ikan</th>
                                     <th>Variety</th>
@@ -156,33 +159,49 @@
                 var idPeserta = $(this).data('peserta');
                 var idEvent   = $(this).data('event');
 
+                var noPhoto  = 'https://via.placeholder.com/60?text=No+Foto';
+                var noAvatar = 'https://via.placeholder.com/80?text=?';
                 $('#du-nama').text('');
+                $('#du-profile-pic').attr('src', noAvatar);
                 $('#du-nama-detail').text('');
                 $('#du-hp').text('');
                 $('#du-email').text('');
+                $('#du-alamat').text('');
+                $('#du-kelurahan').text('');
+                $('#du-kecamatan').text('');
                 $('#du-kota').text('');
+                $('#du-provinsi').text('');
+                $('#du-kodepos').text('');
                 $('#du-event-name').text('');
                 $('#du-event-tgl').text('');
-                $('#du-fish-body').html('<tr><td colspan="6" class="text-center text-muted">Memuat...</td></tr>');
+                $('#du-fish-body').html('<tr><td colspan="7" class="text-center text-muted">Memuat...</td></tr>');
 
                 $('#modalDetailUser').modal('show');
 
                 $.get('{{ url("admin/winner-per-user") }}/' + idPeserta + '/' + idEvent + '/detail', function (res) {
                     $('#du-nama').text(res.member.nama);
+                    $('#du-profile-pic').attr('src', res.member.profile_pic || noAvatar);
                     $('#du-nama-detail').text(res.member.nama);
                     $('#du-hp').text(res.member.no_hp);
                     $('#du-email').text(res.member.email);
+                    $('#du-alamat').text(res.member.alamat);
+                    $('#du-kelurahan').text(res.member.kelurahan);
+                    $('#du-kecamatan').text(res.member.kecamatan);
                     $('#du-kota').text(res.member.kota);
+                    $('#du-provinsi').text(res.member.provinsi);
+                    $('#du-kodepos').text(res.member.kode_pos);
                     $('#du-event-name').text(res.event.name);
                     $('#du-event-tgl').text(res.event.tgl_mulai + ' — ' + res.event.tgl_akhir);
 
                     var rows = '';
                     if (res.fishes.length === 0) {
-                        rows = '<tr><td colspan="6" class="text-center text-muted">Tidak ada ikan.</td></tr>';
+                        rows = '<tr><td colspan="7" class="text-center text-muted">Tidak ada ikan.</td></tr>';
                     } else {
                         $.each(res.fishes, function (i, fish) {
                             var tipeBadge = fish.is_auto ? '<span class="badge badge-warning">Auto Bid</span>' : '';
+                            var photoHtml = '<img src="' + (fish.photo_url || noPhoto) + '" style="width:50px;height:50px;object-fit:cover;border-radius:4px;">';
                             rows += '<tr>'
+                                + '<td>' + photoHtml + '</td>'
                                 + '<td>' + (i + 1) + '</td>'
                                 + '<td>' + fish.no_ikan + '</td>'
                                 + '<td>' + fish.variety + '</td>'

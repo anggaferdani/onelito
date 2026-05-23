@@ -188,10 +188,10 @@ class AuctionWinnerController extends Controller
 
     public function winnerPerUserDetail($idPeserta, $idEvent)
     {
-        $member = Member::with('city')->findOrFail($idPeserta);
+        $member = Member::with(['city', 'province', 'district', 'subdistrict'])->findOrFail($idPeserta);
         $event  = Event::findOrFail($idEvent);
 
-        $fishes = EventFish::with(['maxBid.latestDetail'])
+        $fishes = EventFish::with(['maxBid.latestDetail', 'photo'])
             ->where('id_event', $idEvent)
             ->where('status_aktif', 1)
             ->get()
@@ -204,14 +204,21 @@ class AuctionWinnerController extends Controller
                     ? Carbon::parse($fish->maxBid->waktu_bid)->format('d M Y H:i:s')
                     : '-',
                 'is_auto'     => $fish->maxBid->latestDetail?->status_bid === 1,
+                'photo_url'   => $fish->photo?->path_foto ? '/storage/' . $fish->photo->path_foto : null,
             ]);
 
         return response()->json([
             'member' => [
-                'nama'  => $member->nama ?? '-',
-                'no_hp' => $member->no_hp ?? '-',
-                'email' => $member->email ?? '-',
-                'kota'  => $member->city?->name ?? '-',
+                'nama'        => $member->nama ?? '-',
+                'no_hp'       => $member->no_hp ?? '-',
+                'email'       => $member->email ?? '-',
+                'alamat'      => $member->alamat ?? '-',
+                'kode_pos'    => $member->kode_pos ?? '-',
+                'kelurahan'   => $member->subdistrict?->subdis_name ?? '-',
+                'kecamatan'   => $member->district?->dis_name ?? '-',
+                'kota'        => $member->city?->city_name ?? '-',
+                'provinsi'    => $member->province?->prov_name ?? '-',
+                'profile_pic' => $member->profile_pic ? '/storage/' . $member->profile_pic : null,
             ],
             'event' => [
                 'name'      => $event->kategori_event ?? '-',
@@ -224,7 +231,15 @@ class AuctionWinnerController extends Controller
 
     public function dynamicWinnerDetail($idIkan)
     {
-        $fish = EventFish::with(['maxBid.member.city', 'maxBid.latestDetail', 'event'])
+        $fish = EventFish::with([
+            'maxBid.member.city',
+            'maxBid.member.province',
+            'maxBid.member.district',
+            'maxBid.member.subdistrict',
+            'maxBid.latestDetail',
+            'photo',
+            'event',
+        ])
             ->where('id_ikan', $idIkan)
             ->where('status_aktif', 1)
             ->firstOrFail();
@@ -250,16 +265,28 @@ class AuctionWinnerController extends Controller
             'fish' => [
                 'no_ikan'    => $fish->no_ikan ?? '-',
                 'variety'    => $fish->variety ?? '-',
+                'breeder'    => $fish->breeder ?? '-',
+                'bloodline'  => $fish->bloodline ?? '-',
+                'sex'        => $fish->sex ?? '-',
+                'size'       => $fish->size ?? '-',
+                'dob'        => $fish->dob ?? '-',
                 'event_name' => $fish->event?->kategori_event ?? '-',
                 'tgl_akhir'  => $fish->event ? Carbon::parse($fish->event->tgl_akhir)->format('d M Y H:i') : '-',
+                'photo_url'  => $fish->photo?->path_foto ? '/storage/' . $fish->photo->path_foto : null,
             ],
             'winner' => $winner ? [
-                'nama'     => $winner->nama ?? '-',
-                'no_hp'    => $winner->no_hp ?? '-',
-                'email'    => $winner->email ?? '-',
-                'kota'     => $winner->city?->name ?? '-',
-                'nominal'  => 'Rp. ' . number_format($fish->maxBid->nominal_bid, 0, '.', '.'),
-                'is_auto'  => $fish->maxBid->latestDetail?->status_bid === 1,
+                'nama'        => $winner->nama ?? '-',
+                'no_hp'       => $winner->no_hp ?? '-',
+                'email'       => $winner->email ?? '-',
+                'alamat'      => $winner->alamat ?? '-',
+                'kode_pos'    => $winner->kode_pos ?? '-',
+                'kelurahan'   => $winner->subdistrict?->subdis_name ?? '-',
+                'kecamatan'   => $winner->district?->dis_name ?? '-',
+                'kota'        => $winner->city?->city_name ?? '-',
+                'provinsi'    => $winner->province?->prov_name ?? '-',
+                'nominal'     => 'Rp. ' . number_format($fish->maxBid->nominal_bid, 0, '.', '.'),
+                'is_auto'     => $fish->maxBid->latestDetail?->status_bid === 1,
+                'profile_pic' => $winner->profile_pic ? '/storage/' . $winner->profile_pic : null,
             ] : null,
             'history' => $history,
         ]);
