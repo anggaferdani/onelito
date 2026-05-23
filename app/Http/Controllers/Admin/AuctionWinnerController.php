@@ -9,6 +9,7 @@ use App\Models\Cart;
 use App\Models\Event;
 use App\Models\EventFish;
 use App\Models\LogBid;
+use App\Models\LogBidDetail;
 use App\Models\Member;
 use App\Models\OrderDetail;
 use Carbon\Carbon;
@@ -228,19 +229,19 @@ class AuctionWinnerController extends Controller
             ->where('status_aktif', 1)
             ->firstOrFail();
 
-        $history = LogBid::with(['member', 'latestDetail'])
-            ->where('id_ikan_lelang', $idIkan)
+        $history = LogBidDetail::with('logBid.member')
+            ->whereHas('logBid', fn($q) => $q->where('id_ikan_lelang', $idIkan)->where('status_aktif', 1))
             ->where('status_aktif', 1)
             ->orderBy('nominal_bid', 'desc')
-            ->orderBy('waktu_bid', 'asc')
+            ->orderByDesc('id_bidding_detail')
             ->get()
-            ->map(fn($bid) => [
-                'nama'        => $bid->member?->nama ?? '-',
-                'no_hp'       => $bid->member?->no_hp ?? '-',
-                'nominal_bid' => 'Rp. ' . number_format($bid->nominal_bid, 0, '.', '.'),
-                'waktu_bid'   => $bid->waktu_bid ? Carbon::parse($bid->waktu_bid)->format('d M Y H:i:s') : '-',
-                'is_winner'   => $fish->maxBid && $fish->maxBid->id_bidding === $bid->id_bidding,
-                'is_auto'     => $bid->latestDetail?->status_bid === 1,
+            ->map(fn($detail) => [
+                'nama'        => $detail->logBid?->member?->nama ?? '-',
+                'no_hp'       => $detail->logBid?->member?->no_hp ?? '-',
+                'nominal_bid' => 'Rp. ' . number_format($detail->nominal_bid, 0, '.', '.'),
+                'waktu_bid'   => $detail->created_at ? Carbon::parse($detail->created_at)->format('d M Y H:i:s') : '-',
+                'is_winner'   => $fish->maxBid && $fish->maxBid->id_bidding === $detail->id_bidding,
+                'is_auto'     => $detail->status_bid === 1,
             ]);
 
         $winner = $fish->maxBid?->member;
