@@ -102,26 +102,31 @@ class AuctionWinnerController extends Controller
     public function dynamicIndex()
     {
         if ($this->request->ajax()) {
-            $fishes = EventFish::with(['maxBid.member', 'maxBid.latestDetail', 'event'])
+            $fishes = EventFish::with(['bids.member', 'bids.latestDetail', 'event'])
                 ->whereHas('event', fn($q) => $q->where('tgl_akhir', '<', Carbon::now()))
+                ->whereHas('bids')
                 ->where('status_aktif', 1)
-                ->orderBy('id_ikan', 'desc')
-                ->get()
-                ->filter(fn($fish) => $fish->maxBid !== null)
-                ->values();
+                ->orderBy('id_ikan', 'desc');
+
+            $winner = fn($row) => $row->bids
+                ->sortBy([['nominal_bid', 'desc'], ['waktu_bid', 'asc']])
+                ->first();
 
             return DataTables::of($fishes)
                 ->addIndexColumn()
                 ->addColumn('no_ikan', fn($row) => $row->no_ikan ?? '-')
                 ->addColumn('variety', fn($row) => $row->variety ?? '-')
-                ->addColumn('pemenang', fn($row) => $row->maxBid?->member?->nama ?? '-')
-                ->addColumn('no_hp', fn($row) => $row->maxBid?->member?->no_hp ?? '-')
-                ->addColumn('nominal', fn($row) => $row->maxBid
-                    ? 'Rp. ' . number_format($row->maxBid->nominal_bid, 0, '.', '.')
-                    : '-')
-                ->addColumn('tipe_bid', fn($row) => ($row->maxBid?->latestDetail?->status_bid === 1)
-                    ? '<span class="badge badge-danger">Auto Bid</span>'
-                    : '')
+                ->addColumn('pemenang', fn($row) => $winner($row)?->member?->nama ?? '-')
+                ->addColumn('no_hp', fn($row) => $winner($row)?->member?->no_hp ?? '-')
+                ->addColumn('nominal', function($row) use ($winner) {
+                    $w = $winner($row);
+                    return $w ? 'Rp. ' . number_format($w->nominal_bid, 0, '.', '.') : '-';
+                })
+                ->addColumn('tipe_bid', function($row) use ($winner) {
+                    return ($winner($row)?->latestDetail?->status_bid === 1)
+                        ? '<span class="badge badge-danger">Auto Bid</span>'
+                        : '';
+                })
                 ->addColumn('event_name', fn($row) => $row->event?->kategori_event ?? '-')
                 ->addColumn('tgl_akhir', fn($row) => $row->event
                     ? Carbon::parse($row->event->tgl_akhir)->format('d M Y H:i')
@@ -143,20 +148,26 @@ class AuctionWinnerController extends Controller
     public function winnerPerUser()
     {
         if ($this->request->ajax()) {
-            $fishes = EventFish::with(['maxBid.member', 'event'])
+            $fishes = EventFish::with(['bids.member', 'event'])
                 ->whereHas('event', fn($q) => $q->where('tgl_akhir', '<', Carbon::now()))
+                ->whereHas('bids')
                 ->where('status_aktif', 1)
-                ->get()
-                ->filter(fn($fish) => $fish->maxBid !== null);
+                ->get();
+
+            $getWinner = fn($fish) => $fish->bids
+                ->sortBy([['nominal_bid', 'desc'], ['waktu_bid', 'asc']])
+                ->first();
 
             $grouped = $fishes
-                ->groupBy(fn($fish) => $fish->maxBid->id_peserta . '_' . $fish->id_event)
-                ->map(function ($fishGroup) {
+                ->filter(fn($fish) => $getWinner($fish) !== null)
+                ->groupBy(fn($fish) => $getWinner($fish)->id_peserta . '_' . $fish->id_event)
+                ->map(function ($fishGroup) use ($getWinner) {
                     $first   = $fishGroup->first();
-                    $member  = $first->maxBid->member;
+                    $winner  = $getWinner($first);
+                    $member  = $winner->member;
                     $event   = $first->event;
                     return [
-                        'id_peserta'  => $first->maxBid->id_peserta,
+                        'id_peserta'  => $winner->id_peserta,
                         'id_event'    => $first->id_event,
                         'nama'        => $member?->nama ?? '-',
                         'no_hp'       => $member?->no_hp ?? '-',
