@@ -118,7 +118,7 @@ class AuctionWinnerController extends Controller
                     ? 'Rp. ' . number_format($row->maxBid->nominal_bid, 0, '.', '.')
                     : '-')
                 ->addColumn('tipe_bid', fn($row) => ($row->maxBid?->latestDetail?->status_bid === 1)
-                    ? '<span class="badge badge-warning">Auto Bid</span>'
+                    ? '<span class="badge badge-danger">Auto Bid</span>'
                     : '')
                 ->addColumn('event_name', fn($row) => $row->event?->kategori_event ?? '-')
                 ->addColumn('tgl_akhir', fn($row) => $row->event

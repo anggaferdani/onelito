@@ -198,7 +198,7 @@
                         rows = '<tr><td colspan="7" class="text-center text-muted">Tidak ada ikan.</td></tr>';
                     } else {
                         $.each(res.fishes, function (i, fish) {
-                            var tipeBadge = fish.is_auto ? '<span class="badge badge-warning">Auto Bid</span>' : '';
+                            var tipeBadge = fish.is_auto ? '<span class="badge badge-danger">Auto Bid</span>' : '';
                             var photoHtml = '<img src="' + (fish.photo_url || noPhoto) + '" style="width:50px;height:50px;object-fit:cover;border-radius:4px;">';
                             rows += '<tr>'
                                 + '<td>' + photoHtml + '</td>'

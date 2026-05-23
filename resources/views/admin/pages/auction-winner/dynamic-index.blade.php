@@ -248,7 +248,7 @@
                         $('#detail-winner-provinsi').text(res.winner.provinsi);
                         $('#detail-winner-kodepos').text(res.winner.kode_pos);
                         $('#detail-winner-nominal').text(res.winner.nominal);
-                        $('#detail-winner-tipe').html(res.winner.is_auto ? '<span class="badge badge-warning ml-1">Auto Bid</span>' : '');
+                        $('#detail-winner-tipe').html(res.winner.is_auto ? '<span class="badge badge-danger ml-1">Auto Bid</span>' : '');
                     } else {
                         $('#detail-winner-section').addClass('d-none');
                         $('#detail-no-winner').removeClass('d-none');
@@ -259,7 +259,7 @@
                         rows = '<tr><td colspan="6" class="text-center text-muted">Belum ada history bidding.</td></tr>';
                     } else {
                         $.each(res.history, function (i, bid) {
-                            var tipeBadge = bid.is_auto ? '<span class="badge badge-warning">Auto Bid</span>' : '';
+                            var tipeBadge = bid.is_auto ? '<span class="badge badge-danger">Auto Bid</span>' : '';
                             rows += '<tr' + (bid.is_winner ? ' class="table-success"' : '') + '>'
                                 + '<td>' + (i + 1) + '</td>'
                                 + '<td>' + bid.nama + '</td>'
