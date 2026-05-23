@@ -101,7 +101,7 @@ class AuctionWinnerController extends Controller
     public function dynamicIndex()
     {
         if ($this->request->ajax()) {
-            $fishes = EventFish::with(['maxBid.member', 'event'])
+            $fishes = EventFish::with(['maxBid.member', 'maxBid.latestDetail', 'event'])
                 ->whereHas('event', fn($q) => $q->where('tgl_akhir', '<', Carbon::now()))
                 ->whereHas('maxBid')
                 ->where('status_aktif', 1)
@@ -116,7 +116,7 @@ class AuctionWinnerController extends Controller
                 ->addColumn('nominal', fn($row) => $row->maxBid
                     ? 'Rp. ' . number_format($row->maxBid->nominal_bid, 0, '.', '.')
                     : '-')
-                ->addColumn('tipe_bid', fn($row) => ($row->maxBid?->auto_bid > 0)
+                ->addColumn('tipe_bid', fn($row) => ($row->maxBid?->latestDetail?->status_bid === 0)
                     ? '<span class="badge badge-warning">Auto Bid</span>'
                     : '')
                 ->addColumn('event_name', fn($row) => $row->event?->kategori_event ?? '-')
@@ -190,7 +190,7 @@ class AuctionWinnerController extends Controller
         $member = Member::with('city')->findOrFail($idPeserta);
         $event  = Event::findOrFail($idEvent);
 
-        $fishes = EventFish::with(['maxBid'])
+        $fishes = EventFish::with(['maxBid.latestDetail'])
             ->where('id_event', $idEvent)
             ->where('status_aktif', 1)
             ->whereHas('maxBid', fn($q) => $q->where('id_peserta', $idPeserta))
@@ -202,7 +202,7 @@ class AuctionWinnerController extends Controller
                 'waktu_bid'   => $fish->maxBid->waktu_bid
                     ? Carbon::parse($fish->maxBid->waktu_bid)->format('d M Y H:i:s')
                     : '-',
-                'is_auto'     => $fish->maxBid->auto_bid > 0,
+                'is_auto'     => $fish->maxBid->latestDetail?->status_bid === 0,
             ]);
 
         return response()->json([
@@ -223,12 +223,12 @@ class AuctionWinnerController extends Controller
 
     public function dynamicWinnerDetail($idIkan)
     {
-        $fish = EventFish::with(['maxBid.member.city', 'event'])
+        $fish = EventFish::with(['maxBid.member.city', 'maxBid.latestDetail', 'event'])
             ->where('id_ikan', $idIkan)
             ->where('status_aktif', 1)
             ->firstOrFail();
 
-        $history = LogBid::with('member')
+        $history = LogBid::with(['member', 'latestDetail'])
             ->where('id_ikan_lelang', $idIkan)
             ->where('status_aktif', 1)
             ->orderBy('nominal_bid', 'desc')
@@ -240,7 +240,7 @@ class AuctionWinnerController extends Controller
                 'nominal_bid' => 'Rp. ' . number_format($bid->nominal_bid, 0, '.', '.'),
                 'waktu_bid'   => $bid->waktu_bid ? Carbon::parse($bid->waktu_bid)->format('d M Y H:i:s') : '-',
                 'is_winner'   => $fish->maxBid && $fish->maxBid->id_bidding === $bid->id_bidding,
-                'is_auto'     => $bid->auto_bid > 0,
+                'is_auto'     => $bid->latestDetail?->status_bid === 0,
             ]);
 
         $winner = $fish->maxBid?->member;
@@ -258,7 +258,7 @@ class AuctionWinnerController extends Controller
                 'email'    => $winner->email ?? '-',
                 'kota'     => $winner->city?->name ?? '-',
                 'nominal'  => 'Rp. ' . number_format($fish->maxBid->nominal_bid, 0, '.', '.'),
-                'is_auto'  => $fish->maxBid->auto_bid > 0,
+                'is_auto'  => $fish->maxBid->latestDetail?->status_bid === 0,
             ] : null,
             'history' => $history,
         ]);

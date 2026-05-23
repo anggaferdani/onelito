@@ -37,4 +37,11 @@ class LogBid extends Model
     {
         return $this->hasMany(LogBidDetail::class, 'id_bidding', 'id_bidding');
     }
+
+    public function latestDetail()
+    {
+        return $this->hasOne(LogBidDetail::class, 'id_bidding', 'id_bidding')
+            ->where('status_aktif', 1)
+            ->orderByDesc('id_bidding_detail');
+    }
 }
