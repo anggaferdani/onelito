@@ -71,7 +71,7 @@
             </li>
             <li class="nav-item {{ $type_menu === 'manage-dynamic-winner' ? 'active' : '' }}">
                 <a class="nav-link"
-                    href="{{ url('admin/dynamic-winners') }}"><i class="fas fa-trophy"></i> <span>Pemenang Live Auction</span></a>
+                    href="{{ url('admin/dynamic-winners') }}"><i class="fas fa-trophy"></i> <span>New Pemenang Auction</span></a>
             </li>
             <li class="menu-header">News</li>
             <li class="nav-item {{ Route::is('admin.notifikasi.*') ? 'active' : '' }}">
