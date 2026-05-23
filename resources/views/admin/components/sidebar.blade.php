@@ -65,9 +65,10 @@
                 <a class="nav-link"
                     href="{{ url('admin/current-auctions') }}"><i class="fas fa-calendar-days"></i> <span>Current Auction</span></a>
             </li>
-            <li class="nav-item {{ $type_menu === 'manage-auction-winner' ? 'active' : '' }}">
-                <a class="nav-link"
-                    href="{{ url('admin/auction-winners') }}"><i class="fas fa-user"></i> <span>Pemenang Lelang</span></a>
+            <li class="nav-item">
+                <a class="nav-link disabled text-muted" style="pointer-events:none;opacity:.45;">
+                    <i class="fas fa-user"></i> <span>Pemenang Lelang</span>
+                </a>
             </li>
             <li class="nav-item {{ $type_menu === 'manage-dynamic-winner' ? 'active' : '' }}">
                 <a class="nav-link"
