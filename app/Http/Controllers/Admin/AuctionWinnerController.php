@@ -107,7 +107,8 @@ class AuctionWinnerController extends Controller
                 ->where('status_aktif', 1)
                 ->orderBy('id_ikan', 'desc')
                 ->get()
-                ->filter(fn($fish) => $fish->maxBid !== null);
+                ->filter(fn($fish) => $fish->maxBid !== null)
+                ->values();
 
             return DataTables::of($fishes)
                 ->addIndexColumn()
