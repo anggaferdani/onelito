@@ -312,6 +312,8 @@ Route::group(['prefix' => 'admin', 'middleware' => 'auth:admin'], function () {
     Route::patch('/auction-winners-update', [Admin\AuctionWinnerController::class, 'winnerUpdate'])->name('admin.auction_winner.winner_update');
     Route::get('/dynamic-winners', [Admin\AuctionWinnerController::class, 'dynamicIndex'])->name('admin.dynamic_winners.index');
     Route::get('/dynamic-winners/{idIkan}/detail', [Admin\AuctionWinnerController::class, 'dynamicWinnerDetail'])->name('admin.dynamic_winners.detail');
+    Route::get('/winner-per-user', [Admin\AuctionWinnerController::class, 'winnerPerUser'])->name('admin.winner_per_user.index');
+    Route::get('/winner-per-user/{idPeserta}/{idEvent}/detail', [Admin\AuctionWinnerController::class, 'winnerPerUserDetail'])->name('admin.winner_per_user.detail');
     Route::get('/members/excels', [Admin\MemberController::class, 'excels'])->name('admin.member.excels');
 
 

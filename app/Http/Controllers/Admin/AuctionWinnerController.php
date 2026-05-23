@@ -134,6 +134,89 @@ class AuctionWinnerController extends Controller
         ]);
     }
 
+    public function winnerPerUser()
+    {
+        if ($this->request->ajax()) {
+            $fishes = EventFish::with(['maxBid.member', 'event'])
+                ->whereHas('event', fn($q) => $q->where('tgl_akhir', '<', Carbon::now()))
+                ->whereHas('maxBid')
+                ->where('status_aktif', 1)
+                ->get();
+
+            $grouped = $fishes
+                ->groupBy(fn($fish) => $fish->maxBid->id_peserta . '_' . $fish->id_event)
+                ->map(function ($fishGroup) {
+                    $first   = $fishGroup->first();
+                    $member  = $first->maxBid->member;
+                    $event   = $first->event;
+                    return [
+                        'id_peserta'  => $first->maxBid->id_peserta,
+                        'id_event'    => $first->id_event,
+                        'nama'        => $member?->nama ?? '-',
+                        'no_hp'       => $member?->no_hp ?? '-',
+                        'event_name'  => $event?->kategori_event ?? '-',
+                        'tgl_event'   => $event
+                            ? Carbon::parse($event->tgl_mulai)->format('d M Y') . ' — ' . Carbon::parse($event->tgl_akhir)->format('d M Y')
+                            : '-',
+                        'jumlah_ikan' => $fishGroup->count(),
+                    ];
+                })
+                ->sortByDesc('id_event')
+                ->values();
+
+            return DataTables::of($grouped)
+                ->addIndexColumn()
+                ->addColumn('aksi', fn($row) =>
+                    '<button class="btn btn-sm btn-primary btn-detail-user"
+                        data-peserta="' . $row['id_peserta'] . '"
+                        data-event="' . $row['id_event'] . '">
+                        <i class="fas fa-eye"></i> Detail
+                    </button>'
+                )
+                ->rawColumns(['aksi'])
+                ->make(true);
+        }
+
+        return view('admin.pages.auction-winner.winner-per-user', [
+            'type_menu' => 'manage-winner-per-user',
+        ]);
+    }
+
+    public function winnerPerUserDetail($idPeserta, $idEvent)
+    {
+        $member = Member::with('city')->findOrFail($idPeserta);
+        $event  = Event::findOrFail($idEvent);
+
+        $fishes = EventFish::with(['maxBid'])
+            ->where('id_event', $idEvent)
+            ->where('status_aktif', 1)
+            ->whereHas('maxBid', fn($q) => $q->where('id_peserta', $idPeserta))
+            ->get()
+            ->map(fn($fish) => [
+                'no_ikan'     => $fish->no_ikan ?? '-',
+                'variety'     => $fish->variety ?? '-',
+                'nominal_bid' => 'Rp. ' . number_format($fish->maxBid->nominal_bid, 0, '.', '.'),
+                'waktu_bid'   => $fish->maxBid->waktu_bid
+                    ? Carbon::parse($fish->maxBid->waktu_bid)->format('d M Y H:i:s')
+                    : '-',
+            ]);
+
+        return response()->json([
+            'member' => [
+                'nama'  => $member->nama ?? '-',
+                'no_hp' => $member->no_hp ?? '-',
+                'email' => $member->email ?? '-',
+                'kota'  => $member->city?->name ?? '-',
+            ],
+            'event' => [
+                'name'      => $event->kategori_event ?? '-',
+                'tgl_mulai' => Carbon::parse($event->tgl_mulai)->format('d M Y'),
+                'tgl_akhir' => Carbon::parse($event->tgl_akhir)->format('d M Y'),
+            ],
+            'fishes' => $fishes,
+        ]);
+    }
+
     public function dynamicWinnerDetail($idIkan)
     {
         $fish = EventFish::with(['maxBid.member.city', 'event'])
