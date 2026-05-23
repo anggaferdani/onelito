@@ -245,17 +245,21 @@ class AuctionWinnerController extends Controller
     public function dynamicWinnerDetail($idIkan)
     {
         $fish = EventFish::with([
-            'maxBid.member.city',
-            'maxBid.member.province',
-            'maxBid.member.district',
-            'maxBid.member.subdistrict',
-            'maxBid.latestDetail',
+            'bids.member.city',
+            'bids.member.province',
+            'bids.member.district',
+            'bids.member.subdistrict',
+            'bids.latestDetail',
             'photo',
             'event',
         ])
             ->where('id_ikan', $idIkan)
             ->where('status_aktif', 1)
             ->firstOrFail();
+
+        $winnerBid = $fish->bids
+            ->sortBy([['nominal_bid', 'desc'], ['waktu_bid', 'asc']])
+            ->first();
 
         $history = LogBidDetail::with('logBid.member')
             ->whereHas('logBid', fn($q) => $q->where('id_ikan_lelang', $idIkan)->where('status_aktif', 1))
@@ -268,11 +272,11 @@ class AuctionWinnerController extends Controller
                 'no_hp'       => $detail->logBid?->member?->no_hp ?? '-',
                 'nominal_bid' => 'Rp. ' . number_format($detail->nominal_bid, 0, '.', '.'),
                 'waktu_bid'   => $detail->created_at ? Carbon::parse($detail->created_at)->format('d M Y H:i:s') : '-',
-                'is_winner'   => $fish->maxBid && $fish->maxBid->id_bidding === $detail->id_bidding,
+                'is_winner'   => $winnerBid && $winnerBid->id_bidding === $detail->id_bidding,
                 'is_auto'     => $detail->status_bid === 1,
             ]);
 
-        $winner = $fish->maxBid?->member;
+        $winner = $winnerBid?->member;
 
         return response()->json([
             'fish' => [
@@ -297,8 +301,8 @@ class AuctionWinnerController extends Controller
                 'kecamatan'   => $winner->district?->dis_name ?? '-',
                 'kota'        => $winner->city?->city_name ?? '-',
                 'provinsi'    => $winner->province?->prov_name ?? '-',
-                'nominal'     => 'Rp. ' . number_format($fish->maxBid->nominal_bid, 0, '.', '.'),
-                'is_auto'     => $fish->maxBid->latestDetail?->status_bid === 1,
+                'nominal'     => 'Rp. ' . number_format($winnerBid->nominal_bid, 0, '.', '.'),
+                'is_auto'     => $winnerBid->latestDetail?->status_bid === 1,
                 'profile_pic' => $winner->profile_pic ? '/storage/' . $winner->profile_pic : null,
             ] : null,
             'history' => $history,
