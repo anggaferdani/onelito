@@ -52,7 +52,7 @@
 
     {{-- Modal Detail --}}
     <div class="modal fade" id="modalDetailUser" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Detail Pemenang &mdash; <span id="du-nama"></span></h5>
@@ -199,7 +199,7 @@
                     } else {
                         $.each(res.fishes, function (i, fish) {
                             var tipeBadge = fish.is_auto ? '<span class="badge badge-danger">Auto Bid</span>' : '';
-                            var photoHtml = '<img src="' + (fish.photo_url || noPhoto) + '" style="width:50px;height:50px;object-fit:cover;border-radius:4px;">';
+                            var photoHtml = '<img src="' + (fish.photo_url || noPhoto) + '" style="max-width:60px;height:auto;border-radius:4px;">';
                             rows += '<tr>'
                                 + '<td>' + photoHtml + '</td>'
                                 + '<td>' + (i + 1) + '</td>'

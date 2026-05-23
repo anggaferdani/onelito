@@ -55,7 +55,7 @@
 
     {{-- Modal Detail --}}
     <div class="modal fade" id="modalDetail" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Detail Pemenang &mdash; <span id="detail-fish-name"></span></h5>
@@ -71,7 +71,7 @@
                         <div class="col-md-3 text-center mb-3 mb-md-0">
                             <img id="detail-fish-photo" src="" alt="Foto Ikan"
                                 class="img-fluid rounded shadow-sm"
-                                style="max-height:180px;object-fit:cover;width:100%;">
+                                style="max-width:100%;height:auto;">
                         </div>
                         <div class="col-md-9">
                             <div class="row">
