@@ -109,7 +109,7 @@ class AuctionWinnerController extends Controller
                 ->orderBy('id_ikan', 'desc');
 
             $winner = fn($row) => $row->bids
-                ->sortBy([['nominal_bid', 'desc'], ['waktu_bid', 'asc']])
+                ->sortBy([['nominal_bid', 'desc'], ['id_bidding', 'asc']])
                 ->first();
 
             return DataTables::of($fishes)
@@ -155,7 +155,7 @@ class AuctionWinnerController extends Controller
                 ->get();
 
             $getWinner = fn($fish) => $fish->bids
-                ->sortBy([['nominal_bid', 'desc'], ['waktu_bid', 'asc']])
+                ->sortBy([['nominal_bid', 'desc'], ['id_bidding', 'asc']])
                 ->first();
 
             $grouped = $fishes
@@ -210,13 +210,13 @@ class AuctionWinnerController extends Controller
             ->get()
             ->filter(function ($fish) use ($idPeserta) {
                 $winnerBid = $fish->bids
-                    ->sortBy([['nominal_bid', 'desc'], ['waktu_bid', 'asc']])
+                    ->sortBy([['nominal_bid', 'desc'], ['id_bidding', 'asc']])
                     ->first();
                 return $winnerBid?->id_peserta == $idPeserta;
             })
             ->map(function ($fish) {
                 $winnerBid = $fish->bids
-                    ->sortBy([['nominal_bid', 'desc'], ['waktu_bid', 'asc']])
+                    ->sortBy([['nominal_bid', 'desc'], ['id_bidding', 'asc']])
                     ->first();
                 return [
                     'no_ikan'     => $fish->no_ikan ?? '-',
@@ -268,7 +268,7 @@ class AuctionWinnerController extends Controller
             ->firstOrFail();
 
         $winnerBid = $fish->bids
-            ->sortBy([['nominal_bid', 'desc'], ['waktu_bid', 'asc']])
+            ->sortBy([['nominal_bid', 'desc'], ['id_bidding', 'asc']])
             ->first();
 
         $history = LogBidDetail::with('logBid.member')
