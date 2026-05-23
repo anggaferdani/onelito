@@ -194,8 +194,8 @@ class AuctionWinnerController extends Controller
         $fishes = EventFish::with(['maxBid.latestDetail'])
             ->where('id_event', $idEvent)
             ->where('status_aktif', 1)
-            ->whereHas('maxBid', fn($q) => $q->where('id_peserta', $idPeserta))
             ->get()
+            ->filter(fn($fish) => $fish->maxBid?->id_peserta == $idPeserta)
             ->map(fn($fish) => [
                 'no_ikan'     => $fish->no_ikan ?? '-',
                 'variety'     => $fish->variety ?? '-',
