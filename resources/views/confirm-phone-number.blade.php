@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="id">
 <head>
     <!-- Required meta tags -->
     <meta charset="utf-8">
@@ -38,35 +38,56 @@
     <title>ONELITO KOI</title>
 </head>
 <body>
-<div class="container w-75">
-    <div style="position: absolute">
-        <a href="/login" class="text-dark float-start" style="text-decoration: blink"><i
-                class="fa-solid fa-arrow-left text dark"></i> Back to main page</a>
-    </div>
-    <center><img src="{{ asset('img/oneli.svg') }}" alt="ONELITO" class="my-5 pt-10"></center>
+<div class="py-5">
+<div class="container-md">
+    <a href="/login" class="text-dark d-inline-block mb-3" style="text-decoration: blink"><i
+            class="fa-solid fa-arrow-left text dark"></i> Kembali ke halaman utama</a>
+    <center><img src="{{ asset('img/oneli.svg') }}" alt="ONELITO" class="mb-4"></center>
 
-    <div class="row">
+    <div class="row mb-4">
         <center>
-            <div class="mb-3"><h2>Konfirmasi Nomor Telepon</h2></div>
-            <div class="" style="color:grey">
-                Silakan periksa kembali nomor telepon Anda.  Jika sudah benar, klik "Submit" untuk melanjutkan.
+            <h2 class="mb-2">Konfirmasi Nomor Telepon</h2>
+            <p class="text-muted mb-0" style="max-width: 480px;">
+                Silakan periksa kembali nomor telepon Anda. Jika sudah benar, klik "Konfirmasi" untuk melanjutkan.
                 Jika ingin mengubah, masukkan nomor yang baru.
-            </div>
+            </p>
         </center>
     </div>
-    <br>
-    <br>
-    <br>
-    <form method="POST" action="{{ route('post-confirm-phone-number') }}">
+
+    <center>
+        <div style="width: 100%; max-width: 400px;">
+            @if ($errors->any())
+                <div class="alert alert-danger text-start">
+                    <ul class="mb-0 ps-3">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+            @if ($errors->has('message'))
+                <div class="alert alert-danger text-start">
+                    {{ $errors->first('message') }}
+                </div>
+            @endif
+            @if (session('success'))
+                <div class="alert alert-success text-start">
+                    {!! session('success') !!}
+                </div>
+            @endif
+        </div>
+    </center>
+
+    <form method="POST" action="{{ route('post-confirm-phone-number') }}" class="mt-2">
         @csrf
         <input type="hidden" name="email" value="{{ $member->email }}">
         <div class="row">
             <div class="col-md-12">
                 <div class="row">
                     <center>
-                        <div class="col-12 col-md-4 mb-3">
+                        <div class="col-12 col-md-4 mb-4">
                             <div class="relative">
-                                <input type="text" name="no_hp" id="no_hp" required
+                                <input type="text" inputmode="numeric" pattern="[0-9]*" name="no_hp" id="no_hp" required
                                        class="block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                                        placeholder=" " value="{{ $member->no_hp }}"/>
                                 <label for="no_hp"
@@ -78,41 +99,22 @@
             </div>
         </div>
 
-        <br>
         <center>
-            <div class="d-grid gap-2 col-lg-4 mx-auto">
-                <button type="submit" class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg px-5 py-2.5 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
-                    Submit
+            <div class="d-grid gap-2 col-lg-4 mx-auto mb-3">
+                <button type="submit" class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg px-5 py-2.5 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
+                    Konfirmasi
                 </button>
             </div>
-
         </center>
-        <br>
-
-        @if ($errors->any())
-            <div class="alert alert-danger">
-                <ul>
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-        @if (session('success'))
-            <div class="alert alert-success">
-                <ul>
-                    <li>{!! session('success') !!}</li>
-                </ul>
-            </div>
-             @endif
-
-            @if ($errors->has('message'))
-                <div class="alert alert-danger">
-                    {{ $errors->first('message') }}
-                </div>
-            @endif
     </form>
 </div>
 </div>
+<script>
+    $(document).ready(function() {
+        $('#no_hp').on('input', function() {
+            $(this).val($(this).val().replace(/[^0-9]/g, ''));
+        });
+    });
+</script>
 </body>
 </html>

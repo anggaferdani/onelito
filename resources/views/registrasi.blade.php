@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="id">
 
 <head>
     <!-- Required meta tags -->
@@ -25,6 +25,10 @@
         integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
 
     <style>
+        .select2-container {
+            width: 100% !important;
+        }
+
         .select2-container--default .select2-selection--single {
             height: 100%;
             border-radius: 7px;
@@ -48,29 +52,55 @@
     </style>
 
 
-    <title>Register | Onelito Koi</title>
+    <title>Daftar | Onelito Koi</title>
 </head>
 
 <body>
-    <div class="container w-75">
-        <div style="position: absolute">
-            <a href="/login" class="text-dark float-start" style="text-decoration: blink"><i
-                    class="fa-solid fa-arrow-left text dark"></i> Back to main page</a>
+    <div class="container-md d-flex flex-column" style="min-height: 100vh;">
+        <div class="pt-5 mb-4">
+            <a href="/login" class="text-dark d-inline-block" style="text-decoration: blink"><i
+                    class="fa-solid fa-arrow-left text dark"></i> Kembali ke halaman utama</a>
         </div>
-        <center><img src="img/oneli.svg" alt="ONELITO" class="my-5 pt-10"></center>
 
-        <form method="POST" id="registration" action="{{ route('register') }}">
+        <div class="flex-grow-1 d-flex flex-column justify-content-center pb-5">
+        <center>
+            <img src="img/oneli.svg" alt="ONELITO" class="mb-3">
+            <h2 class="mb-1">Daftar Akun</h2>
+            <p class="text-muted mb-4">Lengkapi data di bawah untuk membuat akun Onelito Koi.</p>
+        </center>
+
+        <form method="POST" id="registration" action="{{ route('register') }}" autocomplete="off">
             @csrf
             @if(request('google_id'))
                 <input type="hidden" value="{{ request('google_id') }}" name="google_id">
             @endif
-            <div class="alert alert-primary mb-3">Pastikan nomor telepon yang Anda masukkan sudah benar. Kode verifikasi akan dikirimkan ke WhatsApp Anda.</div>
+
+            @if (session('error'))
+                <div class="alert alert-danger">
+                    {{ session('error') }}
+                </div>
+            @endif
+
+            @if ($errors->any())
+                <div class="alert alert-danger">
+                    <ul class="mb-0 ps-3">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            <div class="alert alert-secondary mb-4">
+                Pastikan nomor telepon yang Anda masukkan aktif dan terhubung dengan WhatsApp.
+                Kode verifikasi 6 digit akan dikirimkan ke nomor tersebut dan berlaku selama 10 menit.
+            </div>
             <div class="row">
                 <div class="col-md-6">
                     <div class="row">
                         <div class="col-lg-6 mb-3">
                             <div class="relative">
-                                <input value="{{ old('nama.0', request('firstName')) }}" type="text" value="{{ request('firstName') }}" name="nama[]" id="namadepan" required
+                                <input value="{{ old('nama.0', request('firstName')) }}" type="text" name="nama[]" id="namadepan" autocomplete="off" required
                                     class="bg-transparent block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                                     placeholder=" " />
                                 <label for="namadepan"
@@ -80,7 +110,7 @@
                         </div>
                         <div class="col-lg-6 mb-3">
                             <div class="relative">
-                                <input value="{{ old('nama.1', request('lastName')) }}" type="text" name="nama[]" value="{{ request('lastName') }}" id="namabelakang" required
+                                <input value="{{ old('nama.1', request('lastName')) }}" type="text" name="nama[]" id="namabelakang" autocomplete="off" required
                                     class="bg-transparent block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                                     placeholder=" " />
                                 <label for="namabelakang"
@@ -90,7 +120,7 @@
                         </div>
                         <div class="mb-3">
                             <div class="relative">
-                                <input value="{{ old('email', request('email')) }}" type="email" name="email" id="email" @if(request('google_id')) readonly @endif value="{{ request('email') }}" required
+                                <input value="{{ old('email', request('email')) }}" type="email" name="email" id="email" autocomplete="off" @if(request('google_id')) readonly @endif required
                                     class="@if(request('google_id')) border-danger @endif bg-transparent block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                                     placeholder=" " />
                                 <label for="email"
@@ -99,7 +129,7 @@
                         </div>
                         <div class="col-lg-6 mb-3">
                             <div class="relative mb-2">
-                                <input type="password" name="password" id="password" required
+                                <input type="password" name="password" id="password" autocomplete="new-password" required
                                     class="block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                                     placeholder=" " />
                                 <label for="password"
@@ -110,7 +140,7 @@
                         </div>
                         <div class="col-lg-6 mb-3">
                             <div class="relative mb-2">
-                                <input type="password" name="confirmpassword" id="confirmpassword" required
+                                <input type="password" name="confirmpassword" id="confirmpassword" autocomplete="new-password" required
                                     class="block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                                     placeholder=" " />
                                 <label for="confirmpassword"
@@ -121,11 +151,11 @@
                         </div>
                         <div class="mb-3">
                             <div class="relative mb-2">
-                                <input value="{{ old('no_hp') }}" type="text" name="no_hp" id="no_hp" required
+                                <input value="{{ old('no_hp') }}" type="text" inputmode="numeric" pattern="[0-9]*" name="no_hp" id="no_hp" autocomplete="off" required
                                     class="block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                                     placeholder=" " />
                                 <label for="no_hp"
-                                    class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-3 scale-75 top-1 z-10 origin-[0] bg-white dark:bg-gray-900 px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-1 peer-focus:scale-75 peer-focus:-translate-y-3 left-1">No.Handphone</label>
+                                    class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-3 scale-75 top-1 z-10 origin-[0] bg-white dark:bg-gray-900 px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-1 peer-focus:scale-75 peer-focus:-translate-y-3 left-1">No. Handphone</label>
                             </div>
                             <div class="text-muted small">Pastikan nomor yang dimasukkan aktif dan terhubung dengan WhatsApp</div>
                         </div>
@@ -136,6 +166,7 @@
                         <div class="col-lg-6 mb-3">
                             <div class="relative ">
                                 <select name="provinsi" id="provinsi" required class="select2-setup form-control">
+                                    <option value="" {{ old('provinsi') ? '' : 'selected' }}></option>
                                     @foreach ($provinces as $province)
                                         <option value="{{ $province->prov_id }}" {{ old('provinsi') == $province->prov_id ? 'selected' : '' }}>
                                             {{ $province->prov_name }}
@@ -180,7 +211,7 @@
                         </div>
                         <div class="mb-3">
                             <div class="relative">
-                                <input value="{{ old('alamat') }}" type="text" required name="alamat" id="alamat"
+                                <input value="{{ old('alamat') }}" type="text" required name="alamat" id="alamat" autocomplete="off"
                                     class="block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                                     placeholder=" " />
                                 <label for="alamat"
@@ -189,7 +220,7 @@
                         </div>
                         <div class="mb-3">
                             <div class="relative">
-                                <input value="{{ old('kode_pos') }}" type="text" name="kode_pos" id="kode_pos"
+                                <input value="{{ old('kode_pos') }}" type="text" name="kode_pos" id="kode_pos" autocomplete="off"
                                     class="block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                                     placeholder=" " />
                                 <label for="kode_pos"
@@ -201,49 +232,30 @@
                 </div>
             </div>
 
-            <br>
-
-            @if (session('error'))
-                <div class="alert alert-danger">
-                    {{ session('error') }}
-                </div>
-            @endif
-            
-            @if ($errors->any())
-                <div class="alert alert-danger">
-                    <ul>
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-            <br><br>
-            <center>
-                <div class="d-grid gap-2 col-lg-4 mx-auto px-lg-4">
+            <center class="mt-3">
+                <div class="d-grid gap-2 col-lg-4 mx-auto px-lg-4 mb-3">
                     <button type="submit"
-                        class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg px-5 py-2.5 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
-                        REGISTER </button>
+                        class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg px-5 py-2.5 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
+                        DAFTAR </button>
                 </div>
-                <p class="mb-5">Already have an account? Come on in right away <a class="text-danger"
-                        style="text-decoration: blink" href="/login">here</a></p>
+                <p class="mb-5">Sudah punya akun? Langsung masuk <a class="text-danger"
+                        style="text-decoration: blink" href="/login">di sini</a></p>
             </center>
         </form>
+        </div>
 
         <!-- Modal -->
         <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel"
             aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
-                    <br><br>
-                    <div class="modal-body">
+                    <div class="modal-body py-4">
                         <center><img src="{{ url('img/frame_reg.png') }}" alt="ceklis">
-                            <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
-                                Registration Successful
+                            <h3 class="text-xl font-semibold text-gray-900 dark:text-white mt-3">
+                                Registrasi Berhasil
                             </h3>
-                            <p>Your account will be verified. Verification notification
-                                will be sent via email</p>
-                            <br><br><br><br>
+                            <p class="mb-4">Akun Anda telah dibuat. Kode verifikasi telah dikirim
+                                melalui WhatsApp ke nomor yang Anda daftarkan.</p>
                             <a href="/login"><button type="button"
                                     class="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">OKE</button></a>
                         </center>
@@ -252,7 +264,6 @@
             </div>
         </div>
 
-    </div>
     </div>
 
     <script src="{{ asset('library/jquery/dist/jquery.min.js') }}"></script>
@@ -279,19 +290,27 @@
         });
 
         $(document).ready(function() {
+            $('#no_hp').on('input', function() {
+                $(this).val($(this).val().replace(/[^0-9]/g, ''));
+            });
+
             $('#provinsi').select2({
+                width: '100%',
                 placeholder: 'Provinsi'
             });
 
             $('#kota').select2({
+                width: '100%',
                 placeholder: 'Kota'
             });
 
             $('#kecamatan').select2({
+                width: '100%',
                 placeholder: 'Kecamatan'
             });
 
             $('#kelurahan').select2({
+                width: '100%',
                 placeholder: 'Kelurahan'
             });
 
@@ -309,17 +328,21 @@
                         //get JSON
                         data = $.parseJSON(data);
 
+                        var placeholderText = 'Kota';
 
-                        //generate <options from JSON
-                        var list_html = '';
+                        //generate <options from JSON, dimulai dengan opsi kosong agar tidak auto-terpilih
+                        var list_html = '<option value=""></option>';
                         $.each(data, function(i, item) {
                             if (target === '#kota') {
+                                placeholderText = 'Kota';
                                 list_html += '<option value=' + data[i].city_id + '>' +
                                     data[i].city_name + '</option>'
                             } else if (target === '#kecamatan') {
+                                placeholderText = 'Kecamatan';
                                 list_html += '<option value=' + data[i].dis_id + '>' + data[
                                     i].dis_name + '</option>';
                             } else {
+                                placeholderText = 'Kelurahan';
                                 list_html += '<option value=' + data[i].subdis_id + '>' +
                                     data[i].subdis_name + '</option>';
                             }
@@ -328,26 +351,28 @@
                         //replace <select2 with new options
                         $(target).html(list_html);
                         if (target === '#kota' || target === '#edit_kota') {
-                            $('#kecamatan').html('');
-                            $('#kelurahan').html('');
+                            $('#kecamatan').html('<option value=""></option>');
+                            $('#kelurahan').html('<option value=""></option>');
                             $('#kecamatan').select2({
+                                width: '100%',
                                 placeholder: 'Kecamatan'
                             });
-                            $('#kota').trigger('change')
                             $('#kelurahan').select2({
+                                width: '100%',
                                 placeholder: 'Kelurahan'
                             });
 
                         } else if (target === '#kecamatan' || target === '#edit_kecamatan') {
-                            $('#kelurahan').html('');
-                            $('#kecamatan').trigger('change')
+                            $('#kelurahan').html('<option value=""></option>');
                             $('#kelurahan').select2({
+                                width: '100%',
                                 placeholder: 'Kelurahan'
                             });
                         } else {}
-                        //change placeholder text
+                        //pastikan placeholder tetap sesuai nama field, bukan auto-terpilih
                         $(target).select2({
-                            placeholder: data.length + ' results'
+                            width: '100%',
+                            placeholder: placeholderText
                         });
                     });
                 })

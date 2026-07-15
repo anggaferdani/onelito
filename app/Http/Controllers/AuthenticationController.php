@@ -194,7 +194,7 @@ class AuthenticationController extends Controller
             'password' => ['required', 'string', 'min:8', 'regex:/^(?=.*[A-Za-z])(?=.*\d).+$/'],
             'confirmpassword' => 'required|same:password',
             'alamat' => ['required', 'string', 'max:255'],
-            'no_hp' => ['required', 'string', 'max:20', Rule::unique('m_peserta')->where(function ($query) {
+            'no_hp' => ['required', 'string', 'max:20', 'regex:/^[0-9]+$/', Rule::unique('m_peserta')->where(function ($query) {
                     return $query->where('status_aktif', 1);
                 })],
             'provinsi' => ['required'],
@@ -218,6 +218,7 @@ class AuthenticationController extends Controller
             'confirmpassword.same' => 'Konfirmasi password tidak cocok dengan password.',
             'alamat.required' => 'Alamat wajib diisi.',
             'no_hp.required' => 'No. Handphone wajib diisi.',
+            'no_hp.regex' => 'No. Handphone hanya boleh berisi angka.',
             'no_hp.unique' => 'No. Handphone sudah terdaftar.',
             'provinsi.required' => 'Provinsi wajib diisi.',
             'kota.required' => 'Kota wajib diisi.',
@@ -260,8 +261,6 @@ class AuthenticationController extends Controller
         $google_id = $data['google_id'] ?? null;
 
         try {
-            $google_id = $data['google_id'] ?? null;
-
             if ($google_id) {
 
                 $oldMember = Member::where('google_id', $google_id)->first();
@@ -279,18 +278,22 @@ class AuthenticationController extends Controller
             }
 
             $member = Member::create($data);
-
-            $this->sendVerificationCodeViaQontak($member, $verificationCode);
-
-            return redirect()->route('phone-number-verification', [
-                'token' => $verificationToken
-            ]);
-
-        } catch (\Exception $e) {
-            return redirect()->back()->with([
-                'error' => $e->getMessage()
+        } catch (\Throwable $e) {
+            report($e);
+            return redirect()->back()->withInput()->with([
+                'error' => 'Terjadi kesalahan saat memproses registrasi. Silakan coba lagi.'
             ]);
         }
+
+        try {
+            $this->sendVerificationCodeViaQontak($member, $verificationCode);
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
+        return redirect()->route('phone-number-verification', [
+            'token' => $verificationToken
+        ]);
     }
 
     public function confirmPhoneNumber(Request $request)
@@ -307,7 +310,9 @@ class AuthenticationController extends Controller
     public function postConfirmPhoneNumber(Request $request)
     {
         $request->validate([
-            'no_hp' => ['required', 'string', 'max:20'],
+            'no_hp' => ['required', 'string', 'max:20', 'regex:/^[0-9]+$/'],
+        ], [
+            'no_hp.regex' => 'No. Handphone hanya boleh berisi angka.',
         ]);
 
         $member = Member::where('email', $request->email)->where('status_aktif', 1)->where('status_phone_number_verification', 0)->first();
@@ -325,7 +330,11 @@ class AuthenticationController extends Controller
         $member->verification_token = Member::generateVerificationToken();
         $member->save();
 
-        $this->sendVerificationCodeViaQontak($member, $verificationCode);
+        try {
+            $this->sendVerificationCodeViaQontak($member, $verificationCode);
+        } catch (\Throwable $e) {
+            report($e);
+        }
 
         return redirect()->route('phone-number-verification', ['token' => $member->verification_token]);
     }
@@ -334,15 +343,16 @@ class AuthenticationController extends Controller
     {
         $member = Member::where('verification_token', $token)->first();
 
-        if ($member->status_phone_number_verification == 1) {
-            Auth::guard('member')->login($member);
-            
-            return redirect('/')->with('success', 'Nomor telepon berhasil diverifikasi dan akun Anda aktif!');
-        }
-
         if (!$member) {
             abort(404, 'Token verifikasi tidak valid.');
         }
+
+        if ($member->status_phone_number_verification == 1) {
+            Auth::guard('member')->login($member);
+
+            return redirect('/')->with('success', 'Nomor telepon berhasil diverifikasi dan akun Anda aktif!');
+        }
+
         return view('phone-number-verification', compact('member'));
     }
 
@@ -391,11 +401,17 @@ class AuthenticationController extends Controller
         }
 
         $verificationCode = Member::generateVerificationCode();
+
+        try {
+            $this->sendVerificationCodeViaQontak($member, $verificationCode);
+        } catch (\Throwable $e) {
+            report($e);
+            return response()->json(['message' => 'Gagal mengirim kode verifikasi. Silakan coba lagi.'], 500);
+        }
+
         $member->verification_code = $verificationCode;
         $member->verification_code_expires_at = Carbon::now()->addMinutes(10);
         $member->save();
-
-        $this->sendVerificationCodeViaQontak($member, $verificationCode);
 
         return response()->json(['message' => 'Kode verifikasi baru telah dikirim.'], 200);
 
