@@ -690,54 +690,60 @@ class AuthenticationController extends Controller
 
         try {
             $data = Crypt::decrypt($token);
-            if ($data) {
-                $user = Member::where('email', $data['email'])
-                    ->where('id_peserta', $data['id'])->first();
-
-                if (!$user) {
-                    return redirect('login')
-                        ->with(['message' => 'User Not Found']);
-                }
-
-                // $user->email_verified_at = Carbon::now();
-                // $user->save();
-
-                // session()->flash('message','Your Email Successfully Verified',);
-
-                return view('reqreset_change_password')->with([
-                    // 'provinces' => $provinces
-                ]);
-            }
         } catch (\Throwable $th) {
-            throw $th;
+            return redirect()->route('reqreset')->withErrors([
+                'email' => 'Link reset password tidak valid atau sudah kadaluarsa. Silakan minta link baru.',
+            ]);
         }
+
+        $user = Member::where('email', $data['email'])
+            ->where('id_peserta', $data['id'])->first();
+
+        if (!$user) {
+            return redirect('login')
+                ->with(['message' => 'User Not Found']);
+        }
+
+        return view('reqreset_change_password');
     }
 
     public function emailChangePasswordProsess()
     {
+        $this->request->validate([
+            'password' => ['required', 'string', 'min:8', 'regex:/^(?=.*[A-Za-z])(?=.*\d).+$/'],
+            'confirmpassword' => 'required|same:password',
+        ], [
+            'password.required' => 'Password wajib diisi.',
+            'password.min' => 'Password minimal 8 karakter.',
+            'password.regex' => 'Password harus minimal 8 karakter dan mengandung kombinasi huruf dan angka.',
+            'confirmpassword.required' => 'Konfirmasi password wajib diisi.',
+            'confirmpassword.same' => 'Konfirmasi password tidak cocok dengan password.',
+        ]);
+
         $token = $this->request->token;
 
         try {
             $data = Crypt::decrypt($token);
-            if ($data) {
-                $user = Member::where('email', $data['email'])
-                    ->where('id_peserta', $data['id'])
-                    ->where('status_aktif', 1)
-                    ->where('status_hapus', 0)
-                    ->first();
-
-                if (!$user) {
-                    return redirect()->back()
-                        ->with(['message' => 'User Not Found']);
-                }
-
-                $user->password = Hash::make($this->request->password);
-                $user->save();
-
-                return redirect('login')->with("password", "Password berhasil diubah, silahkan login menggunakan password baru");
-            }
         } catch (\Throwable $th) {
-            throw $th;
+            return redirect()->route('reqreset')->withErrors([
+                'email' => 'Link reset password tidak valid atau sudah kadaluarsa. Silakan minta link baru.',
+            ]);
         }
+
+        $user = Member::where('email', $data['email'])
+            ->where('id_peserta', $data['id'])
+            ->where('status_aktif', 1)
+            ->where('status_hapus', 0)
+            ->first();
+
+        if (!$user) {
+            return redirect()->back()
+                ->with(['message' => 'User Not Found']);
+        }
+
+        $user->password = Hash::make($this->request->password);
+        $user->save();
+
+        return redirect('login')->with("password", "Password berhasil diubah, silahkan login menggunakan password baru");
     }
 }

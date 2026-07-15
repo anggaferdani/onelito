@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="id">
 
 <head>
     <!-- Required meta tags -->
@@ -52,73 +52,77 @@
 </head>
 
 <body>
-    <div class="container w-75">
-        <div style="position: absolute">
-            <a href="/login" class="text-dark float-start" style="text-decoration: blink"><i
-                    class="fa-solid fa-arrow-left text dark"></i> Back to main page</a>
+    <div class="container-md d-flex flex-column" style="min-height: 100vh;">
+        <div class="pt-5 mb-4">
+            <a href="/login" class="text-dark d-inline-block" style="text-decoration: blink"><i
+                    class="fa-solid fa-arrow-left text dark"></i> Kembali ke halaman utama</a>
         </div>
-        <center><img src="img/oneli.svg" alt="ONELITO" class="my-5 pt-10"></center>
 
-        <div class="row">
-            <center>
-            <p><h2>Request Reset password</h2></p>
-            <br>
-            <p style="color:grey">Masukkan Email Anda Yang Sudah Terdaftar dan Kami Akan Mengirimkan Link Untuk Mengubah Password Akun Anda.</p>
-            </center>
-        </div>
-        <br>
-        <br>
-        <br>
-        <form method="POST" id="reqreset" action="/reqreset">
-            @csrf
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="row">
-                        <center>
-                        <div class="col-4 mb-3">
-                            <div class="relative">
-                                <input type="email" name="email" id="email" required
-                                    class="block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-                                    placeholder=" " />
-                                <label for="email"
-                                    class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-3 scale-75 top-1 z-10 origin-[0] bg-white dark:bg-gray-900 px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-1 peer-focus:scale-75 peer-focus:-translate-y-3 left-1">Email</label>
-                            </div>
-                        </div>
-                        </center>
-                    </div>
-                </div>
+        <div class="flex-grow-1 d-flex flex-column justify-content-center pb-5">
+            <center><img src="img/oneli.svg" alt="ONELITO" class="mb-4"></center>
+
+            <div class="row mb-4">
+                <center>
+                    <h2 class="mb-2">Lupa Password?</h2>
+                    <p class="text-muted mb-0" style="width: 100%; max-width: 400px;">
+                        Masukkan email yang terdaftar di akun Onelito Koi Anda. Kami akan mengirimkan
+                        link untuk membuat password baru ke email tersebut.
+                    </p>
+                </center>
             </div>
 
-            <br>
             <center>
-                <div class="d-grid gap-2 col-lg-4 mx-auto">
-                    <button type="submit"
-                        class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg px-5 py-2.5 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
-                        Send Reset Password </button>
+                <div style="width: 100%; max-width: 400px;">
+                    @if ($errors->any())
+                        <div class="alert alert-danger text-start">
+                            <ul class="mb-0 ps-3">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+                    @if (session('success'))
+                        <div class="alert alert-success text-start">
+                            {!! session('success') !!} Silakan periksa inbox atau folder spam email Anda.
+                        </div>
+                    @endif
                 </div>
             </center>
-            <br>
-            @if ($errors->any())
-                <div class="alert alert-danger">
-                    <ul>
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
+
+            <form method="POST" id="reqreset" action="/reqreset" class="mt-2" autocomplete="off">
+                @csrf
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="row">
+                            <center>
+                            <div style="width: 100%; max-width: 400px;" class="mb-4">
+                                <div class="relative">
+                                    <input type="email" name="email" id="email" autocomplete="off" required
+                                        class="block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                                        placeholder=" " />
+                                    <label for="email"
+                                        class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-3 scale-75 top-1 z-10 origin-[0] bg-white dark:bg-gray-900 px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-1 peer-focus:scale-75 peer-focus:-translate-y-3 left-1">Email</label>
+                                </div>
+                            </div>
+                            </center>
+                        </div>
+                    </div>
                 </div>
-            @endif
-            @if (session('success'))
-                <div class="alert alert-success">
-                    <ul>
-                            <li>{!! session('success') !!}</li>
-                    </ul>
-                </div>
-            @endif
-        </form>
+
+                <center>
+                    <div class="d-grid gap-2 mx-auto mb-3" style="width: 100%; max-width: 400px;">
+                        <button type="submit"
+                            class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg px-5 py-2.5 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
+                            Kirim Link Reset Password</button>
+                    </div>
+                    <p class="mb-0">Sudah ingat password Anda? <a class="text-danger" style="text-decoration: blink" href="/login">Kembali ke login</a></p>
+                </center>
+            </form>
+        </div>
 
         <!-- Modal -->
 
-    </div>
     </div>
 
     <!-- <script src="{{ asset('library/jquery/dist/jquery.min.js') }}"></script> -->
