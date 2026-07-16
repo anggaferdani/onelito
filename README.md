@@ -1,159 +1,329 @@
-<<<<<<< HEAD
-# Onelito Web Lelang
+# Onelito Web Lelang — Koi Auction & E-Commerce Platform
 
+> Platform lelang dan penjualan ikan Koi berbasis web yang menggabungkan sistem lelang *real-time*, undian berhadiah (Lucky Draw), dan toko online, dilengkapi manajemen anggota, pembayaran terintegrasi, dan dasbor admin komprehensif.
 
+---
 
-## Getting started
+## Daftar Isi
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+1. [Latar Belakang](#latar-belakang)
+2. [Fitur Utama](#fitur-utama)
+3. [Teknologi](#teknologi)
+4. [Struktur Folder](#struktur-folder)
+5. [Instalasi & Setup](#instalasi--setup)
+6. [Menjalankan Aplikasi](#menjalankan-aplikasi)
+7. [Konfigurasi Environment](#konfigurasi-environment)
+8. [Routes Utama](#routes-utama)
+9. [Kontributor](#kontributor)
+10. [Lisensi](#lisensi)
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+---
 
-## Add your files
+## Latar Belakang
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+Pasar ikan Koi di Indonesia berkembang pesat namun masih banyak transaksi yang dilakukan secara konvensional atau melalui platform umum yang tidak dirancang khusus untuk lelang ikan hidup. Onelito hadir untuk menjawab kebutuhan tersebut dengan menyediakan:
+
+- **Sistem lelang terstruktur** dengan jadwal event, penentuan harga awal, dan mekanisme perpanjangan waktu otomatis saat terdapat tawaran di menit-menit terakhir.
+- **Lucky Draw** — event undian berhadiah per ikan, peserta mendaftar dan mendapat nomor urut unik, lalu memilih ikan mana saja yang ingin diikutkan undian.
+- **Toko online** untuk produk dan stok Koi yang dapat dibeli langsung (non-lelang).
+- **Transparansi transaksi** melalui log bidding, notifikasi real-time, dan invoice otomatis.
+- **Manajemen terpusat** bagi admin untuk mengelola peserta, produk, event lelang, event Lucky Draw, pengiriman, dan laporan keuangan.
+
+---
+
+## Fitur Utama
+
+### Untuk Peserta (Member)
+
+| Fitur | Deskripsi |
+|---|---|
+| Registrasi & Login | Form registrasi dengan verifikasi nomor telepon via OTP WhatsApp, login email/password, dan Google OAuth |
+| Sistem Bidding | Penawaran manual pada event lelang aktif |
+| Lucky Draw | Daftar ke event Lucky Draw yang sedang aktif (dapat nomor urut unik per event), pilih ikan mana saja yang ingin diikutkan undian, lihat siapa saja peserta lain yang ikut undian ikan yang sama |
+| Notifikasi Real-time | Pemberitahuan saat kalah bid, menang lelang, dan status pesanan |
+| Keranjang & Wishlist | Polymorphic cart & wishlist untuk produk dan ikan |
+| Manajemen Alamat | Multiple delivery address dengan hierarki wilayah (Provinsi → Kelurahan) |
+| Riwayat Pesanan | Tracking status pesanan dari pembayaran hingga pengiriman |
+| Invoice Digital | Unduh invoice PDF untuk setiap transaksi |
+
+### Untuk Admin
+
+| Fitur | Deskripsi |
+|---|---|
+| Dashboard Analitik | Grafik penjualan, nominal transaksi, dan peserta lelang (Chart.js) |
+| Manajemen Event Lelang | Buat, edit, tutup event; kelola ikan per event |
+| Manajemen Lucky Draw | Buat, edit, tutup event Lucky Draw; kelola ikan (termasuk harga) yang diikutkan per event |
+| Manajemen Produk & Stok | CRUD produk, kategori, label, foto, dan stok Koi |
+| Manajemen Pesanan | Konfirmasi pembayaran, proses pengiriman, dan konfirmasi penerimaan |
+| Manajemen Member | Daftar member, histori login, ekspor Excel |
+| Pemenang Lelang | Penetapan pemenang, konfirmasi, dan generate invoice |
+| Manajemen Bot | Simulasi peserta bot untuk keperluan pengujian lelang |
+| Notifikasi Sistem | Kirim pengumuman ke semua peserta atau grup tertentu |
+| Pengaturan Aplikasi | Konfigurasi banner, mata uang, setting umum |
+
+---
+
+## Teknologi
+
+### Backend
+
+| Komponen | Teknologi | Versi |
+|---|---|---|
+| Framework | Laravel | 9.48.* |
+| Runtime | PHP | ≥ 8.0.2 |
+| ORM | Eloquent (built-in) | — |
+| Autentikasi API | Laravel Sanctum | ^2.14.1 |
+| OAuth | Laravel Socialite | ^5.20 |
+| Role & Permission | Spatie Laravel Permission | ^5.4 |
+| Payment Gateway | Xendit PHP SDK | ^6.0 |
+| PDF | barryvdh/laravel-dompdf | ^2.2 |
+| Excel | Maatwebsite Excel | ^3.1 |
+| Image Processing | Intervention Image | 3.0 |
+| QR Code | simplesoftwareio/simple-qrcode | ~4 |
+| Barcode | milon/barcode | ^12.0 |
+| DataTables SSP | yajra/laravel-datatables-oracle | ~9.0 |
+
+### Frontend
+
+| Komponen | Teknologi | Versi |
+|---|---|---|
+| Build Tool | Vite | — |
+| Template Engine | Laravel Blade | — |
+| CSS Framework | Bootstrap | 4.2.1 / 5 (halaman baru) |
+| JavaScript Library | jQuery | 3.3.1 |
+| Charting | Chart.js | 2.7.3 |
+| Data Tables | DataTables | 1.10.18 |
+| Rich Text Editor | Summernote / TinyMCE | — |
+| Select Dropdown | Select2 | 4.0.6 |
+| Alert Dialog | SweetAlert | 2.1.2 |
+| Calendar | Fullcalendar | 3.10.0 |
+
+### Database & Infrastruktur
+
+| Komponen | Teknologi |
+|---|---|
+| Database | MySQL 8+ |
+| Queue Driver | Database |
+| File Storage | Local (Laravel Storage) |
+| Deployment | Heroku (Apache) |
+| Mail | SMTP (konfigurabel) |
+
+---
+
+## Struktur Folder
 
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/spero_indescribable/onelito_web_lelang.git
-git branch -M main
-git push -uf origin main
+onelito/
+│
+├── app/
+│   ├── Console/            # Artisan commands
+│   ├── Http/
+│   │   ├── Controllers/    # Controller publik + Admin/ (CRUD panel admin)
+│   │   ├── Middleware/     # Auth, CORS, dll
+│   │   └── Requests/       # Form request validation
+│   ├── Jobs/               # Queue jobs (WhatsApp, notifikasi)
+│   ├── Mail/               # Email classes (verifikasi, password reset)
+│   ├── Models/              # Eloquent models (Member, Event, LuckyDrawEvent, dll)
+│   │   └── Bot/            # Model khusus sistem bot
+│   └── Services/
+│       └── AuctionTimeService.php  # Logika kalkulasi waktu lelang
+│
+├── config/                 # Konfigurasi Laravel (app, auth, db, mail, dll)
+│
+├── database/
+│   ├── migrations/         # File migrasi tabel
+│   ├── seeders/            # Data awal (roles, settings, geography)
+│   └── factories/          # Factory untuk testing
+│
+├── public/                 # Entry point aplikasi, aset statis, hasil build Vite
+│
+├── resources/
+│   ├── css/, js/           # Entry CSS & JS
+│   └── views/
+│       ├── admin/          # Panel admin (auction, lucky-draw, produk, dll)
+│       ├── layout/, part/  # Master layout & navbar situs publik
+│       ├── new/            # Template halaman publik yang lebih baru
+│       └── emails/         # Template email
+│
+├── routes/
+│   ├── web.php             # Semua route web (guest, member, admin)
+│   └── api.php             # Route API (Sanctum)
+│
+├── storage/
+│   ├── app/public/         # File upload user (symlink ke public)
+│   └── logs/               # Log aplikasi Laravel
+│
+├── .env.example
+├── composer.json
+├── package.json
+├── vite.config.js
+└── Procfile                # Konfigurasi deployment Heroku
 ```
 
-## Integrate with your tools
+---
 
-- [ ] [Set up project integrations](https://gitlab.com/spero_indescribable/onelito_web_lelang/-/settings/integrations)
+## Instalasi & Setup
 
-## Collaborate with your team
+### Prasyarat
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Automatically merge when pipeline succeeds](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+- PHP ≥ 8.0.2 dengan ekstensi: `mbstring`, `xml`, `curl`, `gd`, `pdo_mysql`, `zip`
+- Composer ≥ 2.x
+- Node.js ≥ 16.x dan NPM ≥ 8.x
+- MySQL 8+
+- Git
 
-## Test and Deploy
+### Step-by-Step
 
-Use the built-in continuous integration in GitLab.
+```bash
+# 1. Clone repository
+git clone <repository-url>
+cd onelito
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing(SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+# 2. Install dependencies
+composer install
+npm install
 
-***
+# 3. Konfigurasi environment
+cp .env.example .env
+php artisan key:generate
 
-# Editing this README
+# 4. Buat database MySQL
+# CREATE DATABASE onelito_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thank you to [makeareadme.com](https://www.makeareadme.com/) for this template.
+# 5. Migrasi & seed
+php artisan migrate
+php artisan db:seed
 
-## Suggestions for a good README
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+# 6. Storage symlink
+php artisan storage:link
 
-## Name
-Choose a self-explaining name for your project.
+# 7. Build assets
+npm run dev    # development
+npm run build  # production
+```
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+---
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+## Menjalankan Aplikasi
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+### Development
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+```bash
+php artisan serve       # Terminal 1 — Laravel dev server
+npm run dev              # Terminal 2 — Vite hot-reload
+php artisan queue:work   # Terminal 3 — Queue worker (notifikasi & WhatsApp)
+```
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+Akses aplikasi di `http://localhost:8000`.
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+### Production (Heroku)
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+```bash
+git push heroku main
+heroku run php artisan migrate --force
+heroku run php artisan storage:link
+```
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+Cache & optimasi:
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+```bash
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+npm run build
+```
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+---
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+## Konfigurasi Environment
 
-## License
-For open source projects, say how it is licensed.
+Salin `.env.example` ke `.env` dan isi variabel utama berikut:
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
-=======
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
+```env
+APP_NAME="Onelito Web Lelang"
+APP_ENV=local
+APP_URL=http://localhost:8000
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=onelito_db
+DB_USERNAME=root
+DB_PASSWORD=
 
-## About Laravel
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.mailtrap.io
+MAIL_FROM_ADDRESS=noreply@onelito.com
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_REDIRECT_URI=http://localhost:8000/google/callback
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+XENDIT_SECRET_KEY=
+XENDIT_PUBLIC_KEY=
+XENDIT_CALLBACK_TOKEN=
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+QONTAK_API_KEY=
+QONTAK_CHANNEL_INTEGRATION_ID=
 
-## Learning Laravel
+QUEUE_CONNECTION=database
+```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+---
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Routes Utama
 
-## Laravel Sponsors
+### Publik
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+| Method | URL | Deskripsi |
+|---|---|---|
+| `GET` | `/` | Halaman beranda |
+| `GET` | `/auction` | Daftar event lelang aktif |
+| `GET` | `/auction/{idIkan}` | Detail ikan & form bidding |
+| `GET` | `/lucky-draw` | Event Lucky Draw yang sedang aktif |
+| `GET` | `/lucky-draw/{idIkan}/detail` | Detail ikan Lucky Draw & daftar peserta yang ikut undian |
+| `GET` | `/koi_stok` | Katalog stok Koi |
+| `GET` | `/onelito_store` | Toko online |
 
-### Premium Partners
+### Autentikasi
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
+| Method | URL | Deskripsi |
+|---|---|---|
+| `GET/POST` | `/login` | Login member |
+| `GET/POST` | `/registrasi` | Registrasi member + verifikasi OTP WhatsApp |
+| `GET` | `/google/redirect`, `/google/callback` | Google OAuth |
+| `GET/POST` | `/reqreset` | Lupa password |
+| `GET/POST` | `/ls/reset` | Reset password via link email |
 
-## Contributing
+### Member (butuh login)
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+| Method | URL | Deskripsi |
+|---|---|---|
+| `POST` | `/auction/{idIkan}` | Submit penawaran (bid) |
+| `POST` | `/lucky-draw/register` | Daftar ke event Lucky Draw aktif (dapat nomor urut unik) |
+| `POST` | `/lucky-draw/{idIkan}/toggle-entry` | Ikut/batal ikut undian ikan tertentu |
+| `GET` | `/cart`, `/wishlist`, `/profil` | Keranjang, wishlist, profil |
 
-## Code of Conduct
+### Admin (prefix `/admin`)
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+| Method | URL | Deskripsi |
+|---|---|---|
+| `GET` | `/admin/dashboard` | Dasbor analitik |
+| Resource | `/admin/auctions`, `/admin/auction-products` | CRUD event & ikan lelang |
+| Resource | `/admin/lucky-draws`, `/admin/lucky-draw-fishes` | CRUD event & ikan Lucky Draw |
+| Resource | `/admin/products`, `/admin/orders`, `/admin/members` | Manajemen produk, pesanan, member |
+| Resource | `/admin/bot/member`, `/admin/bot/winner` | Manajemen bot untuk simulasi lelang |
 
-## Security Vulnerabilities
+---
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Kontributor
 
-## License
+| Nama | Peran |
+|---|---|
+| Angga Ferdani | Full-stack Developer |
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
->>>>>>> 44ba13a (push kiki baru, tampilan web)
+---
+
+## Lisensi
+
+Project ini bersifat proprietary dan digunakan untuk keperluan internal bisnis Onelito. Seluruh kode sumber, desain, dan aset merupakan milik Onelito dan tidak untuk didistribusikan tanpa izin tertulis.
